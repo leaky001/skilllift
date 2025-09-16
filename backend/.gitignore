@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Uploads directory (contains large files)
+uploads/
+uploads/**
+!uploads/.gitkeep
