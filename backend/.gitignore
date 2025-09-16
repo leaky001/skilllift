@@ -23,6 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.env.backup
+.env.*
 
 # Uploads directory (contains large files)
 uploads/
