@@ -3,12 +3,20 @@ const router = express.Router();
 const {
   applyForMentorship,
   getMentorshipRequests,
-  respondToRequest
+  getLearnerMentorships,
+  updateMentorship,
+  cancelMentorship
 } = require('../controllers/mentorshipController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, authorize } = require('../middleware/authMiddleware');
 
-router.post('/', protect, applyForMentorship); // Corrected function name
-router.get('/', protect, getMentorshipRequests);
-router.put('/:id/respond', protect, respondToRequest);
+// Learner routes
+router.post('/', protect, authorize('learner'), applyForMentorship);
+router.get('/learner', protect, authorize('learner'), getLearnerMentorships);
+router.put('/:id', protect, authorize('learner'), updateMentorship);
+router.put('/:id/cancel', protect, authorize('learner'), cancelMentorship);
+
+// Admin routes
+router.get('/admin', protect, authorize('admin'), getMentorshipRequests);
+router.put('/admin/:id/review', protect, authorize('admin'), updateMentorship);
 
 module.exports = router;

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Authentication</title>
+</head>
+<body>
+    <h1>Authentication Test</h1>
+    <div id="output"></div>
+    
+    <script>
+        // Check localStorage for authentication data
+        const token = localStorage.getItem('token');
+        const userData = localStorage.getItem('skilllift_user');
+        
+        const output = document.getElementById('output');
+        
+        output.innerHTML = `
+            <h2>Authentication Status:</h2>
+            <p><strong>Token:</strong> ${token ? token.substring(0, 50) + '...' : 'No token found'}</p>
+            <p><strong>User Data:</strong> ${userData ? 'Found' : 'No user data found'}</p>
+            <p><strong>User Details:</strong> ${userData ? JSON.stringify(JSON.parse(userData), null, 2) : 'N/A'}</p>
+        `;
+        
+        // Test API call
+        if (token) {
+            fetch('http://localhost:3001/api/courses/tutor/my-courses', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                output.innerHTML += `
+                    <h2>API Response:</h2>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            })
+            .catch(error => {
+                output.innerHTML += `
+                    <h2>API Error:</h2>
+                    <p style="color: red;">${error.message}</p>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>

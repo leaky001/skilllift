@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillLift Design System - Custom Palette</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#EEF2FF',
+                            100: '#E0E7FF',
+                            200: '#C7D2FE',
+                            300: '#A5B4FC',
+                            400: '#818CF8',
+                            500: '#4F46E5', // Main Primary
+                            600: '#4338CA',
+                            700: '#3730A3',
+                            800: '#312E81',
+                            900: '#1E1B4B',
+                        },
+                        secondary: {
+                            50: '#ECFDF5',
+                            100: '#D1FAE5',
+                            200: '#A7F3D0',
+                            300: '#6EE7B7',
+                            400: '#34D399',
+                            500: '#10B981', // Main Secondary
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065F46',
+                            900: '#064E3B',
+                        },
+                        accent: {
+                            50: '#FFFBEB',
+                            100: '#FEF3C7',
+                            200: '#FDE68A',
+                            300: '#FCD34D',
+                            400: '#FBBF24',
+                            500: '#F59E0B', // Main Accent
+                            600: '#D97706',
+                            700: '#B45309',
+                            800: '#92400E',
+                            900: '#78350F',
+                        },
+                        error: {
+                            50: '#FFF1F2',
+                            100: '#FFE4E6',
+                            200: '#FECDD3',
+                            300: '#FDA4AF',
+                            400: '#FB7185',
+                            500: '#F43F5E', // Main Error
+                            600: '#E11D48',
+                            700: '#BE123C',
+                            800: '#9F1239',
+                            900: '#881337',
+                        },
+                        background: {
+                            light: '#F8FAFC', // Slate-50
+                            surface: '#FFFFFF', // White
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">SL</span>
+                    </div>
+                    <h1 class="ml-3 text-xl font-bold text-slate-900">SkillLift Design System</h1>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">Courses</a>
+                    <a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">Tutors</a>
+                    <a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">About</a>
+                </nav>
+                <div class="flex space-x-4">
+                    <button class="text-slate-500 hover:text-indigo-600 transition-colors">Login</button>
+                    <button class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition-colors">Get Started</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-r from-indigo-500 to-emerald-500 py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+                SkillLift Custom Design System
+            </h1>
+            <p class="text-xl text-indigo-100 mb-8 max-w-3xl mx-auto">
+                Professional learning platform with Indigo, Emerald, and Amber color scheme
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button class="bg-white text-indigo-600 hover:bg-indigo-50 px-8 py-3 rounded-lg font-semibold transition-colors">
+                    Browse Courses
+                </button>
+                <button class="border-2 border-white text-white hover:bg-white hover:text-indigo-600 px-8 py-3 rounded-lg font-semibold transition-colors">
+                    Become a Tutor
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Color Palette Section -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-slate-900 mb-12 text-center">Custom Color Palette</h2>
+            
+            <!-- Primary Colors -->
+            <div class="mb-12">
+                <h3 class="text-xl font-semibold text-slate-900 mb-6">Primary Colors (Indigo)</h3>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-indigo-500 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Primary</p>
+                        <p class="text-xs text-slate-500">#4F46E5</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-indigo-400 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Primary Light</p>
+                        <p class="text-xs text-slate-500">#818CF8</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-indigo-600 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Primary Dark</p>
+                        <p class="text-xs text-slate-500">#4338CA</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-indigo-300 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Primary Lighter</p>
+                        <p class="text-xs text-slate-500">#A5B4FC</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-indigo-700 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Primary Darker</p>
+                        <p class="text-xs text-slate-500">#3730A3</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Secondary Colors -->
+            <div class="mb-12">
+                <h3 class="text-xl font-semibold text-slate-900 mb-6">Secondary Colors (Emerald)</h3>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-emerald-500 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Secondary</p>
+                        <p class="text-xs text-slate-500">#10B981</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-emerald-400 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Secondary Light</p>
+                        <p class="text-xs text-slate-500">#34D399</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-emerald-600 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Secondary Dark</p>
+                        <p class="text-xs text-slate-500">#059669</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-emerald-300 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Secondary Lighter</p>
+                        <p class="text-xs text-slate-500">#6EE7B7</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-emerald-700 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Secondary Darker</p>
+                        <p class="text-xs text-slate-500">#047857</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accent Colors -->
+            <div class="mb-12">
+                <h3 class="text-xl font-semibold text-slate-900 mb-6">Accent Colors (Amber)</h3>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-amber-500 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Accent</p>
+                        <p class="text-xs text-slate-500">#F59E0B</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-amber-400 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Accent Light</p>
+                        <p class="text-xs text-slate-500">#FBBF24</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-amber-600 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Accent Dark</p>
+                        <p class="text-xs text-slate-500">#D97706</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-amber-300 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Accent Lighter</p>
+                        <p class="text-xs text-slate-500">#FCD34D</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-amber-700 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Accent Darker</p>
+                        <p class="text-xs text-slate-500">#B45309</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Colors -->
+            <div class="mb-12">
+                <h3 class="text-xl font-semibold text-slate-900 mb-6">Status Colors</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-emerald-500 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Success</p>
+                        <p class="text-xs text-slate-500">#10B981</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-amber-500 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Warning</p>
+                        <p class="text-xs text-slate-500">#F59E0B</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-rose-500 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Error</p>
+                        <p class="text-xs text-slate-500">#F43F5E</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-slate-500 rounded-lg mx-auto mb-2 shadow-sm"></div>
+                        <p class="text-sm font-medium text-slate-900">Neutral</p>
+                        <p class="text-xs text-slate-500">#64748B</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Component Examples -->
+    <section class="py-16 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-slate-900 mb-12 text-center">Component Examples</h2>
+            
+            <!-- Buttons -->
+            <div class="mb-12">
+                <h3 class="text-xl font-semibold text-slate-900 mb-6">Buttons</h3>
+                <div class="flex flex-wrap gap-4">
+                    <button class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm">
+                        Primary Button
+                    </button>
+                    <button class="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm">
+                        Secondary Button
+                    </button>
+                    <button class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm">
+                        Accent Button
+                    </button>
+                    <button class="border-2 border-indigo-500 text-indigo-600 hover:bg-indigo-500 hover:text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                        Outline Button
+                    </button>
+                    <button class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-3 rounded-lg font-semibold transition-colors">
+                        Neutral Button
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cards -->
+            <div class="mb-12">
+                <h3 class="text-xl font-semibold text-slate-900 mb-6">Cards</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Course Card -->
+                    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                        <div class="h-48 bg-gradient-to-r from-indigo-400 to-emerald-400"></div>
+                        <div class="p-6">
+                            <h4 class="text-lg font-semibold text-slate-900 mb-2">Web Development</h4>
+                            <p class="text-slate-500 mb-4">Learn modern web development with React, Node.js, and more.</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-indigo-600 font-semibold">$99</span>
+                                <button class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                    Enroll Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tutor Card -->
+                    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                        <div class="h-48 bg-gradient-to-r from-emerald-400 to-amber-400"></div>
+                        <div class="p-6">
+                            <h4 class="text-lg font-semibold text-slate-900 mb-2">Sarah Johnson</h4>
+                            <p class="text-slate-500 mb-4">Senior Full-Stack Developer with 8+ years experience.</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="flex text-amber-400">
+                                        ★★★★★
+                                    </div>
+                                    <span class="text-slate-500 ml-2">4.9</span>
+                                </div>
+                                <button class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                    View Profile
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Assignment Card -->
+                    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                        <div class="h-48 bg-gradient-to-r from-amber-400 to-indigo-400"></div>
+                        <div class="p-6">
+                            <h4 class="text-lg font-semibold text-slate-900 mb-2">React Project</h4>
+                            <p class="text-slate-500 mb-4">Build a complete React application with modern practices.</p>
+                            <div class="flex items-center justify-between">
+                                <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-sm">Due Tomorrow</span>
+                                <button class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                    Submit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Indicators -->
+            <div class="mb-12">
+                <h3 class="text-xl font-semibold text-slate-900 mb-6">Status Indicators</h3>
+                <div class="flex flex-wrap gap-4">
+                    <span class="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium">Completed</span>
+                    <span class="bg-amber-100 text-amber-700 px-4 py-2 rounded-full text-sm font-medium">In Progress</span>
+                    <span class="bg-rose-100 text-rose-700 px-4 py-2 rounded-full text-sm font-medium">Overdue</span>
+                    <span class="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full text-sm font-medium">New</span>
+                    <span class="bg-slate-100 text-slate-700 px-4 py-2 rounded-full text-sm font-medium">Neutral</span>
+                </div>
+            </div>
+
+            <!-- Form Elements -->
+            <div class="mb-12">
+                <h3 class="text-xl font-semibold text-slate-900 mb-6">Form Elements</h3>
+                <div class="max-w-md">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-slate-900 mb-2">Email Address</label>
+                        <input type="email" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" placeholder="Enter your email">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-slate-900 mb-2">Password</label>
+                        <input type="password" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" placeholder="Enter your password">
+                    </div>
+                    <div class="mb-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                            <span class="ml-2 text-sm text-slate-900">Remember me</span>
+                        </label>
+                    </div>
+                    <button class="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-3 rounded-lg font-semibold transition-colors">
+                        Sign In
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Elements -->
+            <div class="mb-12">
+                <h3 class="text-xl font-semibold text-slate-900 mb-6">Dashboard Elements</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <!-- Stats Card -->
+                    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                <span class="text-indigo-600 text-xl">📚</span>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-2xl font-bold text-slate-900">24</p>
+                                <p class="text-sm text-slate-500">Courses</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Card -->
+                    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                <span class="text-emerald-600 text-xl">✅</span>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-2xl font-bold text-slate-900">85%</p>
+                                <p class="text-sm text-slate-500">Progress</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notification Card -->
+                    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                                <span class="text-amber-600 text-xl">🔔</span>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-2xl font-bold text-slate-900">3</p>
+                                <p class="text-sm text-slate-500">Notifications</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Achievement Card -->
+                    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center">
+                                <span class="text-rose-600 text-xl">🏆</span>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-2xl font-bold text-slate-900">12</p>
+                                <p class="text-sm text-slate-500">Achievements</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dark Mode Preview -->
+    <section class="py-16 bg-slate-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-slate-50 mb-12 text-center">Dark Mode Preview</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Dark Card -->
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-lg">
+                    <h3 class="text-xl font-semibold text-slate-50 mb-4">Course Dashboard</h3>
+                    <p class="text-slate-300 mb-6">Manage your learning journey with our intuitive dashboard.</p>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-300">Web Development</span>
+                            <span class="bg-emerald-500 text-white px-3 py-1 rounded-full text-sm">Completed</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-300">React Advanced</span>
+                            <span class="bg-amber-500 text-white px-3 py-1 rounded-full text-sm">In Progress</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-300">Node.js Backend</span>
+                            <span class="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm">Not Started</span>
+                        </div>
+                    </div>
+                    <button class="w-full mt-6 bg-indigo-500 hover:bg-indigo-600 text-white py-3 rounded-lg font-semibold transition-colors">
+                        Continue Learning
+                    </button>
+                </div>
+
+                <!-- Dark Stats -->
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-lg">
+                    <h3 class="text-xl font-semibold text-slate-50 mb-6">Learning Stats</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-300">Total Hours</span>
+                            <span class="text-slate-50 font-semibold">156h</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-300">Courses Completed</span>
+                            <span class="text-slate-50 font-semibold">8</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-300">Certificates</span>
+                            <span class="text-slate-50 font-semibold">5</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-300">Current Streak</span>
+                            <span class="text-emerald-400 font-semibold">12 days</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">SL</span>
+                        </div>
+                        <h3 class="ml-3 text-lg font-bold text-slate-900">SkillLift</h3>
+                    </div>
+                    <p class="text-slate-500">Empowering learners worldwide with expert-led courses and personalized learning experiences.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-slate-900 mb-4">Platform</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">Courses</a></li>
+                        <li><a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">Tutors</a></li>
+                        <li><a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">Pricing</a></li>
+                        <li><a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">About</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-slate-900 mb-4">Support</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">Help Center</a></li>
+                        <li><a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">Contact Us</a></li>
+                        <li><a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">Community</a></li>
+                        <li><a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">FAQ</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-slate-900 mb-4">Connect</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">Twitter</a></li>
+                        <li><a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">LinkedIn</a></li>
+                        <li><a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">Discord</a></li>
+                        <li><a href="#" class="text-slate-500 hover:text-indigo-600 transition-colors">Blog</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-slate-200 mt-8 pt-8 text-center">
+                <p class="text-slate-500">&copy; 2024 SkillLift. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

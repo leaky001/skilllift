@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Live Class Scheduled</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: #28a745;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #6c757d;
+            font-size: 16px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        .live-class-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+            margin-bottom: 25px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .info-value {
+            color: #007bff;
+        }
+        .meeting-details {
+            background-color: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #b3d9ff;
+            margin-bottom: 25px;
+        }
+        .meeting-link {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 10px 0;
+            transition: background-color 0.3s;
+        }
+        .meeting-link:hover {
+            background-color: #0056b3;
+        }
+        .instructions {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 20px;
+        }
+        .instructions h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .instructions ul {
+            margin-bottom: 0;
+            color: #856404;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .tutor-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .calendar-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        .clock-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        .duration-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🎓 SkillLift</div>
+            <div class="title">🎥 New Live Class Scheduled!</div>
+            <div class="subtitle">Your tutor has scheduled an exciting live session</div>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                Hello <strong>{{name}}</strong>,
+            </div>
+
+            <p>Great news! Your tutor has scheduled a new live class for your enrolled course. Here are the details:</p>
+
+            <div class="live-class-info">
+                <div class="info-row">
+                    <span class="info-label">📚 Course:</span>
+                    <span class="info-value">{{courseTitle}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">🎥 Live Class:</span>
+                    <span class="info-value">{{liveClassTitle}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📅 Date:</span>
+                    <span class="info-value">{{scheduledDate}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">🕐 Time:</span>
+                    <span class="info-value">{{scheduledTime}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">⏱️ Duration:</span>
+                    <span class="info-value">{{duration}} minutes</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">👨‍🏫 Tutor:</span>
+                    <span class="info-value">{{tutorName}}</span>
+                </div>
+            </div>
+
+            <div class="meeting-details">
+                <h3 style="margin-top: 0; color: #007bff;">🔗 Meeting Details</h3>
+                <p><strong>Platform:</strong> {{platform}}</p>
+                {{#if meetingPassword}}
+                <p><strong>Meeting Password:</strong> {{meetingPassword}}</p>
+                {{/if}}
+                
+                <div style="text-align: center; margin: 20px 0;">
+                    <a href="{{meetingLink}}" class="meeting-link">
+                        🚀 Join Live Class Now
+                    </a>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h4>📋 What to do next:</h4>
+                <ul>
+                    <li>Mark your calendar for the scheduled date and time</li>
+                    <li>Test your internet connection before the class</li>
+                    <li>Have your camera and microphone ready</li>
+                    <li>Join the meeting 5 minutes early</li>
+                    <li>Prepare any questions you might have</li>
+                </ul>
+            </div>
+
+            <div class="tutor-info">
+                <h4 style="margin-top: 0;">👨‍🏫 About Your Tutor</h4>
+                <p><strong>{{tutorName}}</strong> is excited to share their knowledge with you in this live session. This is a great opportunity to interact directly and get personalized guidance.</p>
+            </div>
+
+            <p><strong>Description:</strong> {{description}}</p>
+
+            <p style="color: #28a745; font-weight: bold;">
+                🎯 Don't miss this opportunity to learn interactively and ask questions in real-time!
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated notification from SkillLift Learning Platform.</p>
+            <p>If you have any questions, please contact your tutor or our support team.</p>
+            <p style="margin-top: 15px;">
+                <strong>Happy Learning! 🎓</strong>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

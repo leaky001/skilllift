@@ -1,0 +1,57 @@
+// Test registration and login
+const testRegistration = async () => {
+  try {
+    // Test registration
+    const registerResponse = await fetch('http://localhost:5000/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: 'Test Learner',
+        email: 'test@learner.com',
+        password: 'password123',
+        phone: '08012345678',
+        role: 'learner'
+      })
+    });
+
+    const registerData = await registerResponse.json();
+    console.log('Registration response:', registerData);
+
+    if (registerData.success) {
+      console.log('✅ Registration successful!');
+      
+      // Test login
+      const loginResponse = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: 'test@learner.com',
+          password: 'password123',
+          role: 'learner'
+        })
+      });
+
+      const loginData = await loginResponse.json();
+      console.log('Login response:', loginData);
+
+      if (loginData.success) {
+        console.log('✅ Login successful!');
+        console.log('Token:', loginData.data.token);
+      } else {
+        console.log('❌ Login failed:', loginData.message);
+      }
+    } else {
+      console.log('❌ Registration failed:', registerData.message);
+    }
+  } catch (error) {
+    console.error('❌ Error:', error);
+  }
+};
+
+// Run the test
+testRegistration();
+

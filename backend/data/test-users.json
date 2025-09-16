@@ -1,0 +1,16 @@
+[
+  {
+    "_id": "tutor_001",
+    "name": "Dr. Sarah Johnson",
+    "email": "sarah@skilllift.com",
+    "role": "tutor",
+    "avatar": "SJ"
+  },
+  {
+    "_id": "learner_001",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "learner",
+    "avatar": "JD"
+  }
+]
