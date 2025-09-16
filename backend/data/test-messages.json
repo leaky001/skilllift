@@ -1,0 +1,35 @@
+[
+  {
+    "_id": "msg_001",
+    "sender": "tutor_001",
+    "receiver": "learner_001",
+    "subject": "Welcome to SkillLift!",
+    "content": "Welcome to SkillLift! I'm excited to be your tutor. Let's start your learning journey together.",
+    "messageType": "general",
+    "priority": "medium",
+    "isRead": false,
+    "createdAt": "2025-09-11T12:59:26.351Z"
+  },
+  {
+    "_id": "msg_002",
+    "sender": "tutor_001",
+    "receiver": "learner_001",
+    "subject": "Assignment Feedback",
+    "content": "Great work on your last assignment! You're making excellent progress. Keep up the good work!",
+    "messageType": "feedback",
+    "priority": "high",
+    "isRead": false,
+    "createdAt": "2025-09-11T12:59:26.352Z"
+  },
+  {
+    "_id": "msg_003",
+    "sender": "tutor_001",
+    "receiver": "learner_001",
+    "subject": "Upcoming Live Class",
+    "content": "Don't forget about our live class tomorrow at 2 PM. We'll be covering advanced JavaScript concepts.",
+    "messageType": "announcement",
+    "priority": "medium",
+    "isRead": true,
+    "createdAt": "2025-09-11T12:59:26.352Z"
+  }
+]

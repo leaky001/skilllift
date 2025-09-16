@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Authentication Status Checker</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Authentication Status Checker</h1>
+    
+    <div id="auth-status"></div>
+    <div id="api-test"></div>
+    <div id="actions">
+        <button onclick="checkAuth()">🔄 Refresh Check</button>
+        <button onclick="testAPI()">🧪 Test API</button>
+        <button onclick="clearStorage()">🗑️ Clear Storage</button>
+        <button onclick="showInstructions()">📋 Instructions</button>
+    </div>
+    
+    <div id="instructions" style="display: none;">
+        <h2>📋 How to Fix Authentication Issues</h2>
+        <ol>
+            <li><strong>If no token found:</strong> Go to your Skill-Lift app and log in as a tutor</li>
+            <li><strong>If token is invalid:</strong> Log out and log back in</li>
+            <li><strong>If user role is not 'tutor':</strong> Make sure you're logged in with a tutor account</li>
+            <li><strong>If API test fails:</strong> Check if backend server is running on port 3001</li>
+        </ol>
+    </div>
+
+    <script>
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const userData = localStorage.getItem('skilllift_user');
+            const statusDiv = document.getElementById('auth-status');
+            
+            let statusHTML = '<h2>🔍 Authentication Status</h2>';
+            
+            // Check token
+            if (token) {
+                statusHTML += '<div class="status success">✅ Token found in localStorage</div>';
+                statusHTML += `<div class="status info">Token preview: ${token.substring(0, 50)}...</div>`;
+                
+                // Try to decode JWT (basic check)
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    statusHTML += `<div class="status info">Token expires: ${new Date(payload.exp * 1000).toLocaleString()}</div>`;
+                    statusHTML += `<div class="status info">User ID: ${payload.id}</div>`;
+                } catch (e) {
+                    statusHTML += '<div class="status error">❌ Token appears to be malformed</div>';
+                }
+            } else {
+                statusHTML += '<div class="status error">❌ No token found in localStorage</div>';
+            }
+            
+            // Check user data
+            if (userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    statusHTML += '<div class="status success">✅ User data found in localStorage</div>';
+                    statusHTML += `<div class="status info">Name: ${user.name || 'N/A'}</div>`;
+                    statusHTML += `<div class="status info">Email: ${user.email || 'N/A'}</div>`;
+                    statusHTML += `<div class="status info">Role: ${user.role || 'N/A'}</div>`;
+                    
+                    if (user.role !== 'tutor') {
+                        statusHTML += '<div class="status warning">⚠️ User role is not "tutor" - you need to log in as a tutor</div>';
+                    } else {
+                        statusHTML += '<div class="status success">✅ User role is "tutor"</div>';
+                    }
+                } catch (e) {
+                    statusHTML += '<div class="status error">❌ User data is corrupted</div>';
+                }
+            } else {
+                statusHTML += '<div class="status error">❌ No user data found in localStorage</div>';
+            }
+            
+            // Overall status
+            if (token && userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    if (user.role === 'tutor') {
+                        statusHTML += '<div class="status success">🎉 Authentication looks good! You should be able to access tutor courses.</div>';
+                    } else {
+                        statusHTML += '<div class="status warning">⚠️ Authentication found but user role is not "tutor"</div>';
+                    }
+                } catch (e) {
+                    statusHTML += '<div class="status error">❌ Authentication data is corrupted</div>';
+                }
+            } else {
+                statusHTML += '<div class="status error">❌ Authentication incomplete - please log in</div>';
+            }
+            
+            statusDiv.innerHTML = statusHTML;
+        }
+        
+        function testAPI() {
+            const token = localStorage.getItem('token');
+            const apiDiv = document.getElementById('api-test');
+            
+            if (!token) {
+                apiDiv.innerHTML = '<div class="status error">❌ Cannot test API - no token found</div>';
+                return;
+            }
+            
+            apiDiv.innerHTML = '<div class="status info">🧪 Testing API call...</div>';
+            
+            fetch('http://localhost:3001/api/courses/tutor/my-courses', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            })
+            .then(data => {
+                apiDiv.innerHTML = `
+                    <div class="status success">✅ API call successful!</div>
+                    <div class="status info">Response:</div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            })
+            .catch(error => {
+                apiDiv.innerHTML = `
+                    <div class="status error">❌ API call failed: ${error.message}</div>
+                    <div class="status info">This usually means:</div>
+                    <ul>
+                        <li>Token is invalid or expired</li>
+                        <li>User role is not 'tutor'</li>
+                        <li>Backend server is not running</li>
+                    </ul>
+                `;
+            });
+        }
+        
+        function clearStorage() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('skilllift_user');
+            localStorage.removeItem('user');
+            document.getElementById('auth-status').innerHTML = '<div class="status info">🗑️ Storage cleared. Please refresh the page and log in again.</div>';
+            document.getElementById('api-test').innerHTML = '';
+        }
+        
+        function showInstructions() {
+            const instructions = document.getElementById('instructions');
+            instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Run initial check
+        checkAuth();
+    </script>
+</body>
+</html>

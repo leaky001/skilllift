@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Typing Indicator Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .online { background-color: #d4edda; color: #155724; }
+        .typing { background-color: #cce5ff; color: #004085; }
+        .offline { background-color: #f8d7da; color: #721c24; }
+        .dots { display: inline-block; }
+        .dot { width: 4px; height: 4px; background-color: #007bff; border-radius: 50%; display: inline-block; margin: 0 1px; animation: bounce 1s infinite; }
+        .dot:nth-child(2) { animation-delay: 0.1s; }
+        .dot:nth-child(3) { animation-delay: 0.2s; }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Typing Indicator Test</h1>
+    
+    <div class="test-section">
+        <h3>Status Display Test</h3>
+        <div id="status-display" class="status online">Online</div>
+        <button onclick="showTyping()">Show Typing</button>
+        <button onclick="showOnline()">Show Online</button>
+        <button onclick="showOffline()">Show Offline</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Expected Behavior</h3>
+        <ul>
+            <li>When someone starts typing, the status should change from "Online" to "typing..." with animated dots</li>
+            <li>When they stop typing, it should return to "Online"</li>
+            <li>The typing indicator should appear in the chat header, not as a separate bubble</li>
+        </ul>
+    </div>
+
+    <script>
+        function showTyping() {
+            const statusDiv = document.getElementById('status-display');
+            statusDiv.className = 'status typing';
+            statusDiv.innerHTML = `
+                <span style="display: flex; align-items: center;">
+                    <div class="dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                    <span style="margin-left: 8px;">typing...</span>
+                </span>
+            `;
+        }
+
+        function showOnline() {
+            const statusDiv = document.getElementById('status-display');
+            statusDiv.className = 'status online';
+            statusDiv.textContent = 'Online';
+        }
+
+        function showOffline() {
+            const statusDiv = document.getElementById('status-display');
+            statusDiv.className = 'status offline';
+            statusDiv.textContent = 'Offline';
+        }
+    </script>
+</body>
+</html>

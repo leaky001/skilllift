@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Replay Upload Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        input, select, textarea { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+        .file-input { border: 2px dashed #ccc; padding: 20px; text-align: center; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🎥 Replay Upload Test</h1>
+    
+    <div class="test-section info">
+        <h2>📋 Test Instructions</h2>
+        <ol>
+            <li>Fill out the form below with test data</li>
+            <li>Select a video file (any video file will work for testing)</li>
+            <li>Click "Test Upload" to verify the functionality</li>
+            <li>Check the results below</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Test Replay Upload</h2>
+        <form id="testForm">
+            <div>
+                <label>Title *:</label>
+                <input type="text" id="title" value="Test Replay Video" required>
+            </div>
+            
+            <div>
+                <label>Course *:</label>
+                <select id="course" required>
+                    <option value="">Select Course</option>
+                    <option value="Complete Web Development Bootcamp">Complete Web Development Bootcamp</option>
+                    <option value="Advanced React Development">Advanced React Development</option>
+                    <option value="Python for Data Science">Python for Data Science</option>
+                </select>
+            </div>
+            
+            <div>
+                <label>Topic/Subject *:</label>
+                <input type="text" id="topic" value="React Hooks Tutorial" required>
+            </div>
+            
+            <div>
+                <label>Description:</label>
+                <textarea id="description" rows="3">This is a test replay upload to verify the functionality works correctly.</textarea>
+            </div>
+            
+            <div>
+                <label>Type:</label>
+                <select id="type">
+                    <option value="live-recording">Live Recording</option>
+                    <option value="pre-recorded">Pre-recorded</option>
+                    <option value="demo">Demo</option>
+                    <option value="q&a">Q&A</option>
+                </select>
+            </div>
+            
+            <div>
+                <label>Status:</label>
+                <select id="status">
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="private">Private</option>
+                </select>
+            </div>
+            
+            <div>
+                <label>Visibility:</label>
+                <select id="visibility">
+                    <option value="public">Public</option>
+                    <option value="private">Private</option>
+                    <option value="course-only">Course Only</option>
+                </select>
+            </div>
+            
+            <div>
+                <label>Tags:</label>
+                <input type="text" id="tags" value="react, hooks, tutorial, javascript">
+            </div>
+            
+            <div class="file-input">
+                <label>Video File *:</label>
+                <input type="file" id="videoFile" accept="video/*" required>
+                <p>Select any video file for testing</p>
+            </div>
+            
+            <div>
+                <label>
+                    <input type="checkbox" id="isFeatured"> Feature this replay
+                </label>
+            </div>
+            
+            <button type="submit">Test Upload</button>
+        </form>
+    </div>
+
+    <div id="results" class="test-section" style="display: none;">
+        <h2>📊 Test Results</h2>
+        <div id="resultContent"></div>
+    </div>
+
+    <script>
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const resultsDiv = document.getElementById('results');
+            const resultContent = document.getElementById('resultContent');
+            
+            try {
+                // Get form data
+                const formData = new FormData();
+                formData.append('title', document.getElementById('title').value);
+                formData.append('course', document.getElementById('course').value);
+                formData.append('description', document.getElementById('description').value);
+                formData.append('type', document.getElementById('type').value);
+                formData.append('status', document.getElementById('status').value);
+                formData.append('visibility', document.getElementById('visibility').value);
+                formData.append('tags', document.getElementById('tags').value);
+                formData.append('topic', document.getElementById('topic').value);
+                formData.append('isFeatured', document.getElementById('isFeatured').checked);
+                
+                const videoFile = document.getElementById('videoFile').files[0];
+                if (videoFile) {
+                    formData.append('video', videoFile);
+                }
+                
+                // Show loading
+                resultsDiv.style.display = 'block';
+                resultContent.innerHTML = '<p>🔄 Testing upload...</p>';
+                
+                // Test the API call
+                const response = await fetch('http://localhost:3001/api/tutor/live-classes/liveclass_1/replays', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    resultsDiv.className = 'test-section success';
+                    resultContent.innerHTML = `
+                        <h3>✅ Upload Test Successful!</h3>
+                        <p><strong>Response:</strong></p>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                        <p><strong>Uploaded Replay Details:</strong></p>
+                        <ul>
+                            <li><strong>ID:</strong> ${result.data._id}</li>
+                            <li><strong>Title:</strong> ${result.data.title}</li>
+                            <li><strong>Course:</strong> ${result.data.course}</li>
+                            <li><strong>Topic:</strong> ${result.data.topic}</li>
+                            <li><strong>Type:</strong> ${result.data.type}</li>
+                            <li><strong>Status:</strong> ${result.data.status}</li>
+                            <li><strong>Visibility:</strong> ${result.data.visibility}</li>
+                            <li><strong>Tags:</strong> ${result.data.tags.join(', ')}</li>
+                            <li><strong>Featured:</strong> ${result.data.isFeatured ? 'Yes' : 'No'}</li>
+                        </ul>
+                    `;
+                } else {
+                    resultsDiv.className = 'test-section error';
+                    resultContent.innerHTML = `
+                        <h3>❌ Upload Test Failed</h3>
+                        <p><strong>Error:</strong> ${result.message || 'Unknown error'}</p>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                }
+                
+            } catch (error) {
+                resultsDiv.className = 'test-section error';
+                resultContent.innerHTML = `
+                    <h3>❌ Test Error</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p>Make sure the backend server is running on port 3001</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
