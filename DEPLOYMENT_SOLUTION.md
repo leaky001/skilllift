@@ -15,8 +15,9 @@ Your backend uses **Express + Socket.IO + File Uploads**, which are **NOT compat
 
 1. **Sign up at [railway.app](https://railway.app)**
 2. **Connect your GitHub repository**
-3. **Railway will auto-detect your `railway.json` config**
-4. **Add environment variables:**
+3. **When creating the service, set the Root Directory to `backend`**
+4. **Railway will auto-detect your `railway.json` and `nixpacks.toml` configs**
+5. **Add environment variables:**
    ```
    MONGO_URI=mongodb+srv://your-connection-string
    JWT_SECRET=your-jwt-secret
@@ -133,8 +134,30 @@ Your app includes health check endpoints:
 1. Go to [railway.app](https://railway.app)
 2. Click "Deploy from GitHub repo"
 3. Select your SkillLift repository
-4. Railway will auto-detect the configuration
-5. Add your environment variables
-6. Deploy! 🚀
+4. **IMPORTANT: Set Root Directory to `backend`**
+5. Railway will auto-detect the configuration
+6. Add your environment variables
+7. Deploy! 🚀
 
 Your app will be live at `https://your-app-name.railway.app`
+
+## 🔧 Troubleshooting Railway Deployment
+
+### If you get "Nixpacks build failed":
+
+1. **Make sure Root Directory is set to `backend`**
+2. **Check that `backend/package.json` exists**
+3. **Verify `backend/nixpacks.toml` is present**
+4. **Ensure all environment variables are set**
+
+### If you get "No start script found":
+
+1. **Check `backend/package.json` has `"start": "node server.js"`**
+2. **Verify `backend/server.js` exists**
+3. **Make sure all dependencies are in `package.json`**
+
+### If Socket.IO doesn't work:
+
+1. **Check WebSocket URL in frontend**
+2. **Update `VITE_API_URL` to your Railway URL**
+3. **Ensure CORS is configured for your frontend domain**
