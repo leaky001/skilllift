@@ -104,8 +104,19 @@ setTimeout(() => {
   }
 }, 5000); // Wait 5 seconds for DB connection
 
+// Test route to verify server is working
+app.get('/api/test', (req, res) => {
+  res.json({ success: true, message: 'API routes are working!' });
+});
+
 // Routes with enhanced security
-app.use('/api/auth', authLimiter, require('./routes/authRoutes'));
+console.log('🔧 Loading auth routes...');
+try {
+  app.use('/api/auth', authLimiter, require('./routes/authRoutes'));
+  console.log('✅ Auth routes loaded successfully');
+} catch (error) {
+  console.error('❌ Failed to load auth routes:', error);
+}
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/assignments', require('./routes/assignmentRoutes'));
 app.use('/api/assignment-submissions', require('./routes/assignmentSubmissionRoutes'));
