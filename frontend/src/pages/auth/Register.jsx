@@ -5,6 +5,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../../context/AuthContext';
 import { showSuccess, showError, showValidationError } from '../../services/toastService.jsx';
+import MobileDebugger from '../../components/MobileDebugger';
 import { 
   FaGraduationCap, 
   FaUser, 
@@ -65,6 +66,14 @@ const Register = () => {
     validationSchema,
     onSubmit: async (values) => {
       setIsLoading(true);
+      
+      // Mobile debugging
+      console.log('📱 Mobile registration attempt:', {
+        userAgent: navigator.userAgent,
+        isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+        values: { ...values, password: '[HIDDEN]' }
+      });
+      
       try {
         const userData = {
           ...values,
@@ -87,7 +96,25 @@ const Register = () => {
         }
       } catch (error) {
         console.error('Registration error:', error);
-        showError(error.response?.data?.message || 'Registration failed. Please try again.');
+        console.error('Error response:', error.response?.data);
+        console.error('Error status:', error.response?.status);
+        
+        // Handle specific error types
+        if (error.response?.status === 400) {
+          const errorData = error.response.data;
+          if (errorData.errors && Array.isArray(errorData.errors)) {
+            // Show validation errors
+            errorData.errors.forEach(err => {
+              showError(err.msg || err.message || err);
+            });
+          } else {
+            showError(errorData.message || 'Registration failed. Please check your input.');
+          }
+        } else if (error.response?.status === 422) {
+          showError('Validation failed. Please check your input.');
+        } else {
+          showError(error.response?.data?.message || 'Registration failed. Please try again.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -139,6 +166,7 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <MobileDebugger />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
