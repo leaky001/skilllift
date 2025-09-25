@@ -70,13 +70,13 @@ const LearnerDashboard = () => {
 
   const loadDashboardSummary = async () => {
     try {
-      logger.log('🔄 Loading learner dashboard summary...');
+      logger.info('🔄 Loading learner dashboard summary...');
       const response = await learnerDashboardService.getDashboardSummary();
-      logger.log('📊 Dashboard summary response:', response);
+      logger.info('📊 Dashboard summary response:', response);
       if (response.success) {
         setUpcomingSessions(response.data.upcomingSessions || []);
         setRecentAnnouncements(response.data.recentAnnouncements || []);
-        logger.log('✅ Dashboard summary loaded successfully:', response.data);
+        logger.info('✅ Dashboard summary loaded successfully:', response.data);
       } else {
         logger.warn('⚠️ Dashboard summary response not successful:', response.message);
         // Set empty arrays as fallback
