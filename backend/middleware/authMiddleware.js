@@ -3,14 +3,16 @@ const User = require('../models/User');
 // const logger = require('../utils/logger');
 
 exports.protect = async (req, res, next) => {
+  let token = req.headers.authorization?.split(' ')[1];
+  
   console.log('🔐 Auth middleware processing', { 
     url: req.originalUrl, 
     method: req.method,
     hasAuthHeader: !!req.headers.authorization,
-    authHeader: req.headers.authorization ? 'Present' : 'Missing'
+    authHeader: req.headers.authorization ? 'Present' : 'Missing',
+    tokenLength: token?.length,
+    tokenStart: token?.substring(0, 20) + '...'
   });
-  
-  let token = req.headers.authorization?.split(' ')[1];
   
   if (!token) {
     console.warn('❌ Authentication failed: No token provided', { 

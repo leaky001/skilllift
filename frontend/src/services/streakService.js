@@ -78,13 +78,7 @@ export const trackAssignmentSubmission = async (assignmentId, score) => {
   });
 };
 
-export const trackLiveClassAttendance = async (classId, duration) => {
-  return await streakService.trackActivity('live_class_attend', {
-    classId,
-    duration,
-    timestamp: new Date().toISOString()
-  });
-};
+// trackLiveClassAttendance removed - Live class functionality deleted
 
 export const trackReplayWatch = async (replayId, watchDuration) => {
   return await streakService.trackActivity('replay_watch', {

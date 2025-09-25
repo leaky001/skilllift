@@ -14,10 +14,6 @@ import AdminLayout from '../layouts/AdminLayout';
 import LearnerDashboard from '../pages/learner/Dashboard';
 import LearnerCourses from '../pages/learner/Courses';
 import LearnerCourseDetail from '../pages/learner/CourseDetail';
-import LearnerLiveClasses from '../pages/learner/LiveClasses';
-import LearnerLiveClassRoom from '../pages/learner/LearnerLiveClassRoom';
-import BrowseLiveSessions from '../pages/learner/BrowseLiveSessions';
-import LearnerLiveSession from '../pages/learner/LiveSession';
 import LearnerAssignments from '../pages/learner/Assignments';
 import AssignmentSubmission from '../pages/learner/AssignmentSubmission';
 import LearnerReplays from '../pages/learner/Replays';
@@ -31,17 +27,19 @@ import TutorFeedback from '../pages/learner/TutorFeedback';
 import LearnerProfile from '../pages/learner/Profile';
 import LearnerSettings from '../pages/learner/Settings';
 import LearnerComplaints from '../pages/learner/Complaints';
-import LiveSessionPage from '../pages/learner/LiveSessionPage';
+import LearnerCertificates from '../pages/learner/Certificates';
+import LearnerLiveClasses from '../pages/learner/LiveClasses';
+import SharedLiveClassRoom from '../components/liveclass/SharedLiveClassRoom';
 import PaymentVerification from '../pages/PaymentVerification';
 import DashboardDebug from '../pages/DashboardDebug';
 import DashboardTest from '../pages/DashboardTest';
+import VideoChatTest from '../pages/VideoChatTest';
+import StreamConnectionTest from '../pages/StreamConnectionTest';
 
 // Tutor Pages
 import TutorDashboard from '../pages/tutor/Dashboard';
 import TutorCourses from '../pages/tutor/Courses';
 import TutorLearners from '../pages/tutor/Learners';
-import TutorLiveClasses from '../pages/tutor/LiveClasses';
-import LiveClassRoom from '../pages/tutor/LiveClassRoom';
 import TutorAssignments from '../pages/tutor/Assignments';
 import TutorPayments from '../pages/tutor/Payments';
 import TutorReplays from '../pages/tutor/Replays';
@@ -51,12 +49,18 @@ import TutorNotifications from '../pages/tutor/Notifications';
 import TutorProfile from '../pages/tutor/Profile';
 import TutorSettings from '../pages/tutor/Settings';
 import TutorComplaints from '../pages/tutor/Complaints';
+import TutorCertificates from '../pages/tutor/Certificates';
 import KYCSubmission from '../pages/tutor/KYCSubmission';
+
+// Live Class Components
+import TutorLiveClassManagement from '../components/liveclass/TutorLiveClassManagement';
+import LearnerLiveClassRoom from '../components/liveclass/LearnerLiveClassRoom';
+import TutorLiveClasses from '../pages/tutor/LiveClasses';
+import TutorLiveClassRoom from '../components/liveclass/TutorLiveClassRoom';
 
 // Tutor Creation Pages
 import CreateCourse from '../pages/tutor/CreateCourse';
 import CreateAssignment from '../pages/tutor/CreateAssignment';
-import CreateLiveClass from '../pages/tutor/CreateLiveClass';
 import ViewCourse from '../pages/tutor/ViewCourse';
 import EditCourse from '../pages/tutor/EditCourse';
 
@@ -93,9 +97,21 @@ const AppRoutes = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/test" element={<TestPage />} />
+      <Route path="/video-test" element={<VideoChatTest />} />
+      <Route path="/stream-test" element={<StreamConnectionTest />} />
 
       {/* Test admin route for debugging */}
       <Route path="/admin-test" element={<AdminDashboard />} />
+
+      {/* Live Class Routes - BYPASS LAYOUT FOR FULL SCREEN */}
+      <Route
+        path="/live-class/:liveClassId"
+        element={
+          <ProtectedRoute allowedRoles={['learner', 'tutor']}>
+            <SharedLiveClassRoom />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Protected Learner Routes */}
       <Route
@@ -109,11 +125,8 @@ const AppRoutes = () => {
         <Route path="dashboard" element={<LearnerDashboard />} />
         <Route path="courses" element={<LearnerCourses />} />
         <Route path="courses/:courseId" element={<LearnerCourseDetail />} />
+        <Route path="courses/:courseId/live-class" element={<LearnerLiveClassRoom />} />
         <Route path="live-classes" element={<LearnerLiveClasses />} />
-        <Route path="live-classes/:classId/room" element={<LearnerLiveClassRoom />} />
-        <Route path="live-sessions" element={<BrowseLiveSessions />} />
-        <Route path="live-sessions/:sessionId" element={<LearnerLiveSession />} />
-        <Route path="live-session/:sessionId" element={<LiveSessionPage />} />
         <Route path="assignments" element={<LearnerAssignments />} />
         <Route path="assignments/:assignmentId" element={<AssignmentSubmission />} />
         <Route path="replays" element={<LearnerReplays />} />
@@ -125,6 +138,7 @@ const AppRoutes = () => {
         <Route path="messages" element={<LearnerTutorMessaging />} />
         <Route path="complaints" element={<LearnerComplaints />} />
         <Route path="tutor-feedback" element={<TutorFeedback />} />
+        <Route path="certificates" element={<LearnerCertificates />} />
         <Route path="profile" element={<LearnerProfile />} />
         <Route path="settings" element={<LearnerSettings />} />
       </Route>
@@ -139,17 +153,16 @@ const AppRoutes = () => {
         }
       >
         <Route path="dashboard" element={<TutorDashboard />} />
-        <Route path="kyc-submission" element={<KYCSubmission />} />
         <Route path="courses" element={<TutorCourses />} />
+        <Route path="live-classes" element={<TutorLiveClasses />} />
         <Route path="courses/create" element={<CreateCourse />} />
         <Route path="courses/:courseId" element={<ViewCourse />} />
         <Route path="courses/:courseId/edit" element={<EditCourse />} />
-        <Route path="learners" element={<TutorLearners />} />
-        <Route path="live-classes" element={<TutorLiveClasses />} />
-        <Route path="live-classes/:classId/room" element={<LiveClassRoom />} />
-        <Route path="live-classes/create" element={<CreateLiveClass />} />
+        <Route path="courses/:courseId/live-class" element={<TutorLiveClassManagement />} />
+        <Route path="kyc-submission" element={<KYCSubmission />} />
         <Route path="assignments" element={<TutorAssignments />} />
         <Route path="assignments/create" element={<CreateAssignment />} />
+        <Route path="learners" element={<TutorLearners />} />
         <Route path="payments" element={<TutorPayments />} />
         <Route path="replays" element={<TutorReplays />} />
         <Route path="messages" element={<TutorLearnerMessaging />} />
@@ -157,6 +170,7 @@ const AppRoutes = () => {
         <Route path="admin-messages" element={<TutorAdminMessaging />} />
         <Route path="notifications" element={<TutorNotifications />} />
         <Route path="complaints" element={<TutorComplaints />} />
+        <Route path="certificates" element={<TutorCertificates />} />
         <Route path="profile" element={<TutorProfile />} />
         <Route path="settings" element={<TutorSettings />} />
       </Route>
@@ -184,6 +198,7 @@ const AppRoutes = () => {
       
       {/* Dashboard Test Route */}
       <Route path="/dashboard-test" element={<DashboardTest />} />
+      
       
       {/* 404 Route */}
       <Route path="*" element={<NotFound />} />

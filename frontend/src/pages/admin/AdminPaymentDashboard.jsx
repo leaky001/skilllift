@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import * as adminService from '../../services/adminService';
 import { 
   CreditCardIcon, 
   ClockIcon, 
@@ -12,10 +13,8 @@ import {
 
 const AdminPaymentDashboard = () => {
   const [payments, setPayments] = useState([]);
-  const [dueInstallments, setDueInstallments] = useState([]);
   const [statistics, setStatistics] = useState({});
   const [loading, setLoading] = useState(true);
-  const [selectedPayments, setSelectedPayments] = useState([]);
   const [filters, setFilters] = useState({
     status: '',
     paymentType: '',
@@ -26,105 +25,42 @@ const AdminPaymentDashboard = () => {
   // Fetch all payments
   const fetchPayments = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const queryParams = new URLSearchParams();
-      
-      if (filters.status) queryParams.append('status', filters.status);
-      if (filters.paymentType) queryParams.append('paymentType', filters.paymentType);
-      if (filters.startDate) queryParams.append('startDate', filters.startDate);
-      if (filters.endDate) queryParams.append('endDate', filters.endDate);
-
-      const response = await fetch(`http://localhost:3001/api/payments/admin/all?${queryParams}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await adminService.getAllPayments({
+        status: filters.status,
+        paymentType: filters.paymentType,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        page: 1,
+        limit: 50
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setPayments(data.data.payments);
-        setStatistics(data.data.statistics);
+      if (response?.success) {
+        setPayments(response.data.payments || []);
+        setStatistics(response.data.statistics || {});
       } else {
-        console.error('Failed to fetch payments:', response.status);
+        setPayments(response?.data?.payments || []);
+        setStatistics(response?.data?.statistics || {});
       }
     } catch (error) {
       console.error('Error fetching payments:', error);
+      setPayments([]);
+      setStatistics({});
     }
   };
 
-  // Fetch due installments
-  const fetchDueInstallments = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/payments/admin/due-installments?daysAhead=7', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+  // Installments removed – no due installments feature
 
-      if (response.ok) {
-        const data = await response.json();
-        setDueInstallments(data.data.dueInstallments);
-      } else {
-        console.error('Failed to fetch due installments:', response.status);
-      }
-    } catch (error) {
-      console.error('Error fetching due installments:', error);
-    }
-  };
-
-  // Send payment reminders
-  const sendPaymentReminders = async () => {
-    if (selectedPayments.length === 0) {
-      alert('Please select payments to send reminders for');
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/payments/admin/send-reminders', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          paymentIds: selectedPayments,
-          reminderType: 'due_soon'
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        alert(`Payment reminders sent successfully! Notifications: ${data.data.notificationsSent}, Emails: ${data.data.emailsSent}`);
-        setSelectedPayments([]);
-      } else {
-        alert('Failed to send payment reminders');
-      }
-    } catch (error) {
-      console.error('Error sending reminders:', error);
-      alert('Error sending payment reminders');
-    }
-  };
+  // Installments removed – no reminders feature
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchPayments(), fetchDueInstallments()]);
+      await fetchPayments();
       setLoading(false);
     };
     loadData();
   }, [filters]);
-
-  const handlePaymentSelect = (paymentId) => {
-    setSelectedPayments(prev => 
-      prev.includes(paymentId) 
-        ? prev.filter(id => id !== paymentId)
-        : [...prev, paymentId]
-    );
-  };
+  
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-NG', {
@@ -197,44 +133,10 @@ const AdminPaymentDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md border">
-          <div className="flex items-center">
-            <ExclamationTriangleIcon className="h-8 w-8 text-orange-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Due Installments</p>
-              <p className="text-2xl font-bold text-gray-900">{dueInstallments.length}</p>
-            </div>
-          </div>
-        </div>
+        {/* Installments card removed */}
       </div>
 
-      {/* Due Installments Alert */}
-      {dueInstallments.length > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <ExclamationTriangleIcon className="h-6 w-6 text-orange-600 mr-3" />
-              <div>
-                <h3 className="text-lg font-semibold text-orange-800">⚠️ Installments Due Soon</h3>
-                <p className="text-orange-700">
-                  {dueInstallments.length} installment(s) due within 7 days. 
-                  Total amount: {formatCurrency(dueInstallments.reduce((sum, p) => sum + (p.installmentAmount || 0), 0))}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                const duePaymentIds = dueInstallments.map(p => p._id);
-                setSelectedPayments(duePaymentIds);
-                sendPaymentReminders();
-              }}
-              className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
-            >
-              Send Reminders
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Installments removed */}
 
       {/* Filters */}
       <div className="bg-white p-6 rounded-lg shadow-md border mb-6">
@@ -287,25 +189,7 @@ const AdminPaymentDashboard = () => {
       </div>
 
       {/* Bulk Actions */}
-      {selectedPayments.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <BellIcon className="h-6 w-6 text-blue-600 mr-3" />
-              <div>
-                <h3 className="text-lg font-semibold text-blue-800">📢 Bulk Actions</h3>
-                <p className="text-blue-700">{selectedPayments.length} payment(s) selected</p>
-              </div>
-            </div>
-            <button
-              onClick={sendPaymentReminders}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Send Payment Reminders
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Bulk actions removed */}
 
       {/* Payments Table */}
       <div className="bg-white rounded-lg shadow-md border overflow-hidden">
@@ -316,20 +200,7 @@ const AdminPaymentDashboard = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <input
-                    type="checkbox"
-                    checked={selectedPayments.length === payments.length && payments.length > 0}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedPayments(payments.map(p => p._id));
-                      } else {
-                        setSelectedPayments([]);
-                      }
-                    }}
-                    className="rounded border-gray-300"
-                  />
-                </th>
+                {/* Selection removed */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Learner
                 </th>
@@ -359,14 +230,7 @@ const AdminPaymentDashboard = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {payments.map((payment) => (
                 <tr key={payment._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <input
-                      type="checkbox"
-                      checked={selectedPayments.includes(payment._id)}
-                      onChange={() => handlePaymentSelect(payment._id)}
-                      className="rounded border-gray-300"
-                    />
-                  </td>
+                  {/* Selection removed */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
                       {payment.user?.name || 'Guest User'}

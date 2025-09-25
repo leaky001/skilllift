@@ -98,16 +98,7 @@ export const trackAssignmentSubmission = async (learnerId, assignmentId, score) 
   });
 };
 
-export const trackLiveClassAttendance = async (learnerId, classId) => {
-  return await trackActivity({
-    learnerId,
-    activity: {
-      type: 'live_class_attend',
-      classId,
-      points: 10
-    }
-  });
-};
+// trackLiveClassAttendance removed - Live class functionality deleted
 
 export const trackReplayWatching = async (learnerId, replayId, watchDuration) => {
   return await trackActivity({
@@ -141,7 +132,7 @@ export default {
   requestMentorship,
   trackCourseCompletion,
   trackAssignmentSubmission,
-  trackLiveClassAttendance,
+  // trackLiveClassAttendance removed - Live class functionality deleted
   trackReplayWatching,
   trackDailyLogin
 };

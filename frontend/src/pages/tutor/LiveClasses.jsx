@@ -1,422 +1,625 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import * as courseService from '../../services/courseService';
+import { liveClassService } from '../../services/liveClassService';
+import { toast } from 'react-toastify';
 import { 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
-  FaPlay, 
-  FaPause, 
-  FaStop,
-  FaUsers,
-  FaClock,
+  FaVideo, 
+  FaBook, 
+  FaUsers, 
   FaCalendarAlt,
-  FaVideo,
-  FaMicrophone,
-  FaComments,
-  FaShare,
-  FaEye,
-  FaSave,
+  FaPlay,
+  FaPlus,
   FaTimes,
-  FaLink,
-  FaCopy,
-  FaUpload,
-  FaSpinner,
-  FaCheckCircle
+  FaClock,
+  FaStop
 } from 'react-icons/fa';
-import { 
-  getTutorLiveClasses,
-  createLiveClass,
-  updateLiveClass,
-  deleteLiveClass
-} from '../../services/liveClassService';
-import { showSuccess, showError } from '../../services/toastService.jsx';
-import { getThumbnailUrl, getPlaceholderImage } from '../../utils/fileUtils';
 
-const LiveClasses = () => {
-  const [activeTab, setActiveTab] = useState('upcoming');
-  const [selectedClass, setSelectedClass] = useState(null);
+const TutorLiveClasses = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [courses, setCourses] = useState([]);
   const [liveClasses, setLiveClasses] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [isCreating, setIsCreating] = useState(false);
 
-  // Filter classes by status
-  const upcomingClasses = liveClasses.filter(cls => cls.status === 'scheduled' || cls.status === 'upcoming');
-  const ongoingClasses = liveClasses.filter(cls => cls.status === 'ongoing' || cls.status === 'live');
-  const completedClasses = liveClasses.filter(cls => cls.status === 'completed' || cls.status === 'ended');
+  // Form state for live class creation
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    scheduledDate: '',
+    duration: 60,
+    settings: {
+      allowScreenShare: true,
+      allowChat: true,
+      allowLearnerScreenShare: false,
+      maxParticipants: 50,
+      autoRecord: true
+    }
+  });
 
-  // Load live classes data
   useEffect(() => {
-    loadLiveClasses();
+    loadCourses();
   }, []);
 
-  const loadLiveClasses = async () => {
+  const loadCourses = async () => {
     try {
-      setLoading(true);
-      const response = await getTutorLiveClasses();
-      if (response.success) {
-        setLiveClasses(response.data || []);
-      } else {
-        showError('Failed to load live classes');
-      }
+      setIsLoading(true);
+      const response = await courseService.getTutorCourses();
+      setCourses(response.data);
+      
+      // Extract all live classes from courses
+      const allLiveClasses = response.data.flatMap(course => course.liveClasses || []);
+      setLiveClasses(allLiveClasses);
     } catch (error) {
-      console.error('Error loading live classes:', error);
-      showError('Error loading live classes. Please try again.');
+      console.error('Error loading courses:', error);
+      setError('Failed to load courses');
+      toast.error('Failed to load courses');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const classForm = {
-    title: '',
-    description: '',
-    category: '',
-    date: '',
-    time: '',
-    duration: '',
-    maxStudents: '',
-    price: '',
-    thumbnail: null
+  const handleCreateCourse = () => {
+    navigate('/tutor/courses/create');
   };
 
-  const ClassCard = ({ classData, showActions = true }) => (
-    <motion.div
-      whileHover={{ y: -5 }}
-      className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
-    >
-      <div className="relative">
-        <img 
-          src={getThumbnailUrl(classData.course?.thumbnail) || getPlaceholderImage(classData.course?.category) || '/images/default-course.jpg'} 
-          alt={classData.title}
-          className="w-full h-48 object-cover"
-          onError={(e) => {
-            e.target.src = '/images/default-course.jpg';
-          }}
-        />
-        <div className="absolute top-3 right-3 flex space-x-2">
-          {classData.status === 'live' && (
-            <div className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">
-              LIVE
-            </div>
-          )}
-          {showActions && (
-            <>
-              <button className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50">
-                <FaEye className="text-gray-600" />
-              </button>
-              <button 
-                onClick={() => console.log('Edit class:', classData)}
-                className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50"
-              >
-                <FaEdit className="text-gray-600" />
-              </button>
-              <button className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50">
-                <FaTrash className="text-gray-600" />
-              </button>
-            </>
-          )}
-        </div>
-        <div className="absolute bottom-3 left-3 bg-primary-500 text-white px-3 py-1 rounded-full font-bold text-sm">
-          {classData.course?.category || classData.category}
-        </div>
-      </div>
-      
-      <div className="p-6">
-        <h3 className="text-lg font-bold text-slate-900 mb-2 line-clamp-2">{classData.title}</h3>
-        <p className="text-slate-600 text-sm mb-4 line-clamp-2">{classData.description}</p>
-        
-        <div className="grid grid-cols-2 gap-4 mb-4 text-sm text-slate-500">
-          <div className="flex items-center space-x-1">
-            <FaCalendarAlt className="text-primary-500" />
-            <span>{new Date(classData.scheduledDate).toLocaleDateString()}</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <FaClock className="text-primary-500" />
-            <span>{classData.duration} min</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <FaUsers className="text-primary-500" />
-            <span>{classData.attendees?.length || 0}/{classData.maxParticipants}</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <FaVideo className="text-primary-500" />
-            <span>{classData.status}</span>
-          </div>
-        </div>
-        
-        {/* Additional class info */}
-        <div className="flex items-center justify-between mb-4 text-sm">
-          <div className="flex items-center space-x-2">
-            <span className="bg-primary-100 text-primary-800 px-2 py-1 rounded-full font-medium">
-              {classData.level}
-            </span>
-            {classData.price && (
-              <span className="bg-primary-100 text-primary-800 px-2 py-1 rounded-full font-medium">
-                ${classData.price}
-              </span>
-            )}
-          </div>
-          {classData.instructor && (
-            <span className="text-slate-600 font-medium">
-              {classData.instructor}
-            </span>
-          )}
-        </div>
-        
-        {showActions && (
-          <div className="flex space-x-2">
-            {classData.status === 'scheduled' && (
-              <Link
-                to={`/tutor/live-classes/${classData._id}/room`}
-                className="flex-1 bg-primary-500 text-white font-bold py-3 px-4 rounded-xl hover:bg-primary-600 transition-colors flex items-center justify-center space-x-2"
-              >
-                <FaPlay />
-                <span>Start Class</span>
-              </Link>
-            )}
-            {classData.status === 'live' && (
-              <button className="flex-1 bg-red-500 text-white font-bold py-3 px-4 rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center space-x-2">
-                <FaStop />
-                <span>End Class</span>
-              </button>
-            )}
-                         {classData.status === 'completed' && (
-               <div className="flex-1 space-y-2">
-                 <button className="w-full bg-primary-500 text-white font-bold py-2 px-4 rounded-xl hover:bg-primary-600 transition-colors flex items-center justify-center space-x-2">
-                   <FaVideo />
-                   <span>View Recording</span>
-                 </button>
-                 {classData.attendance && (
-                   <div className="text-center text-xs text-slate-500">
-                     Attendance: {classData.attendance}/{classData.enrolledStudents}
-                   </div>
-                 )}
-               </div>
-             )}
-            <button className="px-4 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors">
-              <FaEdit />
-            </button>
-          </div>
-        )}
-      </div>
-    </motion.div>
-  );
+  const handleCreateLiveClass = (course) => {
+    setSelectedCourse(course);
+    setFormData({
+      title: `${course.title} - Live Session`,
+      description: `Live class for ${course.title}`,
+      scheduledDate: '',
+      duration: 60,
+      settings: {
+        allowScreenShare: true,
+        allowChat: true,
+        allowLearnerScreenShare: false,
+        maxParticipants: 50,
+        autoRecord: true
+      }
+    });
+    setShowCreateModal(true);
+  };
 
-  const LiveClassRoom = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden"
-      >
-        <div className="bg-slate-900 text-white p-4 flex items-center justify-between">
-          <h3 className="text-lg font-bold">{selectedClass?.title}</h3>
+  const handleFormChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    
+    if (name.startsWith('settings.')) {
+      const settingName = name.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        settings: {
+          ...prev.settings,
+          [settingName]: type === 'checkbox' ? checked : value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
+    }
+  };
+
+  const handleSubmitLiveClass = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.title.trim()) {
+      toast.error('Please enter a title for the live class');
+      return;
+    }
+
+    if (!formData.scheduledDate) {
+      toast.error('Please select a date and time for the live class');
+      return;
+    }
+
+    try {
+      setIsCreating(true);
+      
+      const liveClassData = {
+        courseId: selectedCourse._id,
+        title: formData.title,
+        description: formData.description,
+        scheduledDate: new Date(formData.scheduledDate),
+        duration: parseInt(formData.duration),
+        settings: formData.settings
+      };
+
+      const response = await liveClassService.createLiveClass(liveClassData);
+      
+      toast.success('Live class created successfully!');
+      setShowCreateModal(false);
+      setSelectedCourse(null);
+      
+      // Reset form
+      setFormData({
+        title: '',
+        description: '',
+        scheduledDate: '',
+        duration: 60,
+        settings: {
+          allowScreenShare: true,
+          allowChat: true,
+          allowLearnerScreenShare: false,
+          maxParticipants: 50,
+          autoRecord: true
+        }
+      });
+
+      // Reload courses to show updated live class count
+      loadCourses();
+      
+    } catch (error) {
+      console.error('Error creating live class:', error);
+      toast.error('Failed to create live class. Please try again.');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+
+  const handleStartLiveClass = async (liveClassId) => {
+    try {
+      console.log('🎯 Starting live class with ID:', liveClassId);
+      // Always use startLiveClass - the backend handles both cases (starting new or joining existing)
+      const response = await liveClassService.startLiveClass(liveClassId);
+      console.log('🎯 API Response:', response);
+      console.log('🎯 Response data:', response.data);
+      
+      // Navigate to full screen live class
+      navigate(`/live-class/${liveClassId}`, {
+        state: {
+          liveClass: {
+            ...response.data.liveClass,
+            callId: response.data.callId,
+            streamToken: response.data.streamToken
+          },
+          streamToken: response.data.streamToken,
+          callId: response.data.callId,
+          sessionId: response.data.sessionId
+        }
+      });
+      
+      toast.success('Live class started! Learners will be notified.');
+      // Reload live classes to update the status
+      loadCourses();
+    } catch (error) {
+      console.error('Error starting live class:', error);
+      toast.error('Failed to start live class');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Courses</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
           <button
-            onClick={() => setSelectedClass(null)}
-            className="p-2 hover:bg-slate-800 rounded-full transition-colors"
+            onClick={loadCourses}
+            className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700"
           >
-            <FaTimes className="text-white" />
+            Try Again
           </button>
         </div>
-        
-        <div className="flex h-96">
-          {/* Main Video Area */}
-          <div className="flex-1 bg-slate-800 flex items-center justify-center">
-            <div className="text-center text-white">
-              <FaVideo className="mx-auto h-16 w-16 text-slate-600 mb-4" />
-              <p className="text-lg">Video feed will appear here</p>
-              <p className="text-sm text-slate-400">Camera and microphone access required</p>
-            </div>
-          </div>
-          
-          {/* Sidebar */}
-          <div className="w-80 bg-slate-100 p-4 space-y-4">
-            {/* Controls */}
-            <div className="space-y-2">
-              <button className="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center space-x-2">
-                <FaStop />
-                <span>End Class</span>
-              </button>
-              <button className="w-full bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors flex items-center justify-center space-x-2">
-                <FaVideo />
-                <span>Record</span>
-              </button>
-              <button className="w-full bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors flex items-center justify-center space-x-2">
-                <FaShare />
-                <span>Share Screen</span>
-              </button>
-              <button className="w-full bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors flex items-center justify-center space-x-2">
-                <FaMicrophone />
-                <span>Mute All</span>
-              </button>
-            </div>
-            
-            {/* Class Info */}
-            <div className="bg-white rounded-lg p-3">
-              <h4 className="font-semibold text-slate-900 mb-2">Class Info</h4>
-              <div className="space-y-1 text-sm text-slate-600">
-                <div>Duration: {selectedClass?.duration}</div>
-                <div>Students: {selectedClass?.attendees?.length || 0}/{selectedClass?.maxParticipants}</div>
-                <div>Category: {selectedClass?.category}</div>
-                <div>Level: {selectedClass?.level}</div>
-              </div>
-            </div>
-            
-            {/* Participants */}
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-2">Participants ({selectedClass?.attendees?.length || 0})</h4>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {Array.from({ length: Number(selectedClass?.attendees?.length) || 0 }, (_, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm bg-white rounded-lg p-2">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center text-white text-xs">
-                        {String.fromCharCode(65 + i)}
-                      </div>
-                      <span className="text-slate-700">Student {i + 1}</span>
-                    </div>
-                    <div className="flex space-x-1">
-                      <button className="p-1 bg-primary-100 text-primary-600 rounded hover:bg-primary-200">
-                        <FaMicrophone className="text-xs" />
-                      </button>
-                      <button className="p-1 bg-primary-100 text-primary-600 rounded hover:bg-primary-200">
-                        <FaVideo className="text-xs" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Chat */}
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-2">Chat</h4>
-              <div className="bg-white border border-slate-300 rounded-lg p-2 h-32 overflow-y-auto">
-                <div className="text-xs text-slate-500 text-center">Chat messages will appear here</div>
-              </div>
-              <div className="flex space-x-2 mt-2">
-                <input
-                  type="text"
-                  placeholder="Type a message..."
-                  className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                />
-                <button className="bg-primary-500 text-white px-3 py-2 rounded-lg hover:bg-primary-600 transition-colors">
-                  <FaComments className="text-sm" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">Live Class Management</h1>
-              <p className="text-slate-600 mt-1">Schedule, host, and manage your live classes</p>
-            </div>
-            <Link
-              to="/tutor/live-classes/create"
-              className="bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold py-3 px-6 rounded-xl hover:from-primary-400 hover:to-primary-500 transition-all duration-200 flex items-center space-x-2"
-            >
-              <FaPlus />
-              <span>Create Class</span>
-            </Link>
-          </div>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Live Classes</h1>
+          <p className="text-gray-600">Manage live classes for your courses</p>
         </div>
+        <button
+          onClick={handleCreateCourse}
+          className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 flex items-center space-x-2"
+        >
+          <FaPlus />
+          <span>Create Course</span>
+        </button>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tabs */}
-        <div className="flex space-x-1 bg-white p-1 rounded-xl shadow-sm mb-8">
-          {['upcoming', 'ongoing', 'completed'].map((tab) => (
+      {/* Courses List */}
+      <div className="space-y-6">
+        {courses.length === 0 ? (
+          <div className="text-center py-12">
+            <FaBook className="text-6xl text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">No Courses Yet</h3>
+            <p className="text-gray-500 mb-6">Create your first course to start managing live classes.</p>
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-                activeTab === tab
-                  ? 'bg-primary-500 text-white shadow-lg'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
+              onClick={handleCreateCourse}
+              className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700"
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)} Classes
+              Create Course
             </button>
-          ))}
-        </div>
-
-        {/* Tab Content */}
-        {activeTab === 'upcoming' && (
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">Upcoming Classes</h2>
-            {upcomingClasses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {upcomingClasses.map((classData) => (
-                  <ClassCard key={classData._id || classData.id} classData={classData} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <FaVideo className="text-6xl text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">No Upcoming Classes</h3>
-                <p className="text-gray-500 mb-6">Create your first live class to get started</p>
-                <Link
-                  to="/tutor/live-classes/create"
-                  className="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-colors"
-                >
-                  Create Class
-                </Link>
-              </div>
-            )}
           </div>
-        )}
+        ) : (
+          courses.map((course) => (
+            <div key={course._id} className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <h3 className="text-xl font-semibold text-gray-900">{course.title}</h3>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      course.status === 'published' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {course.status.charAt(0).toUpperCase() + course.status.slice(1)}
+                    </span>
+                  </div>
+                  
+                  <p className="text-gray-600 mb-4">{course.description}</p>
+                  
+                  <div className="flex items-center space-x-6 text-sm text-gray-500">
+                    <div className="flex items-center space-x-2">
+                      <FaUsers />
+                      <span>{course.enrolledLearners || 0} enrolled</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <FaCalendarAlt />
+                      <span>Created {new Date(course.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <FaVideo />
+                      <span>{course.liveClasses?.length || 0} live classes</span>
+                    </div>
+                  </div>
+                </div>
 
-        {activeTab === 'ongoing' && (
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">Ongoing Classes</h2>
-            {ongoingClasses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {ongoingClasses.map((classData) => (
-                  <ClassCard key={classData._id || classData.id} classData={classData} />
-                ))}
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => handleCreateLiveClass(course)}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2"
+                  >
+                    <FaPlus />
+                    <span>Create Live Class</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => navigate(`/tutor/courses/${course._id}`)}
+                    className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center space-x-2"
+                  >
+                    <FaBook />
+                    <span>View Course</span>
+                  </button>
+                </div>
               </div>
-            ) : (
-              <div className="text-center py-12">
-                <FaPlay className="text-6xl text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">No Ongoing Classes</h3>
-                <p className="text-gray-500">No classes are currently live</p>
-              </div>
-            )}
-          </div>
-        )}
 
-        {activeTab === 'completed' && (
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">Completed Classes</h2>
-            {completedClasses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {completedClasses.map((classData) => (
-                  <ClassCard key={classData._id || classData.id} classData={classData} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <FaCheckCircle className="text-6xl text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">No Completed Classes</h3>
-                <p className="text-gray-500">Completed classes will appear here</p>
-              </div>
-            )}
-          </div>
+              {/* Live Classes for this course */}
+              {course.liveClasses && course.liveClasses.length > 0 && (
+                <div className="mt-4 border-t pt-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Live Classes</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {course.liveClasses.map((liveClass) => (
+                      <div key={liveClass._id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                        {/* Course Image */}
+                        <div className="h-48 bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
+                          <FaBook className="text-6xl text-white opacity-80" />
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              liveClass.status === 'live' 
+                                ? 'bg-green-100 text-green-800' 
+                                : liveClass.status === 'ready'
+                                ? 'bg-blue-100 text-blue-800'
+                                : liveClass.status === 'ended'
+                                ? 'bg-gray-100 text-gray-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {liveClass.status.charAt(0).toUpperCase() + liveClass.status.slice(1)}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              {liveClass.attendees?.length || 0} participants
+                            </span>
+                          </div>
+
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                            {liveClass.title}
+                          </h3>
+
+                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                            {liveClass.description}
+                          </p>
+
+                          <div className="space-y-2 mb-4">
+                            <div className="flex items-center text-sm text-gray-500">
+                              <FaCalendarAlt className="mr-2" />
+                              {new Date(liveClass.scheduledDate).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'short', 
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                              })}
+                            </div>
+                            <div className="flex items-center text-sm text-gray-500">
+                              <FaClock className="mr-2" />
+                              {liveClass.duration} minutes
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => handleStartLiveClass(liveClass._id)}
+                            className={`w-full flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors ${
+                              liveClass.status === 'ready' || liveClass.status === 'scheduled'
+                                ? 'bg-green-600 text-white hover:bg-green-700'
+                                : liveClass.status === 'live'
+                                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            }`}
+                            disabled={liveClass.status === 'ended' || liveClass.status === 'cancelled'}
+                          >
+                            <FaPlay className="mr-2" />
+                            {liveClass.status === 'ready' || liveClass.status === 'scheduled' ? 'Start Live Class' : 
+                             liveClass.status === 'live' ? 'Join Live Class' : 'Not Available'}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
         )}
       </div>
 
-      {/* Live Class Room */}
-      {selectedClass && <LiveClassRoom />}
+      {/* Quick Stats */}
+      {courses.length > 0 && (
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <FaBook className="text-blue-600 text-xl" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Courses</p>
+                <p className="text-2xl font-semibold text-gray-900">{courses.length}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-green-100 rounded-lg">
+                <FaUsers className="text-green-600 text-xl" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Enrollments</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {courses.reduce((total, course) => total + (course.enrolledLearners || 0), 0)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <FaVideo className="text-purple-600 text-xl" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Live Classes</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {courses.reduce((total, course) => total + (course.liveClasses?.length || 0), 0)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Live Class Modal */}
+      {showCreateModal && selectedCourse && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Create Live Class</h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FaTimes className="text-xl" />
+              </button>
+            </div>
+
+            <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+              <h3 className="font-semibold text-blue-900">Course: {selectedCourse.title}</h3>
+              <p className="text-blue-700 text-sm">{selectedCourse.description}</p>
+            </div>
+
+            <form onSubmit={handleSubmitLiveClass} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Live Class Title *
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter live class title"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleFormChange}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter live class description"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Scheduled Date & Time *
+                  </label>
+                  <input
+                    type="datetime-local"
+                    name="scheduledDate"
+                    value={formData.scheduledDate}
+                    onChange={handleFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Duration (minutes)
+                  </label>
+                  <select
+                    name="duration"
+                    value={formData.duration}
+                    onChange={handleFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value={30}>30 minutes</option>
+                    <option value={60}>1 hour</option>
+                    <option value={90}>1.5 hours</option>
+                    <option value={120}>2 hours</option>
+                    <option value={180}>3 hours</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Live Class Settings</h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="settings.allowScreenShare"
+                      checked={formData.settings.allowScreenShare}
+                      onChange={handleFormChange}
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <label className="ml-2 text-sm text-gray-700">
+                      Allow screen sharing
+                    </label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="settings.allowChat"
+                      checked={formData.settings.allowChat}
+                      onChange={handleFormChange}
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <label className="ml-2 text-sm text-gray-700">
+                      Enable chat during class
+                    </label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="settings.allowLearnerScreenShare"
+                      checked={formData.settings.allowLearnerScreenShare}
+                      onChange={handleFormChange}
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <label className="ml-2 text-sm text-gray-700">
+                      Allow learners to share screen
+                    </label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="settings.autoRecord"
+                      checked={formData.settings.autoRecord}
+                      onChange={handleFormChange}
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <label className="ml-2 text-sm text-gray-700">
+                      Automatically record session
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Maximum Participants
+                    </label>
+                    <input
+                      type="number"
+                      name="settings.maxParticipants"
+                      value={formData.settings.maxParticipants}
+                      onChange={handleFormChange}
+                      min="1"
+                      max="100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center space-x-2"
+                >
+                  {isCreating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaVideo />
+                      <span>Create Live Class</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default LiveClasses;
+export default TutorLiveClasses;

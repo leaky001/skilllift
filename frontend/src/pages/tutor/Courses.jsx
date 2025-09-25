@@ -31,7 +31,7 @@ import {
 } from 'react-icons/fa';
 import { getTutorCourses, archiveCourse, restoreCourse, deleteCourse } from '../../services/tutorService';
 import { getTutorAssignments } from '../../services/assignment';
-import { getTutorLiveClasses } from '../../services/liveClassService';
+import { liveClassService } from '../../services/liveClassService';
 import { useAuth } from '../../context/AuthContext';
 import { getThumbnailUrl, getPlaceholderImage } from '../../utils/fileUtils';
 
@@ -41,7 +41,6 @@ const TutorCourses = () => {
   
   const [courses, setCourses] = useState([]);
   const [assignments, setAssignments] = useState([]);
-  const [liveClasses, setLiveClasses] = useState([]);
   
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,8 +48,24 @@ const TutorCourses = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedCourseType, setSelectedCourseType] = useState('all');
   const [showStats, setShowStats] = useState(false);
+  const [showCreateLiveClassModal, setShowCreateLiveClassModal] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [isCreatingLiveClass, setIsCreatingLiveClass] = useState(false);
+
+  // Live class form state
+  const [liveClassFormData, setLiveClassFormData] = useState({
+    title: '',
+    description: '',
+    scheduledDate: '',
+    duration: 60,
+    settings: {
+      allowScreenShare: true,
+      allowChat: true,
+      allowLearnerScreenShare: false,
+      maxParticipants: 50,
+      autoRecord: true
+    }
+  });
 
   // Course categories
   const categories = [
@@ -116,15 +131,6 @@ const TutorCourses = () => {
         console.error('Failed to load assignments:', assignmentsResponse.message);
         showError('Failed to load assignments');
       }
-
-      // Load live classes
-      const liveClassesResponse = await getTutorLiveClasses();
-      if (liveClassesResponse.success) {
-        setLiveClasses(liveClassesResponse.data || []);
-      } else {
-        console.error('Failed to load live classes:', liveClassesResponse.message);
-        showError('Failed to load live classes');
-      }
     } catch (error) {
       console.error('❌ Error loading data:', error);
       console.error('❌ Error details:', error.response?.data);
@@ -174,6 +180,102 @@ const TutorCourses = () => {
         console.error('Error deleting course:', error);
                   showError('Error deleting course');
       }
+    }
+  };
+
+  // Live class functions
+  const handleCreateLiveClass = (course) => {
+    setSelectedCourse(course);
+    setLiveClassFormData({
+      title: `${course.title} - Live Session`,
+      description: `Live class for ${course.title}`,
+      scheduledDate: '',
+      duration: 60,
+      settings: {
+        allowScreenShare: true,
+        allowChat: true,
+        allowLearnerScreenShare: false,
+        maxParticipants: 50,
+        autoRecord: true
+      }
+    });
+    setShowCreateLiveClassModal(true);
+  };
+
+  const handleLiveClassFormChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    
+    if (name.startsWith('settings.')) {
+      const settingName = name.split('.')[1];
+      setLiveClassFormData(prev => ({
+        ...prev,
+        settings: {
+          ...prev.settings,
+          [settingName]: type === 'checkbox' ? checked : value
+        }
+      }));
+    } else {
+      setLiveClassFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
+    }
+  };
+
+  const handleSubmitLiveClass = async (e) => {
+    e.preventDefault();
+    
+    if (!liveClassFormData.title.trim()) {
+      showError('Please enter a title for the live class');
+      return;
+    }
+
+    if (!liveClassFormData.scheduledDate) {
+      showError('Please select a date and time for the live class');
+      return;
+    }
+
+    try {
+      setIsCreatingLiveClass(true);
+      
+      const liveClassData = {
+        courseId: selectedCourse._id,
+        title: liveClassFormData.title,
+        description: liveClassFormData.description,
+        scheduledDate: new Date(liveClassFormData.scheduledDate),
+        duration: parseInt(liveClassFormData.duration),
+        settings: liveClassFormData.settings
+      };
+
+      const response = await liveClassService.createLiveClass(liveClassData);
+      
+      showSuccess('Live class created successfully!');
+      setShowCreateLiveClassModal(false);
+      setSelectedCourse(null);
+      
+      // Reset form
+      setLiveClassFormData({
+        title: '',
+        description: '',
+        scheduledDate: '',
+        duration: 60,
+        settings: {
+          allowScreenShare: true,
+          allowChat: true,
+          allowLearnerScreenShare: false,
+          maxParticipants: 50,
+          autoRecord: true
+        }
+      });
+
+      // Reload courses to show updated live class count
+      loadData();
+      
+    } catch (error) {
+      console.error('Error creating live class:', error);
+      showError('Failed to create live class. Please try again.');
+    } finally {
+      setIsCreatingLiveClass(false);
     }
   };
 
@@ -282,18 +384,7 @@ const TutorCourses = () => {
     return assignments.filter(assignment => assignment.courseId === courseId);
   };
 
-  const getCourseLiveClasses = (courseId) => {
-    return liveClasses.filter(liveClass => liveClass.courseId === courseId);
-  };
-
-  const getCompletedLiveClasses = (courseId) => {
-    return liveClasses.filter(liveClass => 
-      liveClass.courseId === courseId && 
-      liveClass.status === 'completed' && 
-      liveClass.recordings && 
-      liveClass.recordings.length > 0
-    );
-  };
+  // Helper functions removed - live class functionality no longer available
 
   const CourseCard = ({ course }) => {
     try {
@@ -350,12 +441,7 @@ const TutorCourses = () => {
               <FaPlay className="mr-1 h-3 w-3" />
               Live Class
             </span>
-            {getCompletedLiveClasses(course._id).length > 0 && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800 shadow-sm">
-                <FaVideo className="mr-1 h-3 w-3" />
-                Replay
-              </span>
-            )}
+            {/* Live class functionality removed */}
           </div>
         )}
         
@@ -410,15 +496,10 @@ const TutorCourses = () => {
             </span>
             
             {/* Additional info based on course type */}
-            {course.courseType === 'online-live' ? (
-              <span className="text-xs text-neutral-500">
-                • {getCourseLiveClasses(course._id).length} sessions scheduled
-              </span>
-            ) : (
-              <span className="text-xs text-neutral-500">
-                • {course.totalLessons || 0} lessons available
-              </span>
-            )}
+            {/* Live class functionality removed */}
+            <span className="text-xs text-neutral-500">
+              • {course.totalLessons || 0} lessons available
+            </span>
           </div>
         </div>
 
@@ -431,21 +512,13 @@ const TutorCourses = () => {
             <div className="text-xs text-primary-600 font-medium">Students</div>
           </div>
           
-          {course.courseType === 'online-live' ? (
-            <div className="text-center p-3 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200">
-              <div className="text-xl font-bold text-primary-600">
-                {getCourseLiveClasses(course._id).length}
-              </div>
-              <div className="text-xs text-primary-600 font-medium">Live Sessions</div>
-            </div>
-          ) : (
+            {/* Live class functionality removed */}
             <div className="text-center p-3 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200">
               <div className="text-xl font-bold text-primary-600">
                 {course.totalLessons || 0}
               </div>
               <div className="text-xs text-primary-600 font-medium">Lessons</div>
             </div>
-          )}
           
           <div className="text-center p-3 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200">
             <div className="text-xl font-bold text-primary-600">
@@ -471,24 +544,13 @@ const TutorCourses = () => {
               <span className="truncate">{getCourseAssignments(course._id).length} assignments</span>
             </div>
             
-            {course.courseType === 'online-live' ? (
-              <div className="flex items-center space-x-1 min-w-0">
-                <FaPlay className="text-primary-600 flex-shrink-0" />
-                <span className="truncate">{getCourseLiveClasses(course._id).length} live classes</span>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-1 min-w-0">
-                <FaBook className="text-primary-600 flex-shrink-0" />
-                <span className="truncate">{course.totalLessons || 0} lessons</span>
-              </div>
-            )}
+            {/* Live class functionality removed */}
+            <div className="flex items-center space-x-1 min-w-0">
+              <FaBook className="text-primary-600 flex-shrink-0" />
+              <span className="truncate">{course.totalLessons || 0} lessons</span>
+            </div>
             
-            {course.courseType === 'online-live' && getCompletedLiveClasses(course._id).length > 0 && (
-              <div className="flex items-center space-x-1 min-w-0">
-                <FaVideo className="text-primary-600 flex-shrink-0" />
-                <span className="truncate">{getCompletedLiveClasses(course._id).length} replays</span>
-              </div>
-            )}
+            {/* Live class functionality removed */}
           </div>
           <div className="text-sm text-neutral-500 truncate">
             Created {formatDate(course.createdAt)}
@@ -537,38 +599,17 @@ const TutorCourses = () => {
                         <span className="truncate">Assignment</span>
                       </Link>
                       
-                      <Link
-                        to={`/tutor/live-classes/create?courseId=${course._id}&courseTitle=${encodeURIComponent(course.title)}`}
+                      <button
+                        onClick={() => handleCreateLiveClass(course)}
                         className="flex-1 inline-flex items-center justify-center px-2 py-2 text-xs font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-sm min-w-0 course-card-button"
                         title={`Create live class for ${course.title}`}
                       >
                         <FaPlay className="mr-1 h-3 w-3 flex-shrink-0" />
                         <span className="truncate">Live Class</span>
-                      </Link>
+                      </button>
                     </div>
                     
-                    {/* Replay Actions - Only show if there are completed live classes with recordings */}
-                    {getCompletedLiveClasses(course._id).length > 0 && (
-                      <div className="flex space-x-2 min-w-0">
-                        <Link
-                          to={`/tutor/live-classes/${getCompletedLiveClasses(course._id)[0]._id}/recordings`}
-                          className="flex-1 inline-flex items-center justify-center px-2 py-2 text-xs font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-sm min-w-0"
-                          title={`View replays for ${course.title}`}
-                        >
-                          <FaVideo className="mr-1 h-3 w-3 flex-shrink-0" />
-                          <span className="truncate">View Replays</span>
-                        </Link>
-                        
-                        <Link
-                          to={`/tutor/live-classes/${getCompletedLiveClasses(course._id)[0]._id}/upload-recording`}
-                          className="flex-1 inline-flex items-center justify-center px-2 py-2 text-xs font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-sm min-w-0"
-                          title={`Upload more recordings for ${course.title}`}
-                        >
-                          <FaPlus className="mr-1 h-3 w-3 flex-shrink-0" />
-                          <span className="truncate">Upload Recording</span>
-                        </Link>
-                      </div>
-                    )}
+                    {/* Live class functionality removed */}
                   </>
                 ) : (
                   <>
@@ -824,6 +865,193 @@ const TutorCourses = () => {
           </div>
         )}
       </div>
+
+      {/* Create Live Class Modal */}
+      {showCreateLiveClassModal && selectedCourse && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Create Live Class</h2>
+              <button
+                onClick={() => setShowCreateLiveClassModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FaTimes className="text-xl" />
+              </button>
+            </div>
+
+            <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+              <h3 className="font-semibold text-blue-900">Course: {selectedCourse.title}</h3>
+              <p className="text-blue-700 text-sm">{selectedCourse.description}</p>
+            </div>
+
+            <form onSubmit={handleSubmitLiveClass} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Live Class Title *
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={liveClassFormData.title}
+                  onChange={handleLiveClassFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter live class title"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  value={liveClassFormData.description}
+                  onChange={handleLiveClassFormChange}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter live class description"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Scheduled Date & Time *
+                  </label>
+                  <input
+                    type="datetime-local"
+                    name="scheduledDate"
+                    value={liveClassFormData.scheduledDate}
+                    onChange={handleLiveClassFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Duration (minutes)
+                  </label>
+                  <select
+                    name="duration"
+                    value={liveClassFormData.duration}
+                    onChange={handleLiveClassFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value={30}>30 minutes</option>
+                    <option value={60}>1 hour</option>
+                    <option value={90}>1.5 hours</option>
+                    <option value={120}>2 hours</option>
+                    <option value={180}>3 hours</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Live Class Settings</h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="settings.allowScreenShare"
+                      checked={liveClassFormData.settings.allowScreenShare}
+                      onChange={handleLiveClassFormChange}
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <label className="ml-2 text-sm text-gray-700">
+                      Allow screen sharing
+                    </label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="settings.allowChat"
+                      checked={liveClassFormData.settings.allowChat}
+                      onChange={handleLiveClassFormChange}
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <label className="ml-2 text-sm text-gray-700">
+                      Enable chat during class
+                    </label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="settings.allowLearnerScreenShare"
+                      checked={liveClassFormData.settings.allowLearnerScreenShare}
+                      onChange={handleLiveClassFormChange}
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <label className="ml-2 text-sm text-gray-700">
+                      Allow learners to share screen
+                    </label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="settings.autoRecord"
+                      checked={liveClassFormData.settings.autoRecord}
+                      onChange={handleLiveClassFormChange}
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <label className="ml-2 text-sm text-gray-700">
+                      Automatically record session
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Maximum Participants
+                    </label>
+                    <input
+                      type="number"
+                      name="settings.maxParticipants"
+                      value={liveClassFormData.settings.maxParticipants}
+                      onChange={handleLiveClassFormChange}
+                      min="1"
+                      max="100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateLiveClassModal(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreatingLiveClass}
+                  className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center space-x-2"
+                >
+                  {isCreatingLiveClass ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaVideo />
+                      <span>Create Live Class</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

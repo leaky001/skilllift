@@ -20,6 +20,7 @@
   "author": "SkillLift Team",
   "license": "MIT",
   "dependencies": {
+    "@stream-io/node-sdk": "^0.7.0",
     "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^1.41.3",
@@ -38,6 +39,7 @@
     "paystack": "^2.0.1",
     "pdfkit": "^0.17.2",
     "socket.io": "^4.8.1",
+    "stream-chat": "^9.20.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "winston": "^3.11.0",

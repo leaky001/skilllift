@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { FaStar, FaClock, FaBookOpen, FaUser, FaCheckCircle } from 'react-icons/fa';
 import { showSuccess, showError } from '../../services/toastService.jsx';
@@ -14,7 +14,7 @@ const RateCourses = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, []); // Empty dependency array to run only once
 
   const loadData = async () => {
     try {
@@ -71,6 +71,35 @@ const RateCourses = () => {
     ));
   };
 
+  const coursesToRate = useMemo(() => 
+    enrollments.filter(enrollment => {
+      // Check if enrollment exists and has course data
+      if (!enrollment || !enrollment.course || !enrollment.course._id) {
+        console.log('⚠️ Filtering out enrollment with missing course data:', enrollment);
+        return false;
+      }
+      
+      // Check if enrollment is active (be more lenient)
+      const isActive = enrollment.status === 'active' || 
+                      enrollment.status === 'enrolled' ||
+                      enrollment.status === 'approved' ||
+                      enrollment.status === 'completed';
+      
+      // Check if payment is completed (various ways this might be stored)
+      const hasPayment = enrollment.paymentStatus === 'completed' || 
+                        enrollment.hasPayment === true ||
+                        enrollment.payment?.status === 'completed' ||
+                        (typeof enrollment.paymentStatus === 'object' && enrollment.paymentStatus?.status === 'completed') ||
+                        (typeof enrollment.paymentStatus === 'object' && enrollment.paymentStatus?.status === 'success') ||
+                        enrollment.paymentStatus === 'success';
+      
+      console.log(`Course: ${enrollment.course.title}, Status: ${enrollment.status}, Payment: ${JSON.stringify(enrollment.paymentStatus)}, HasPayment: ${enrollment.hasPayment}, Active: ${isActive}, HasPayment: ${hasPayment}`);
+      
+      // Show courses if they're active OR if they have payment completed
+      // This ensures enrolled courses show up for rating
+      return isActive || hasPayment;
+    }), [enrollments]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -78,34 +107,6 @@ const RateCourses = () => {
       </div>
     );
   }
-
-  const coursesToRate = enrollments.filter(enrollment => {
-    // Check if enrollment exists and has course data
-    if (!enrollment || !enrollment.course || !enrollment.course._id) {
-      console.log('⚠️ Filtering out enrollment with missing course data:', enrollment);
-      return false;
-    }
-    
-    // Check if enrollment is active (be more lenient)
-    const isActive = enrollment.status === 'active' || 
-                    enrollment.status === 'enrolled' ||
-                    enrollment.status === 'approved' ||
-                    enrollment.status === 'completed';
-    
-    // Check if payment is completed (various ways this might be stored)
-    const hasPayment = enrollment.paymentStatus === 'completed' || 
-                      enrollment.hasPayment === true ||
-                      enrollment.payment?.status === 'completed' ||
-                      (typeof enrollment.paymentStatus === 'object' && enrollment.paymentStatus?.status === 'completed') ||
-                      (typeof enrollment.paymentStatus === 'object' && enrollment.paymentStatus?.status === 'success') ||
-                      enrollment.paymentStatus === 'success';
-    
-    console.log(`Course: ${enrollment.course.title}, Status: ${enrollment.status}, Payment: ${JSON.stringify(enrollment.paymentStatus)}, HasPayment: ${enrollment.hasPayment}, Active: ${isActive}, HasPayment: ${hasPayment}`);
-    
-    // Show courses if they're active OR if they have payment completed
-    // This ensures enrolled courses show up for rating
-    return isActive || hasPayment;
-  });
 
   console.log('🔍 Debug Info:');
   console.log('- Total enrollments:', enrollments.length);

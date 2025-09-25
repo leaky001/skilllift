@@ -3,7 +3,7 @@ import { showSuccess, showError, showWarning, showInfo } from './toastService.js
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3002/api',
   timeout: 30000, // Increased from 10s to 30s for better reliability
   headers: {
     'Content-Type': 'application/json',

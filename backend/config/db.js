@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    // Use local MongoDB if no MONGO_URI is set
-    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/skilllift';
+    // Prefer MONGO_URI, but also accept legacy MONGODB_URI
+    const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/skilllift';
     
     if (!mongoUri) {
       console.log('⚠️  No MONGO_URI found, using local MongoDB');

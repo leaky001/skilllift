@@ -2,8 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const mongoose = require('mongoose');
+// Load env ASAP
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const connectDB = require('./config/db');
-const { initializeSocketIO } = require('./socketio');
+const initializeSocketIO = require('./socketio');
 const { handleUploadError, cleanupUploads } = require('./middleware/uploadMiddleware');
 const {
   securityHeaders,
@@ -16,7 +19,6 @@ const {
   requestLogger,
   sanitizeErrors
 } = require('./middleware/securityMiddleware');
-require('dotenv').config();
 
 // Enable mock payments for development/testing only
 if (process.env.NODE_ENV === 'development' && !process.env.USE_MOCK_PAYMENT) {
@@ -91,9 +93,15 @@ const cleanupExpiredReplays = async () => {
 };
 
 // Run cleanup immediately and then every hour
+// Temporarily disabled until MongoDB connection is established
 setTimeout(() => {
-  cleanupExpiredReplays();
-  setInterval(cleanupExpiredReplays, 60 * 60 * 1000); // Every hour
+  // Only run cleanup if MongoDB is connected
+  if (mongoose.connection.readyState === 1) {
+    cleanupExpiredReplays();
+    setInterval(cleanupExpiredReplays, 60 * 60 * 1000); // Every hour
+  } else {
+    console.log('⚠️ MongoDB not connected, skipping replay cleanup');
+  }
 }, 5000); // Wait 5 seconds for DB connection
 
 // Routes with enhanced security
@@ -122,20 +130,24 @@ if (process.env.NODE_ENV === 'development') {
   // No rate limiting in development
   app.use('/api/lessons', handleUploadError, cleanupUploads, require('./routes/lessonRoutes'));
   app.use('/api/tutor', handleUploadError, cleanupUploads, require('./routes/tutorRoutes'));
-  app.use('/api/tutor/live-classes', handleUploadError, cleanupUploads, require('./routes/liveClassRoutes'));
 } else {
   // Full rate limiting in production
   app.use('/api/lessons', uploadLimiter, handleUploadError, cleanupUploads, require('./routes/lessonRoutes'));
   app.use('/api/tutor', dashboardLimiter, uploadLimiter, handleUploadError, cleanupUploads, require('./routes/tutorRoutes'));
-  app.use('/api/tutor/live-classes', uploadLimiter, handleUploadError, cleanupUploads, require('./routes/liveClassRoutes'));
 }
+app.use('/api/stream', require('./routes/streamRoutes'));
 app.use('/api/live-classes', require('./routes/liveClassRoutes'));
-app.use('/api/learner', require('./routes/learnerRoutes'));
 app.use('/api/learner/replays', require('./routes/learnerReplayRoutes'));
 app.use('/api/tutor/replays', handleUploadError, cleanupUploads, require('./routes/tutorReplayRoutes'));
 app.use('/api/learner/dashboard', require('./routes/learnerDashboardRoutes'));
 app.use('/api/streaks', require('./routes/streakRoutes'));
 app.use('/api/kyc', require('./routes/kycRoutes'));
+app.use('/api/project-submissions', require('./routes/projectRoutes'));
+app.use('/api/certificates', require('./routes/certificateRoutes'));
+
+app.get('/', (req, res) => {
+    res.json('SkillLift Backend  API is running');
+});
 
 // Download endpoint for files
 app.get('/download/uploads/*', (req, res) => {
@@ -214,7 +226,7 @@ app.use('*', (req, res) => {
   });
 });
 
-const PORT = 3001; // Use a completely different port
+const PORT = 3002; // Use port 3002
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 SkillLift Backend API running on port ${PORT}`);
@@ -232,17 +244,13 @@ const server = app.listen(PORT, () => {
   console.log(`🏫 Classes API: http://localhost:${PORT}/api/classes`);
   console.log(`👨‍💼 Admin API: http://localhost:${PORT}/api/admin`);
   console.log(`💳 Payments API: http://localhost:${PORT}/api/payments`);
-  console.log(`🎥 Live Classes API: http://localhost:${PORT}/api/tutor/live-classes`);
   console.log(`📚 Simple Lessons API: http://localhost:${PORT}/api/simple-lessons`);
 });
 
 // Initialize WebSocket server
 const io = initializeSocketIO(server);
-console.log(`🔌 WebSocket server initialized for live classes`);
+console.log(`🔌 WebSocket server initialized`);
 
-// Pass Socket.IO instance to live class controller
-const { setSocketIO } = require('./controllers/liveClassController');
-setSocketIO(io);
 
 // Pass Socket.IO instance to chat controller
 const { setSocketIO: setChatSocketIO } = require('./controllers/chatController');

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+    </style>
+</head>
+<body>
+    <h1>Assignment API Test</h1>
+    
+    <div class="test-section">
+        <h3>Test Assignment API</h3>
+        <button onclick="testAssignmentAPI()">Test Tutor Assignments API</button>
+        <div id="result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Check Authentication</h3>
+        <button onclick="checkAuth()">Check Current Auth</button>
+        <div id="auth-result" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3002/api';
+        
+        async function testAssignmentAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                // Get token from sessionStorage
+                const tabId = sessionStorage.getItem('skilllift_tab_id') || 'tab_1758665263_abc123';
+                const tokenKey = `skilllift_${tabId}_token`;
+                const userKey = `skilllift_${tabId}_user`;
+                
+                let token = sessionStorage.getItem(tokenKey);
+                if (!token) {
+                    const userData = sessionStorage.getItem(userKey);
+                    if (userData) {
+                        const user = JSON.parse(userData);
+                        token = user.token;
+                    }
+                }
+                
+                console.log('Token found:', !!token);
+                console.log('Token:', token);
+                
+                if (!token) {
+                    resultDiv.innerHTML = '<div class="error">No authentication token found. Please login first.</div>';
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/assignments/tutor/my-assignments`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <strong>Success!</strong><br>
+                            Status: ${response.status}<br>
+                            Assignments: ${data.data ? data.data.length : 0}<br>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <strong>Error!</strong><br>
+                            Status: ${response.status}<br>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <strong>Network Error:</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        function checkAuth() {
+            const authDiv = document.getElementById('auth-result');
+            
+            const tabId = sessionStorage.getItem('skilllift_tab_id') || 'tab_1758665263_abc123';
+            const tokenKey = `skilllift_${tabId}_token`;
+            const userKey = `skilllift_${tabId}_user`;
+            
+            const token = sessionStorage.getItem(tokenKey);
+            const userData = sessionStorage.getItem(userKey);
+            
+            let user = null;
+            if (userData) {
+                try {
+                    user = JSON.parse(userData);
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                }
+            }
+            
+            authDiv.innerHTML = `
+                <div>
+                    <strong>Authentication Status:</strong><br>
+                    Tab ID: ${tabId}<br>
+                    Token Key: ${tokenKey}<br>
+                    Token Found: ${!!token}<br>
+                    User Data Found: ${!!userData}<br>
+                    User Role: ${user ? user.role : 'N/A'}<br>
+                    User Name: ${user ? user.name : 'N/A'}<br>
+                    <br>
+                    <strong>Session Storage Keys:</strong><br>
+                    ${Object.keys(sessionStorage).filter(k => k.includes('skilllift')).join('<br>')}
+                </div>
+            `;
+        }
+        
+        // Auto-check auth on load
+        window.onload = checkAuth;
+    </script>
+</body>
+</html>

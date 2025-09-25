@@ -509,25 +509,7 @@ export const refundPayment = async (paymentId, reason) => {
 };
 
 // ===== LIVE SESSION MANAGEMENT =====
-export const getAllLiveSessions = async (params = {}) => {
-  try {
-    const response = await apiService.get('/admin/live-classes', { params });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching live sessions:', error);
-    throw error;
-  }
-};
-
-export const getLiveSessionStats = async () => {
-  try {
-    const response = await apiService.get('/admin/live-classes/stats');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching live session stats:', error);
-    throw error;
-  }
-};
+// Removed - Live class functionality deleted
 
 // ===== MENTORSHIP MANAGEMENT =====
 export const getAllMentorships = async (params = {}) => {

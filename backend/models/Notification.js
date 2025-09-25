@@ -128,7 +128,10 @@ const notificationSchema = new mongoose.Schema({
     default: null
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  // Ensure no custom id field conflicts
+  _id: true,
+  id: false
 });
 
 // Index for efficient queries
@@ -333,6 +336,14 @@ notificationSchema.statics.getRecent = function(userId, limit = 10) {
 notificationSchema.pre('save', function(next) {
   if (this.isModified('isRead') && this.isRead && !this.readAt) {
     this.readAt = new Date();
+  }
+  next();
+});
+
+// Pre-save middleware to ensure unique notificationId
+notificationSchema.pre('save', function(next) {
+  if (!this.notificationId) {
+    this.notificationId = `NOTIF_${Date.now()}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
   }
   next();
 });

@@ -376,7 +376,7 @@ const LearnerNotifications = () => {
                             <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
                               <p className="text-sm text-blue-800 font-medium mb-2">🎥 Join Live Class:</p>
                               <button
-                                onClick={() => window.location.href = `/learner/live-classes/${notification.data.liveClassId}/room`}
+                                onClick={() => window.location.href = `/tutor/live-classes/${notification.data.liveClassId}/room`}
                                 className="text-sm text-blue-600 hover:text-blue-800 underline block mb-2"
                               >
                                 Click here to join the live class
