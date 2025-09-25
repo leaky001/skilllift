@@ -141,3 +141,4 @@ streamCall.on('call.updated', (event) => {
 - ✅ **No more TypeError** exceptions
 
 **The chat functionality should now work properly with multiple fallback methods!** 💬✨
+
