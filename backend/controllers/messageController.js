@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const Course = require('../models/Course');
+const Enrollment = require('../models/Enrollment');
 const Rating = require('../models/Rating');
 const Notification = require('../models/Notification');
 
@@ -429,46 +430,71 @@ exports.getLearnerTutors = asyncHandler(async (req, res) => {
   }
 
   try {
-    // Get all courses the learner is enrolled in
-    const enrolledCourses = await Course.find({ 
-      enrolledStudents: req.user._id 
-    })
-      .select('_id title tutor')
-      .populate('tutor', 'name email role profilePicture');
+    console.log('🔍 Fetching tutors for learner:', req.user._id);
+    
+    let tutors = [];
+    
+    // Try Enrollment approach first
+    try {
+      const enrollments = await Enrollment.find({ 
+        learner: req.user._id,
+        paymentStatus: 'paid'
+      }).populate('tutor', 'name email role profilePicture');
 
-    // Extract unique tutors from enrolled courses
-    const tutorIds = new Set();
-    const tutors = [];
+      console.log('📚 Found enrollments:', enrollments.length);
 
-    enrolledCourses.forEach(course => {
-      if (course.tutor && !tutorIds.has(course.tutor._id.toString())) {
-        tutorIds.add(course.tutor._id.toString());
-        tutors.push({
-          _id: course.tutor._id,
-          name: course.tutor.name,
-          email: course.tutor.email,
-          role: course.tutor.role,
-          profilePicture: course.tutor.profilePicture,
-          courses: enrolledCourses
-            .filter(c => c.tutor._id.toString() === course.tutor._id.toString())
-            .map(c => ({ _id: c._id, title: c.title }))
-        });
-      }
-    });
+      // Extract unique tutors from enrollments
+      const tutorIds = new Set();
+      enrollments.forEach(enrollment => {
+        if (enrollment.tutor && !tutorIds.has(enrollment.tutor._id.toString())) {
+          tutorIds.add(enrollment.tutor._id.toString());
+          tutors.push({
+            _id: enrollment.tutor._id,
+            name: enrollment.tutor.name,
+            email: enrollment.tutor.email,
+            role: enrollment.tutor.role,
+            profilePicture: enrollment.tutor.profilePicture
+          });
+        }
+      });
+    } catch (enrollmentError) {
+      console.log('⚠️ Enrollment query failed, trying Course approach:', enrollmentError.message);
+      
+      // Fallback to Course approach
+      const enrolledCourses = await Course.find({ 
+        enrolledStudents: req.user._id 
+      }).populate('tutor', 'name email role profilePicture');
 
-    // Sort by name
-    tutors.sort((a, b) => a.name.localeCompare(b.name));
+      console.log('📚 Found courses:', enrolledCourses.length);
+
+      const tutorIds = new Set();
+      enrolledCourses.forEach(course => {
+        if (course.tutor && !tutorIds.has(course.tutor._id.toString())) {
+          tutorIds.add(course.tutor._id.toString());
+          tutors.push({
+            _id: course.tutor._id,
+            name: course.tutor.name,
+            email: course.tutor.email,
+            role: course.tutor.role,
+            profilePicture: course.tutor.profilePicture
+          });
+        }
+      });
+    }
+
+    console.log('👨‍🏫 Found tutors:', tutors.length);
 
     res.json({
       success: true,
       data: tutors,
-      message: `Found ${tutors.length} tutors from ${enrolledCourses.length} enrolled courses`
+      message: `Found ${tutors.length} tutors`
     });
   } catch (error) {
-    console.error('Error fetching learner tutors:', error);
+    console.error('❌ Error fetching learner tutors:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch tutors'
+      message: 'Failed to fetch tutors',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
