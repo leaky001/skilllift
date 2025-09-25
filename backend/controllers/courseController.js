@@ -763,6 +763,11 @@ exports.getTutorCourses = asyncHandler(async (req, res) => {
   
   try {
     const courses = await Course.find({ tutor: req.user._id })
+      .populate({
+        path: 'liveClasses',
+        select: '_id title status scheduledDate duration',
+        options: { sort: { scheduledDate: -1 } }
+      })
       .sort({ createdAt: -1 });
 
     console.log(`✅ Found ${courses.length} courses for tutor`);
@@ -1069,3 +1074,78 @@ exports.getCourseStatistics = asyncHandler(async (req, res) => {
     }
   });
 });
+
+// @desc    Get live classes for a course
+// @route   GET /api/courses/:courseId/live-classes
+// @access  Private
+const getCourseLiveClasses = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const userId = req.user._id;
+
+    // Verify course exists
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    // Check if user has access (tutor or enrolled learner)
+    const isTutor = course.tutor.toString() === userId.toString();
+    let hasAccess = isTutor;
+
+    if (!isTutor) {
+      const Enrollment = require('../models/Enrollment');
+      const enrollment = await Enrollment.findOne({
+        learner: userId,
+        course: courseId,
+        status: 'active'
+      });
+      hasAccess = !!enrollment;
+    }
+
+    if (!hasAccess) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have access to this course'
+      });
+    }
+
+    const LiveClass = require('../models/LiveClass');
+    const liveClasses = await LiveClass.find({ courseId })
+      .populate('tutorId', 'name email')
+      .sort({ scheduledDate: -1 });
+
+    res.status(200).json({
+      success: true,
+      data: liveClasses
+    });
+
+  } catch (error) {
+    console.error('Error fetching course live classes:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch live classes',
+      error: error.message
+    });
+  }
+};
+
+module.exports = {
+  getCourses: exports.getCourses,
+  getCourse: exports.getCourse,
+  getCoursePreview: exports.getCoursePreview,
+  createCourse: exports.createCourse,
+  updateCourse: exports.updateCourse,
+  deleteCourse: exports.deleteCourse,
+  getTutorCourses: exports.getTutorCourses,
+  getTutorCourse: exports.getTutorCourse,
+  getAllCourses: exports.getAllCourses,
+  getCourseStatistics: exports.getCourseStatistics,
+  publishCourse: exports.publishCourse,
+  archiveCourse: exports.archiveCourse,
+  restoreCourse: exports.restoreCourse,
+  getCourseLiveClasses
+};

@@ -211,6 +211,8 @@ export const getAllPayments = async (filters = {}) => {
   }
 };
 
+// Installments removed – no due installments endpoint
+
 export const getAllTransactions = async (filters = {}) => {
   try {
     const queryParams = new URLSearchParams(filters).toString();

@@ -183,7 +183,7 @@ export const deleteCourse = async (courseId) => {
 export const getTutorCourses = async (params = {}) => {
   try {
     console.log('🔄 getTutorCourses called with params:', params);
-    console.log('🌐 API Base URL:', import.meta.env.VITE_API_URL || 'http://localhost:3001/api');
+    console.log('🌐 API Base URL:', import.meta.env.VITE_API_URL || 'http://localhost:3002/api');
     
     const response = await apiService.get('/courses/tutor/my-courses', { params });
     console.log('✅ getTutorCourses response:', response.data);
@@ -319,56 +319,7 @@ export const getAssignmentStats = async (assignmentId) => {
 };
 
 // ===== TUTOR LIVE SESSIONS =====
-
-export const getTutorLiveSessions = async (params = {}) => {
-  try {
-    const response = await apiService.get('/tutor/live-classes', { params });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching live sessions:', error);
-    throw error;
-  }
-};
-
-export const createLiveSession = async (sessionData) => {
-  try {
-    const response = await apiService.post('/tutor/live-classes', sessionData);
-    return response.data;
-  } catch (error) {
-    console.error('Error creating live session:', error);
-    throw error;
-  }
-};
-
-export const updateLiveSession = async (sessionId, sessionData) => {
-  try {
-    const response = await apiService.put(`/tutor/live-classes/${sessionId}`, sessionData);
-    return response.data;
-  } catch (error) {
-    console.error('Error updating live session:', error);
-    throw error;
-  }
-};
-
-export const deleteLiveSession = async (sessionId) => {
-  try {
-    const response = await apiService.delete(`/tutor/live-classes/${sessionId}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error deleting live session:', error);
-    throw error;
-  }
-};
-
-export const getLiveSessionParticipants = async (sessionId) => {
-  try {
-    const response = await apiService.get(`/tutor/live-classes/${sessionId}/participants`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching session participants:', error);
-    throw error;
-  }
-};
+// Removed - Live class functionality deleted
 
 // ===== TUTOR PAYMENTS & EARNINGS =====
 
@@ -524,19 +475,6 @@ export const getTutorReplays = async (params = {}) => {
   }
 };
 
-export const uploadReplay = async (sessionId, replayData) => {
-  try {
-    const response = await apiService.post(`/tutor/live-classes/${sessionId}/replays`, replayData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error uploading replay:', error);
-    throw error;
-  }
-};
 
 export const updateReplay = async (replayId, updateData) => {
   try {

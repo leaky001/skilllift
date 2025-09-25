@@ -1,99 +1,65 @@
 const express = require('express');
 const router = express.Router();
+const { protect, authorize } = require('../middleware/authMiddleware');
 const {
   createLiveClass,
-  getTutorLiveClasses,
-  getLiveClass,
-  getLiveClassById,
   startLiveClass,
-  endLiveClass,
   joinLiveClass,
-  getLearnerLiveClasses,
-  debugLiveClass,
-  canJoinLiveClass
+  joinLiveClassAsTutor,
+  endLiveClass,
+  getLiveClass,
+  getLiveClasses,
+  getCourseLiveClasses,
+  sendChatMessage,
+  getChatMessages
 } = require('../controllers/liveClassController');
-const { protect, authorize } = require('../middleware/authMiddleware');
 
 // Apply authentication middleware to all routes
 router.use(protect);
 
-// Live class CRUD operations
-router.route('/')
-  .post(authorize('tutor'), createLiveClass)
-  .get(authorize('tutor'), getTutorLiveClasses);
+// @desc    Create a new live class
+// @route   POST /api/live-classes
+// @access  Private (Tutor)
+router.post('/', authorize('tutor'), createLiveClass);
 
-router.route('/:id')
-  .get(getLiveClassById);
+// @desc    Get all live classes for enrolled courses (learner)
+// @route   GET /api/live-classes
+// @access  Private (Learner)
+router.get('/', authorize('learner'), getLiveClasses);
 
-// Live class management
+// @desc    Get live class details
+// @route   GET /api/live-classes/:id
+// @access  Private
+router.get('/:id', getLiveClass);
+
+// @desc    Start a live class
+// @route   POST /api/live-classes/:id/start
+// @access  Private (Tutor)
 router.post('/:id/start', authorize('tutor'), startLiveClass);
-router.post('/:id/end', authorize('tutor'), endLiveClass);
-router.get('/:id/debug', authorize('tutor'), debugLiveClass);
-router.get('/:id/can-join', canJoinLiveClass);
 
-// Replay management
-router.post('/:liveClassId/replays', async (req, res) => {
-  try {
-    const { liveClassId } = req.params;
-    const { title, course, description, type, status, visibility, tags, topic, isFeatured } = req.body;
-    
-    if (!title || !course || !topic) {
-      return res.status(400).json({
-        success: false,
-        message: 'Title, course, and topic are required'
-      });
-    }
-    
-    // Create comprehensive replay record
-    const replay = {
-      _id: `replay_${Date.now()}`,
-      liveClassId: liveClassId,
-      courseId: course,
-      title: title,
-      course: course,
-      description: description || '',
-      type: type || 'live-recording',
-      status: status || 'draft',
-      visibility: visibility || 'course-only',
-      tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
-      topic: topic,
-      isFeatured: isFeatured === 'true' || isFeatured === true,
-      recordingUrl: 'https://example.com/uploaded-video.mp4', // In real app, this would be the uploaded file URL
-      thumbnail: 'https://example.com/uploaded-thumbnail.jpg', // In real app, this would be the uploaded thumbnail URL
-      transcript: 'https://example.com/uploaded-transcript.txt', // In real app, this would be the uploaded transcript URL
-      duration: Math.floor(Math.random() * 120) + 30, // Random duration between 30-150 minutes
-      fileSize: `${(Math.random() * 3 + 1).toFixed(1)} GB`,
-      uploadDate: new Date().toISOString(),
-      views: 0,
-      likes: 0,
-      accessCount: 0,
-      quality: '1080p',
-      subtitles: 'English'
-    };
-    
-    console.log('✅ Replay uploaded successfully:', {
-      id: replay._id,
-      title: replay.title,
-      course: replay.course,
-      topic: replay.topic,
-      type: replay.type,
-      status: replay.status
-    });
-    
-    res.json({
-      success: true,
-      data: replay,
-      message: 'Replay uploaded successfully'
-    });
-    
-  } catch (error) {
-    console.error('Error uploading replay:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to upload replay',
-      error: error.message
-    });
-  }
-});
+// @desc    Join a live class (for tutors)
+// @route   POST /api/live-classes/:id/join-tutor
+// @access  Private (Tutor)
+router.post('/:id/join-tutor', authorize('tutor'), joinLiveClassAsTutor);
+
+// @desc    Join a live class
+// @route   POST /api/live-classes/:id/join
+// @access  Private (Learner)
+router.post('/:id/join', authorize('learner'), joinLiveClass);
+
+// @desc    End a live class
+// @route   POST /api/live-classes/:id/end
+// @access  Private (Tutor)
+router.post('/:id/end', authorize('tutor'), endLiveClass);
+
+// @desc    Send chat message
+// @route   POST /api/live-classes/:id/chat
+// @access  Private
+router.post('/:id/chat', sendChatMessage);
+
+// @desc    Get chat messages
+// @route   GET /api/live-classes/:id/chat
+// @access  Private
+router.get('/:id/chat', getChatMessages);
 
 module.exports = router;

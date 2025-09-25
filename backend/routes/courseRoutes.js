@@ -7,8 +7,6 @@ const { upload } = require('../middleware/uploadMiddleware');
 
 
 router.get('/', courseController.getCourses);
-router.get('/:id', courseController.getCourse);
-router.get('/:id/preview', courseController.getCoursePreview);
 
 // Authenticated routes
 router.use(protect);
@@ -37,5 +35,12 @@ router.delete('/:id', authorize('tutor'), requireKYCApproval, courseController.d
 router.post('/:id/publish', authorize('tutor'), requireKYCApproval, courseController.publishCourse);
 router.post('/:id/archive', authorize('tutor'), requireKYCApproval, courseController.archiveCourse);
 router.post('/:id/restore', authorize('tutor'), courseController.restoreCourse);
+
+// Wildcard routes (must be last to avoid conflicts)
+router.get('/:id', courseController.getCourse);
+router.get('/:id/preview', courseController.getCoursePreview);
+
+// Live classes routes
+router.get('/:courseId/live-classes', courseController.getCourseLiveClasses);
 
 module.exports = router;

@@ -6,6 +6,7 @@ import { MentorshipProvider } from '../context/MentorshipContext';
 import { PaymentProvider } from '../context/PaymentContext';
 import { EmailVerificationProvider } from '../context/EmailVerificationContext';
 import AppRoutes from '../routes/AppRoutes';
+import LiveClassNotification from './liveclass/LiveClassNotification';
 import 'react-toastify/dist/ReactToastify.css';
 
 const AppContent = () => {
@@ -17,6 +18,7 @@ const AppContent = () => {
             <EmailVerificationProvider>
                 <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
                   <AppRoutes />
+                  <LiveClassNotification />
                   <ToastContainer
                     position="top-right"
                     autoClose={5000}

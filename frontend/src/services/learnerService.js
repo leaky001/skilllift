@@ -14,15 +14,7 @@ export const getMyEnrollments = async () => {
 };
 
 // Get learner's live classes
-export const getMyLiveClasses = async () => {
-  try {
-    const response = await apiService.get('/live-classes/learner/classes');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching live classes:', error);
-    throw error;
-  }
-};
+// Removed - Live class functionality deleted
 
 // ===== ASSIGNMENT SERVICES =====
 

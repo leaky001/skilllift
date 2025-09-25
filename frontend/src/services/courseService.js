@@ -67,9 +67,9 @@ export const getMyCourses = async (params = {}) => {
   }
 };
 
-export const getTutorCourses = async (tutorId, params = {}) => {
+export const getTutorCourses = async (params = {}) => {
   try {
-    const response = await apiService.get(`/courses/tutor/${tutorId}`, { params });
+    const response = await apiService.get('/courses/tutor/my-courses', { params });
     return response.data;
   } catch (error) {
     console.error('Error fetching tutor courses:', error);

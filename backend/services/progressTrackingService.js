@@ -16,10 +16,9 @@ const calculateMentorshipScore = (learnerData) => {
   const streakBonus = Math.min(learnerData.streak * 2, 40); // Max 40 points for streak
   score += streakBonus;
   
-  // Engagement (15% of score)
-  const liveClassAttendance = (learnerData.attendedLiveClasses / learnerData.totalLiveClasses) * 100;
+  // Engagement (15% of score) - Live class attendance removed
   const replayWatching = (learnerData.watchedReplays / learnerData.totalReplays) * 100;
-  const engagementScore = (liveClassAttendance + replayWatching) / 2;
+  const engagementScore = replayWatching; // Only replay watching now
   score += (engagementScore * 0.15);
   
   return Math.round(score);
@@ -29,20 +28,20 @@ const checkCertificateEligibility = (courseData) => {
   const requirements = {
     minCompletionRate: 80, // Must complete 80% of course content
     minAssignmentScore: 70, // Must average 70% on assignments
-    minLiveClassAttendance: 60, // Must attend 60% of live classes
+    // minLiveClassAttendance removed - Live class functionality deleted
     minReplayWatching: 50 // Must watch 50% of replays
   };
   
   return {
     eligible: courseData.completionRate >= requirements.minCompletionRate &&
               courseData.avgAssignmentScore >= requirements.minAssignmentScore &&
-              courseData.liveClassAttendance >= requirements.minLiveClassAttendance &&
+              // liveClassAttendance removed - Live class functionality deleted
               courseData.replayWatching >= requirements.minReplayWatching,
     requirements,
     currentProgress: {
       completionRate: courseData.completionRate,
       avgAssignmentScore: courseData.avgAssignmentScore,
-      liveClassAttendance: courseData.liveClassAttendance,
+      // liveClassAttendance removed - Live class functionality deleted
       replayWatching: courseData.replayWatching
     }
   };

@@ -23,16 +23,16 @@ import {
 } from 'react-icons/fa';
 import { getCourses, enrollInCourse } from '../../services/courseService';
 import { checkEnrollmentStatus } from '../../services/courseService';
-import { getRecordings } from '../../services/liveClassService';
 import { useAuth } from '../../context/AuthContext';
 import { getThumbnailUrl, getPlaceholderImage, getCSSPlaceholder } from '../../utils/fileUtils';
 import PaymentModal from '../../components/PaymentModal';
 
 const LearnerCourses = () => {
+  console.log('🎯 LearnerCourses component rendering...');
   const { user, isAuthenticated, isInitialized } = useAuth();
+  console.log('🎯 Auth state:', { user, isAuthenticated, isInitialized });
   const [searchParams, setSearchParams] = useSearchParams();
   const [courses, setCourses] = useState([]);
-  const [liveClassRecordings, setLiveClassRecordings] = useState({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -74,6 +74,7 @@ const LearnerCourses = () => {
   ];
 
   useEffect(() => {
+    console.log('🎯 useEffect: Loading courses...');
     loadCourses();
   }, []);
 
@@ -115,23 +116,27 @@ const LearnerCourses = () => {
   const loadCourses = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Loading courses...');
       const response = await getCourses({
         status: 'published',
         isApproved: true
       });
       
+      console.log('📚 Courses API response:', response);
+      
       if (response.success) {
-        console.log('📚 Courses loaded:', response.data?.length || 0);
+        console.log('📚 Courses loaded successfully:', response.data?.length || 0);
         response.data?.forEach(course => {
           console.log(`  - ${course.title}: rating=${course.rating}, totalRatings=${course.totalRatings}`);
         });
         setCourses(response.data || []);
       } else {
-        console.error('Failed to load courses:', response.message);
-        showError('Failed to load courses');
+        console.error('❌ Failed to load courses:', response.message);
+        showError('Failed to load courses: ' + (response.message || 'Unknown error'));
       }
     } catch (error) {
-      console.error('Error loading courses:', error);
+      console.error('❌ Error loading courses:', error);
+      console.error('❌ Error details:', error.message, error.stack);
       showServerError();
     } finally {
       setLoading(false);
@@ -292,17 +297,6 @@ const LearnerCourses = () => {
         return 'Physical Class';
       default:
         return format;
-    }
-  };
-
-  const checkLiveClassRecordings = async (courseId) => {
-    try {
-      // This would need to be implemented based on your API structure
-      // For now, we'll simulate checking for recordings
-      return false; // Placeholder
-    } catch (error) {
-      console.error('Error checking live class recordings:', error);
-      return false;
     }
   };
 
@@ -522,6 +516,35 @@ const LearnerCourses = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-primary-50 p-6">
+      {/* Debug Information */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <h3 className="font-semibold text-blue-800 mb-2">🔍 Debug Information:</h3>
+        <div className="text-sm text-blue-700 space-y-1">
+          <div>• Authentication: {isAuthenticated ? '✅ Logged In' : '❌ Not Logged In'}</div>
+          <div>• User: {user ? user.name : 'No user'}</div>
+          <div>• Loading: {loading ? '⏳ Loading...' : '✅ Loaded'}</div>
+          <div>• Courses Count: {courses.length}</div>
+          <div>• Filtered Courses: {filteredCourses.length}</div>
+        </div>
+        <div className="mt-4">
+          <button 
+            onClick={loadCourses}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            🔄 Reload Courses
+          </button>
+          <button 
+            onClick={() => {
+              console.log('🔍 Current state:', { courses, loading, isAuthenticated, user });
+              console.log('🔍 API URL:', import.meta.env.VITE_API_URL || 'http://localhost:3002/api');
+            }}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors ml-2"
+          >
+            📊 Log State
+          </button>
+        </div>
+      </div>
+
       {/* Debug Authentication Button */}
       {!isAuthenticated && (
         <div className="bg-accent-100 border border-accent-400 text-accent-700 px-4 py-3 rounded mb-4">

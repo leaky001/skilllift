@@ -25,7 +25,7 @@ class WebSocketService {
     }
 
     this.token = token;
-    const serverUrl = import.meta.env.VITE_WS_URL || 'http://localhost:3001';
+    const serverUrl = import.meta.env.VITE_WS_URL || 'http://localhost:3002';
     
     console.log('🔌 Attempting to connect to Socket.IO server:', serverUrl);
     console.log('🔌 Token available:', !!token);
@@ -138,21 +138,7 @@ class WebSocketService {
       this.emit('hand-raise-update', data);
     });
 
-    // Live class start event - dispatch as DOM event for LiveClasses component
-    this.socket.on('live-class-started', (data) => {
-      console.log('🔔 Received live-class-started event:', data);
-      // Dispatch as DOM event for LiveClasses component to listen
-      window.dispatchEvent(new CustomEvent('live-class-started', { detail: data }));
-      this.emit('live-class-started', data);
-    });
-
-    // Live class end event - dispatch as DOM event for LiveClasses component
-    this.socket.on('live-class-ended', (data) => {
-      console.log('🏁 Received live-class-ended event:', data);
-      // Dispatch as DOM event for LiveClasses component to listen
-      window.dispatchEvent(new CustomEvent('live-class-ended', { detail: data }));
-      this.emit('live-class-ended', data);
-    });
+    // Live class events removed - Live class functionality deleted
   }
 
   disconnect() {

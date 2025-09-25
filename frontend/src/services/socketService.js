@@ -21,7 +21,7 @@ class SocketService {
 
     console.log('🔌 Connecting to WebSocket server with token...');
     
-    this.socket = io('http://localhost:3001', {
+    this.socket = io('http://localhost:3002', {
       auth: {
         token: token
       },

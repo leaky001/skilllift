@@ -66,7 +66,7 @@ const TutorProfile = () => {
         // Construct full URL if it's a relative path
         let profilePicUrl = userData.profilePicture;
         if (profilePicUrl && !profilePicUrl.startsWith('http')) {
-          profilePicUrl = `http://localhost:3001${profilePicUrl}`;
+          profilePicUrl = `http://localhost:3002${profilePicUrl}`;
         }
         console.log('Constructed profile picture URL:', profilePicUrl);
         setProfilePicturePreview(profilePicUrl || null);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 import { 
   FaPlus, 
   FaEdit, 
@@ -26,88 +27,515 @@ import {
 } from 'react-icons/fa';
 import { 
   getTutorCertificates,
-  generateCertificate
+  generateCertificate,
+  getTutorCourses,
+  getTutorLearners
 } from '../../services/tutorService';
-import { showSuccess, showError } from '../../services/toastService.jsx';
 
 const TutorCertificates = () => {
+  console.log('🎓 TutorCertificates component loaded!');
+  
+  const { user } = useAuth();
+
+  // State management
   const [activeTab, setActiveTab] = useState('all');
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [editingCertificate, setEditingCertificate] = useState(null);
-  const [selectedCertificate, setSelectedCertificate] = useState(null);
+  const [certificates, setCertificates] = useState([]);
+  const [filteredCertificates, setFilteredCertificates] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCourse, setSelectedCourse] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
-  const [certificates, setCertificates] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [selectedCertificate, setSelectedCertificate] = useState(null);
+  const [editingCertificate, setEditingCertificate] = useState(null);
   const [generating, setGenerating] = useState(false);
+  const [projectSubmissions, setProjectSubmissions] = useState([]);
+  const [learnerSubmissions, setLearnerSubmissions] = useState([]);
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
+  const [newProject, setNewProject] = useState({
+    title: '',
+    description: '',
+    requirements: '',
+    deadline: '',
+    courseId: ''
+  });
+  const [courses, setCourses] = useState([]);
+  const [enrolledStudents, setEnrolledStudents] = useState([]);
+  const [review, setReview] = useState({
+    status: 'approved',
+    grade: '',
+    feedback: ''
+  });
+  const [showCertificateForm, setShowCertificateForm] = useState(false);
+  const [certificateForm, setCertificateForm] = useState({
+    studentName: '',
+    studentEmail: '',
+    courseName: '',
+    grade: '',
+    completionDate: '',
+    notes: ''
+  });
 
-  // Load certificates data
-  useEffect(() => {
-    loadCertificates();
-  }, []);
+  // No mock data - using real API calls only
 
+  // Helper function to get auth token
+  const getAuthToken = () => {
+    // Get tab ID for tab-specific storage
+    const getTabId = () => {
+      let tabId = sessionStorage.getItem('skilllift_tab_id');
+      if (!tabId) {
+        tabId = `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        sessionStorage.setItem('skilllift_tab_id', tabId);
+      }
+      return tabId;
+    };
+
+    const getStorageKey = (key) => {
+      const tabId = getTabId();
+      return `skilllift_${tabId}_${key}`;
+    };
+
+    // Try tab-specific sessionStorage first (current auth system)
+    const sessionToken = sessionStorage.getItem(getStorageKey('token'));
+    if (sessionToken) {
+      console.log('🔑 Found tab-specific token');
+      return sessionToken;
+    }
+    
+    // Try to get from user data
+    const userData = sessionStorage.getItem(getStorageKey('user'));
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        if (user.token) {
+          console.log('🔑 Found token in user data');
+          return user.token;
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+    
+    // Fallback to localStorage (old system)
+    const localToken = localStorage.getItem('token');
+    if (localToken) {
+      console.log('🔑 Found localStorage token');
+      return localToken;
+    }
+    
+    console.log('❌ No token found');
+    return null;
+  };
+
+  // Load data functions
   const loadCertificates = async () => {
     try {
       setLoading(true);
-      const response = await getTutorCertificates();
-      if (response.success) {
-        setCertificates(response.data || []);
+      console.log('🔄 Loading tutor certificates...');
+      
+      const token = getAuthToken();
+      if (!token) {
+        console.log('❌ No auth token found');
+        setCertificates([]);
+        return;
+      }
+
+      const response = await fetch('http://localhost:3002/api/certificates/tutor', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Tutor certificates loaded:', result);
+        setCertificates(result.certificates || []);
+      } else {
+        console.log('⚠️ No certificates found or error loading');
+        setCertificates([]);
       }
     } catch (error) {
-      console.error('Error loading certificates:', error);
-      showError('Error loading certificates. Please try again.');
+      console.error('❌ Error loading certificates:', error);
+      setCertificates([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGenerateCertificate = async (learnerId, courseId) => {
+  const loadProjectSubmissions = async () => {
     try {
-      setGenerating(true);
-      const response = await generateCertificate(learnerId, courseId);
-      if (response.success) {
-        showSuccess('Certificate generated successfully');
-        loadCertificates(); // Reload data
+      console.log('🔄 Loading tutor projects...');
+      const response = await fetch('http://localhost:3002/api/project-submissions/tutor-projects', {
+        headers: {
+          'Authorization': `Bearer ${getAuthToken()}`
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Tutor projects loaded:', result);
+        setProjectSubmissions(result.projects || []);
+      } else {
+        console.log('⚠️ No tutor projects found');
+        setProjectSubmissions([]);
       }
     } catch (error) {
-      console.error('Error generating certificate:', error);
-      showError('Error generating certificate. Please try again.');
-    } finally {
-      setGenerating(false);
+      console.error('❌ Error loading tutor projects:', error);
+      setProjectSubmissions([]);
     }
   };
 
-  // Default data for loading state
-  const defaultCertificates = [
-    {
-      id: 1,
-      studentName: 'Emma Wilson',
-      studentEmail: 'emma.wilson@email.com',
-      course: 'Advanced Makeup Artistry',
-      courseCompletionDate: '2024-01-20',
-      certificateNumber: 'CERT-2024-001',
-      status: 'issued',
-      issuedDate: '2024-01-21',
-      score: 87,
-      grade: 'B+',
-      certificateUrl: 'https://example.com/certificates/emma-wilson-makeup.pdf',
-      thumbnail: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=300&h=200&fit=crop',
-      isDownloaded: true,
-      isEmailed: true,
-      notes: 'Excellent performance in practical assignments. Strong foundation in makeup techniques.'
+  const loadLearnerSubmissions = async () => {
+    try {
+      console.log('🔄 Loading learner submissions...');
+      const response = await fetch('http://localhost:3002/api/project-submissions/tutor', {
+        headers: {
+          'Authorization': `Bearer ${getAuthToken()}`
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Learner submissions loaded:', result);
+        console.log('🔍 Raw submissions array:', result.submissions);
+        console.log('🔍 First submission structure:', result.submissions?.[0]);
+        console.log('🔍 First submission keys:', result.submissions?.[0] ? Object.keys(result.submissions[0]) : 'No submissions');
+        console.log('🔍 First submission ID:', result.submissions?.[0]?.id);
+        console.log('🔍 First submission _id:', result.submissions?.[0]?._id);
+        console.log('🔍 First submission status:', result.submissions?.[0]?.status);
+        setLearnerSubmissions(result.submissions || []);
+      } else {
+        console.log('⚠️ No learner submissions found');
+        setLearnerSubmissions([]);
+      }
+    } catch (error) {
+      console.error('❌ Error loading learner submissions:', error);
+      setLearnerSubmissions([]);
     }
-  ];
+  };
 
-  // Use real data or default for loading
-  const displayCertificates = loading ? defaultCertificates : certificates;
+  const loadCourses = async () => {
+    try {
+      console.log('🔄 Loading tutor courses...');
+      const response = await getTutorCourses();
+      if (response.success) {
+        console.log('✅ Tutor courses loaded:', response.data);
+        setCourses(response.data.map(course => ({
+          id: course._id,
+          title: course.title
+        })));
+      } else {
+        console.log('⚠️ No courses found, using empty array');
+        setCourses([]);
+      }
+    } catch (error) {
+      console.error('❌ Error loading courses:', error);
+      // Use empty array instead of mock data
+      setCourses([]);
+    }
+  };
 
-  const courses = ['all', 'Advanced Makeup Artistry', 'Digital Marketing Mastery', 'Web Development Bootcamp'];
+  const loadEnrolledStudents = async () => {
+    try {
+      console.log('🔄 Loading enrolled students...');
+      const response = await getTutorLearners();
+      if (response.success) {
+        console.log('✅ Enrolled students loaded:', response.data);
+        setEnrolledStudents(response.data);
+      } else {
+        console.log('⚠️ No enrolled students found');
+        setEnrolledStudents([]);
+      }
+    } catch (error) {
+      console.error('❌ Error loading enrolled students:', error);
+      setEnrolledStudents([]);
+    }
+  };
+
+  // Load data
+  useEffect(() => {
+    const loadData = async () => {
+      await Promise.all([
+        loadCertificates(),
+        loadProjectSubmissions(),
+        loadLearnerSubmissions(),
+        loadCourses(),
+        loadEnrolledStudents()
+      ]);
+    };
+    
+    loadData();
+  }, []); // Empty dependency array to prevent re-rendering loop
+
+  const handleProjectReview = async () => {
+    try {
+      console.log('🔄 Submitting project review...');
+      console.log('🔍 Selected submission:', selectedSubmission);
+      console.log('🔍 Submission ID:', selectedSubmission?.id);
+      console.log('🔍 Submission _id:', selectedSubmission?._id);
+      
+      if (!selectedSubmission) {
+        alert('Please select a submission to review');
+        return;
+      }
+
+      // Use id or _id as fallback
+      const submissionId = selectedSubmission.id || selectedSubmission._id;
+      console.log('🔍 Using submission ID for review:', submissionId);
+
+      console.log('🔍 Sending review data:', review);
+      
+      const response = await fetch(`http://localhost:3002/api/project-submissions/${submissionId}/review`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getAuthToken()}`
+        },
+        body: JSON.stringify(review)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Review submitted successfully:', result);
+        alert('Review submitted successfully!');
+        // Reload project submissions
+        loadProjectSubmissions();
+      } else {
+        const error = await response.json();
+        console.error('❌ Error submitting review:', error);
+        alert(`Error submitting review: ${error.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('❌ Error submitting review:', error);
+      alert('Error submitting review');
+    }
+  };
+
+  const handleGenerateProjectCertificate = async (submissionId) => {
+    try {
+      console.log('🔄 Opening certificate form for submission:', submissionId);
+      
+      // Use id or _id as fallback
+      const finalSubmissionId = submissionId || selectedSubmission?.id || selectedSubmission?._id;
+      console.log('🔍 Using submission ID for certificate:', finalSubmissionId);
+      
+      // Pre-fill the form with submission data
+      if (selectedSubmission) {
+        // Find the learner's email from enrolled students
+        let learnerEmail = '';
+        const learner = enrolledStudents.find(student => 
+          student.name === selectedSubmission.learnerName
+        );
+        if (learner) {
+          learnerEmail = learner.email;
+        }
+        
+        setCertificateForm({
+          studentName: selectedSubmission.learnerName || '',
+          studentEmail: learnerEmail,
+          courseName: selectedSubmission.courseName || '',
+          grade: review.grade || '',
+          completionDate: new Date().toISOString().split('T')[0],
+          notes: review.feedback || ''
+        });
+      }
+      
+      // Show the certificate form modal
+      setShowCertificateForm(true);
+    } catch (error) {
+      console.error('❌ Error opening certificate form:', error);
+      alert('Error opening certificate form');
+    }
+  };
+
+  const handleSubmitCertificateForm = async () => {
+    try {
+      console.log('🔄 Submitting certificate form:', certificateForm);
+      
+      // Validate required fields
+      if (!certificateForm.studentName || !certificateForm.courseName) {
+        alert('Please fill in all required fields (Student Name, Course)');
+        return;
+      }
+
+      // Check authentication
+      const token = getAuthToken();
+      if (!token) {
+        alert('You must be logged in to generate a certificate. Please log in and try again.');
+        return;
+      }
+
+      // Call the backend API to generate certificate
+      const response = await fetch('http://localhost:3002/api/certificates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(certificateForm)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Certificate generated successfully:', result);
+        alert('Certificate generated successfully!');
+        // Close modal and reload certificates
+        setShowCertificateForm(false);
+        setCertificateForm({
+          studentName: '',
+          studentEmail: '',
+          courseName: '',
+          grade: '',
+          completionDate: '',
+          notes: ''
+        });
+        loadCertificates();
+      } else {
+        const error = await response.json();
+        console.error('❌ Error generating certificate:', error);
+        alert(`Error generating certificate: ${error.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('❌ Error generating certificate:', error);
+      alert('Error generating certificate');
+    }
+  };
+
+  const handleGenerateCertificate = async (formData) => {
+    try {
+      console.log('🔄 Generating certificate:', formData);
+      
+      // Check authentication
+      const token = getAuthToken();
+      if (!token) {
+        alert('You must be logged in to generate a certificate. Please log in and try again.');
+        return;
+      }
+
+      // Validate required fields
+      if (!formData.studentName || !formData.courseName) {
+        alert('Please fill in all required fields (Student Name, Course)');
+        return;
+      }
+
+      // Call the backend API to generate certificate
+      const response = await fetch('http://localhost:3002/api/certificates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Certificate generated successfully:', result);
+        alert('Certificate generated successfully!');
+        // Close modal and reload certificates
+        setShowCreateModal(false);
+        loadCertificates();
+      } else {
+        const error = await response.json();
+        console.error('❌ Error generating certificate:', error);
+        alert(`Error generating certificate: ${error.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('❌ Error generating certificate:', error);
+      alert('Error generating certificate');
+    }
+  };
+
+  const handleCreateProject = async () => {
+    try {
+      console.log('🔄 Creating project:', newProject);
+      
+      // Check authentication
+      const token = getAuthToken();
+      console.log('🔑 Auth token:', token ? 'Found' : 'Not found');
+      
+      // Debug: Check all possible token locations
+      console.log('🔍 Debug - Checking all token locations:');
+      console.log('🔍 sessionStorage keys:', Object.keys(sessionStorage));
+      console.log('🔍 localStorage keys:', Object.keys(localStorage));
+      
+      // Check tab-specific storage
+      const getTabId = () => {
+        let tabId = sessionStorage.getItem('skilllift_tab_id');
+        if (!tabId) {
+          tabId = `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          sessionStorage.setItem('skilllift_tab_id', tabId);
+        }
+        return tabId;
+      };
+      const getStorageKey = (key) => {
+        const tabId = getTabId();
+        return `skilllift_${tabId}_${key}`;
+      };
+      
+      console.log('🔍 Tab ID:', getTabId());
+      console.log('🔍 Token key:', getStorageKey('token'));
+      console.log('🔍 User key:', getStorageKey('user'));
+      console.log('🔍 Tab-specific token:', sessionStorage.getItem(getStorageKey('token')));
+      console.log('🔍 Tab-specific user:', sessionStorage.getItem(getStorageKey('user')));
+      
+      if (!token) {
+        alert('You must be logged in to create a project. Please log in and try again.');
+        return;
+      }
+      
+      // Validate required fields
+      if (!newProject.title || !newProject.description || !newProject.courseId) {
+        alert('Please fill in all required fields (Title, Description, Course)');
+        return;
+      }
+      
+      console.log('🔍 Selected course ID:', newProject.courseId);
+      console.log('🔍 Available courses:', courses);
+
+      // Call the backend API to create project
+      const response = await fetch('http://localhost:3002/api/project-submissions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newProject)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Project created successfully:', result);
+        alert('Project created successfully!');
+        setShowCreateProjectModal(false);
+        setNewProject({
+          title: '',
+          description: '',
+          requirements: '',
+          deadline: '',
+          courseId: ''
+        });
+        // Reload project submissions to show the new project
+        loadProjectSubmissions();
+      } else {
+        const error = await response.json();
+        console.error('❌ Error creating project:', error);
+        alert(`Error creating project: ${error.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('❌ Error creating project:', error);
+      alert('Error creating project');
+    }
+  };
+
+  // Use real data
+  const displayCertificates = certificates;
+
+  const courseOptions = ['all', ...courses.map(course => course.title)];
   const statuses = ['all', 'issued', 'pending', 'revoked'];
   const grades = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D', 'F'];
-
-  const [filteredCertificates, setFilteredCertificates] = useState(certificates);
 
   useEffect(() => {
     filterCertificates();
@@ -119,15 +547,15 @@ const TutorCertificates = () => {
     // Search filter
     if (searchQuery) {
       filtered = filtered.filter(certificate =>
-        certificate.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        certificate.course.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        certificate.certificateNumber.toLowerCase().includes(searchQuery.toLowerCase())
+        certificate.studentName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        certificate.courseName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        certificate.verificationCode?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     // Course filter
     if (selectedCourse !== 'all') {
-      filtered = filtered.filter(certificate => certificate.course === selectedCourse);
+      filtered = filtered.filter(certificate => certificate.courseName === selectedCourse);
     }
 
     // Status filter
@@ -138,82 +566,45 @@ const TutorCertificates = () => {
     setFilteredCertificates(filtered);
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Not issued';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const getStatusColor = (status) => {
-    const colors = {
-      'issued': 'bg-emerald-100 text-emerald-800',
-      'pending': 'bg-amber-100 text-amber-800',
-      'revoked': 'bg-red-100 text-red-800'
-    };
-    return colors[status] || 'bg-slate-100 text-slate-800';
-  };
-
-  const getGradeColor = (grade) => {
-    if (grade.startsWith('A')) return 'text-emerald-600';
-    if (grade.startsWith('B')) return 'text-indigo-600';
-    if (grade.startsWith('C')) return 'text-amber-600';
-    if (grade.startsWith('D')) return 'text-orange-600';
-    if (grade === 'F') return 'text-red-600';
-    return 'text-slate-600';
-  };
-
   const CertificateCard = ({ certificate }) => (
     <motion.div
-      whileHover={{ y: -5 }}
-      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow w-full"
     >
-      <div className="relative">
-        <img 
-          src={certificate.thumbnail} 
-          alt={certificate.course}
-          className="w-full h-48 object-cover"
-        />
-        <div className="absolute top-4 left-4">
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(certificate.status)}`}>
-            {certificate.status.charAt(0).toUpperCase() + certificate.status.slice(1)}
-          </span>
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+            <FaCertificate className="text-indigo-600 text-xl" />
         </div>
-        <div className="absolute top-4 right-4">
-          <span className="bg-amber-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-            {certificate.grade}
-          </span>
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">{certificate.studentName}</h3>
+            <p className="text-slate-600">{certificate.courseName}</p>
         </div>
       </div>
-
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <h3 className="text-xl font-bold text-slate-900 mb-2">{certificate.studentName}</h3>
-            <p className="text-slate-600 mb-3">{certificate.course}</p>
-            <p className="text-sm text-slate-500 mb-2">Certificate: {certificate.certificateNumber}</p>
+        <div className="flex items-center space-x-2">
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+            certificate.status === 'issued' ? 'bg-green-100 text-green-800' :
+            certificate.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+            'bg-red-100 text-red-800'
+          }`}>
+            {certificate.status.charAt(0).toUpperCase() + certificate.status.slice(1)}
+          </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-4 text-sm text-slate-600">
-          <div className="flex items-center">
-            <FaCalendarAlt className="mr-2 text-indigo-500" />
-            <span>Completed: {formatDate(certificate.courseCompletionDate)}</span>
+      <div className="space-y-3 mb-4">
+        <div className="flex items-center text-sm text-slate-600">
+          <FaCalendarAlt className="mr-2" />
+          <span>Completed: {new Date(certificate.completionDate).toLocaleDateString()}</span>
           </div>
-          <div className="flex items-center">
-            <FaStar className="mr-2 text-amber-500" />
-            <span>Score: {certificate.score}/100</span>
+        <div className="flex items-center text-sm text-slate-600">
+          <FaBookOpen className="mr-2" />
+          <span>Certificate #: {certificate.certificateNumber}</span>
           </div>
-          <div className="flex items-center">
-            <FaCertificate className="mr-2 text-emerald-500" />
-            <span>Issued: {formatDate(certificate.issuedDate)}</span>
-          </div>
-          <div className="flex items-center">
-            <FaUserGraduate className="mr-2 text-indigo-500" />
-            <span className={getGradeColor(certificate.grade)}>Grade: {certificate.grade}</span>
+        <div className="flex items-center text-sm text-slate-600">
+          <FaStar className="mr-2" />
+          <span>Grade: {certificate.grade}</span>
           </div>
         </div>
 
@@ -224,50 +615,22 @@ const TutorCertificates = () => {
         )}
 
         <div className="flex items-center justify-between">
-          <div className="flex space-x-2">
-            <button
-              onClick={() => {
-                setSelectedCertificate(certificate);
-                setShowPreviewModal(true);
-              }}
-              className="flex items-center text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              <FaEye className="mr-2" />
-              Preview
-            </button>
-            {certificate.status === 'pending' && (
-              <button
-                onClick={() => {
-                  setEditingCertificate(certificate);
-                  setShowCreateModal(true);
-                }}
-                className="flex items-center text-emerald-600 hover:text-emerald-700 font-medium"
-              >
-                <FaEdit className="mr-2" />
-                Generate
-              </button>
-            )}
-          </div>
+          <button
+            onClick={() => {
+              setSelectedCertificate(certificate);
+              setShowPreviewModal(true);
+            }}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors"
+          >
+            <FaEye className="mr-2" />
+            Preview
+          </button>
           
-          <div className="flex space-x-2">
-            {certificate.status === 'issued' && (
-              <>
-                <button className="bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-600 transition-colors flex items-center">
-                  <FaDownload className="mr-2" />
-                  Download
-                </button>
-                <button className="bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-600 transition-colors flex items-center">
-                  <FaEnvelope className="mr-2" />
-                  Email
-                </button>
-              </>
-            )}
-            <button className="bg-red-500 text-white px-3 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors">
-              <FaTrash />
-            </button>
-          </div>
+          <button className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors">
+            <FaTrash className="mr-2" />
+            Delete
+          </button>
         </div>
-      </div>
     </motion.div>
   );
 
@@ -293,32 +656,51 @@ const TutorCertificates = () => {
           <form className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Student Name</label>
-                <input
-                  type="text"
-                  defaultValue={editingCertificate?.studentName || ''}
+                <label className="block text-sm font-medium text-slate-700 mb-2">Student Name *</label>
+                <select
+                  name="studentName"
                   className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  placeholder="Enter student name"
-                />
+                  defaultValue={editingCertificate?.studentName || ''}
+                >
+                  <option value="">Select Enrolled Student</option>
+                  {enrolledStudents.map(student => (
+                    <option key={student._id} value={student.name}>
+                      {student.name} ({student.email})
+                    </option>
+                  ))}
+                </select>
+                {enrolledStudents.length === 0 && (
+                  <p className="text-sm text-red-600 mt-1">
+                    No enrolled students found. Students must be enrolled in your courses to generate certificates.
+                  </p>
+                )}
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Student Email</label>
                 <input
+                  name="studentEmail"
                   type="email"
                   defaultValue={editingCertificate?.studentEmail || ''}
                   className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  placeholder="Enter student email"
+                  placeholder="Email will be auto-filled when student is selected"
+                  readOnly
                 />
+                <p className="text-xs text-slate-500 mt-1">
+                  Email is automatically filled when you select a student above
+                </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Course</label>
-                <select className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                  <option>Select Course</option>
-                  {courses.slice(1).map(course => (
+                <select 
+                  name="courseName"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                >
+                  <option value="">Select Course</option>
+                  {courseOptions.slice(1).map(course => (
                     <option key={course} value={course}>{course}</option>
                   ))}
                 </select>
@@ -327,29 +709,21 @@ const TutorCertificates = () => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Course Completion Date</label>
                 <input
+                  name="completionDate"
                   type="date"
-                  defaultValue={editingCertificate?.courseCompletionDate || ''}
                   className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Final Score</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  defaultValue={editingCertificate?.score || ''}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  placeholder="0-100"
-                />
-              </div>
-              
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Grade</label>
-                <select className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                <select 
+                  name="grade"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                >
+                  <option value="">Select Grade</option>
                   {grades.map(grade => (
                     <option key={grade} value={grade}>{grade}</option>
                   ))}
@@ -360,45 +734,50 @@ const TutorCertificates = () => {
                 <label className="block text-sm font-medium text-slate-700 mb-2">Certificate Number</label>
                 <input
                   type="text"
-                  defaultValue={editingCertificate?.certificateNumber || ''}
                   className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   placeholder="Auto-generated"
+                  readOnly
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Certificate Notes</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Notes</label>
               <textarea
+                name="notes"
                 rows={4}
-                defaultValue={editingCertificate?.notes || ''}
                 className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Add any special notes or achievements..."
+                placeholder="Add any additional notes or comments..."
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Certificate Template</label>
-              <select className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                <option>Professional Certificate Template</option>
-                <option>Academic Certificate Template</option>
-                <option>Custom Certificate Template</option>
-              </select>
-            </div>
-
-            <div className="flex space-x-3 pt-6 border-t">
+            <div className="flex space-x-3">
               <button
                 type="button"
                 onClick={() => {
                   setShowCreateModal(false);
                   setEditingCertificate(null);
                 }}
-                className="flex-1 bg-slate-500 text-white py-3 rounded-lg font-medium hover:bg-slate-600 transition-colors"
+                className="flex-1 bg-slate-500 text-white py-3 rounded-lg font-bold hover:bg-slate-600 transition-colors"
               >
                 Cancel
               </button>
               <button
-                type="submit"
+                type="button"
+                onClick={() => {
+                  // Get form data from the form
+                  const form = document.querySelector('form');
+                  const formData = new FormData(form);
+                  const certificateData = {
+                    studentName: formData.get('studentName') || document.querySelector('select[name="studentName"]')?.value,
+                    studentEmail: formData.get('studentEmail') || document.querySelector('input[name="studentEmail"]')?.value,
+                    courseName: formData.get('courseName') || document.querySelector('select[name="courseName"]')?.value,
+                    grade: formData.get('grade') || document.querySelector('select[name="grade"]')?.value,
+                    completionDate: formData.get('completionDate') || document.querySelector('input[name="completionDate"]')?.value,
+                    notes: formData.get('notes') || document.querySelector('textarea[name="notes"]')?.value
+                  };
+                  handleGenerateCertificate(certificateData);
+                }}
                 className="flex-1 bg-indigo-500 text-white py-3 rounded-lg font-bold hover:bg-indigo-600 transition-colors"
               >
                 <FaSave className="mr-2 inline" />
@@ -430,34 +809,20 @@ const TutorCertificates = () => {
         </div>
         
         <div className="p-6">
-          <div className="bg-gradient-to-br from-amber-50 to-indigo-50 border-2 border-amber-200 rounded-xl p-8 text-center">
+          <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-8 text-center">
             <div className="mb-6">
-              <div className="w-24 h-24 bg-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaCertificate className="text-white text-4xl" />
-              </div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">Certificate of Completion</h1>
+              <h1 className="text-4xl font-bold text-slate-900 mb-2">Certificate of Completion</h1>
               <p className="text-lg text-slate-600">This is to certify that</p>
             </div>
 
             <div className="mb-6">
-              <h2 className="text-4xl font-bold text-indigo-900 mb-2">{selectedCertificate?.studentName}</h2>
-              <p className="text-xl text-slate-700">has successfully completed the course</p>
-              <h3 className="text-2xl font-bold text-amber-600 mt-2">{selectedCertificate?.course}</h3>
+              <h2 className="text-3xl font-bold text-indigo-600 mb-2">{selectedCertificate?.studentName}</h2>
+              <p className="text-lg text-slate-600">has successfully completed the course</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 text-center">
-              <div>
-                <p className="text-sm text-slate-600">Completion Date</p>
-                <p className="text-lg font-bold text-slate-900">{formatDate(selectedCertificate?.courseCompletionDate)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-slate-600">Final Score</p>
-                <p className="text-lg font-bold text-slate-900">{selectedCertificate?.score}/100</p>
-              </div>
-              <div>
-                <p className="text-sm text-slate-600">Grade</p>
-                <p className={`text-lg font-bold ${getGradeColor(selectedCertificate?.grade)}`}>{selectedCertificate?.grade}</p>
-              </div>
+            <div className="mb-6">
+              <h3 className="text-2xl font-semibold text-slate-900 mb-2">{selectedCertificate?.courseName}</h3>
+              <p className="text-lg text-slate-600">with a grade of <span className="font-bold text-indigo-600">{selectedCertificate?.grade}</span></p>
             </div>
 
             <div className="mb-6">
@@ -502,6 +867,18 @@ const TutorCertificates = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Debug info */}
+      <div className="bg-blue-100 p-4 text-center">
+        <p className="text-blue-800">🎓 Tutor Certificates Page Loaded Successfully!</p>
+        <p className="text-blue-600">Active Tab: {activeTab}</p>
+        <p className="text-blue-600">Certificates Count: {certificates.length}</p>
+        <p className="text-blue-600">Project Submissions Count: {projectSubmissions.length}</p>
+        <p className="text-blue-600">Learner Submissions Count: {learnerSubmissions.length}</p>
+        <p className="text-blue-600">Tutor Courses Count: {courses.length}</p>
+        <p className="text-blue-600">Enrolled Students Count: {enrolledStudents.length}</p>
+        <p className="text-blue-600">Loading: {loading ? 'Yes' : 'No'}</p>
+      </div>
+      
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -518,12 +895,12 @@ const TutorCertificates = () => {
                   placeholder="Search certificates..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-80"
+                  className="pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="bg-indigo-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-indigo-600 transition-colors flex items-center"
+                className="bg-indigo-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-indigo-600 transition-colors flex items-center"
               >
                 <FaPlus className="mr-2" />
                 Generate Certificate
@@ -533,6 +910,7 @@ const TutorCertificates = () => {
         </div>
       </div>
 
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
@@ -544,7 +922,7 @@ const TutorCertificates = () => {
                 onChange={(e) => setSelectedCourse(e.target.value)}
                 className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               >
-                {courses.map(course => (
+                {courseOptions.map(course => (
                   <option key={course} value={course}>
                     {course === 'all' ? 'All Courses' : course}
                   </option>
@@ -584,13 +962,13 @@ const TutorCertificates = () => {
 
         {/* Tabs */}
         <div className="flex space-x-1 bg-white p-1 rounded-xl shadow-sm mb-8">
-          {['all', 'issued', 'pending', 'revoked'].map((tab) => (
+          {['all', 'issued', 'pending', 'revoked', 'projects'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
+              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
                 activeTab === tab
-                  ? 'bg-indigo-500 text-white shadow-lg'
+                  ? 'bg-indigo-500 text-white'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
@@ -602,19 +980,237 @@ const TutorCertificates = () => {
         {/* Results Count */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-slate-600">
-            Showing {filteredCertificates.length} of {certificates.length} certificates
+            {activeTab === 'projects' 
+              ? `Showing ${learnerSubmissions.length} learner submissions`
+              : `Showing ${filteredCertificates.length} of ${certificates.length} certificates`
+            }
           </p>
         </div>
 
+        {/* Project Review Section */}
+        {activeTab === 'projects' && (
+          <div className="space-y-6">
+            {/* Enrolled Students Section */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-slate-900 mb-4">👥 Enrolled Students</h2>
+              <p className="text-slate-600 mb-4">
+                These are the students enrolled in your courses who can submit projects and receive certificates.
+              </p>
+              
+              {enrolledStudents.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {enrolledStudents.map(student => (
+                    <div key={student._id} className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                          <span className="text-indigo-600 font-semibold text-sm">
+                            {student.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-900 truncate">
+                            {student.name}
+                          </p>
+                          <p className="text-xs text-slate-500 truncate">
+                            {student.email}
+                          </p>
+                          <p className="text-xs text-indigo-600 mt-1">
+                            {student.courses?.length || 0} course(s) enrolled
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-slate-400 text-4xl mb-2">👥</div>
+                  <p className="text-slate-500">No enrolled students found</p>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Students need to enroll in your courses to appear here
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Create Project Button */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">📋 Project Management</h2>
+                  <p className="text-slate-600 mt-1">Create projects for your courses and review submissions</p>
+                </div>
+                <button
+                  onClick={() => setShowCreateProjectModal(true)}
+                  className="bg-indigo-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-600 transition-colors flex items-center"
+                >
+                  <FaPlus className="mr-2" />
+                  Create Project
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Submissions List */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">📝 Project Submissions</h3>
+                <div className="space-y-4">
+                  {learnerSubmissions.map((submission) => (
+                    <div
+                      key={submission.id || submission._id}
+                      onClick={() => {
+                        console.log('🔍 Clicking submission:', submission);
+                        console.log('🔍 Submission ID:', submission.id);
+                        console.log('🔍 Submission _id:', submission._id);
+                        setSelectedSubmission(submission);
+                      }}
+                      className={`p-4 rounded-lg border cursor-pointer transition-colors ${
+                        (selectedSubmission?.id === submission.id) || (selectedSubmission?._id === submission._id)
+                          ? 'border-indigo-500 bg-indigo-50'
+                          : 'border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-slate-900">{submission.projectTitle}</h4>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          submission.status === 'approved' ? 'bg-green-100 text-green-800' :
+                          submission.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {submission.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-600 mb-2">{submission.learnerName} • {submission.courseName}</p>
+                      <p className="text-sm text-slate-500">{submission.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Review Panel */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">📋 Review Submission</h3>
+                {selectedSubmission ? (
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-medium text-slate-900">{selectedSubmission.projectTitle}</h4>
+                      <p className="text-sm text-slate-600">{selectedSubmission.learnerName}</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Status</label>
+                      <select
+                        value={review.status}
+                        onChange={(e) => setReview(prev => ({ ...prev, status: e.target.value }))}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      >
+                        <option value="approved">Approved</option>
+                        <option value="pending">Pending</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Grade</label>
+                      <select
+                        value={review.grade}
+                        onChange={(e) => setReview(prev => ({ ...prev, grade: e.target.value }))}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      >
+                        <option value="">Select Grade</option>
+                        {grades.map(grade => (
+                          <option key={grade} value={grade}>{grade}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Feedback</label>
+                      <textarea
+                        value={review.feedback}
+                        onChange={(e) => setReview(prev => ({ ...prev, feedback: e.target.value }))}
+                        rows={4}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="Provide detailed feedback..."
+                      />
+                    </div>
+
+                    {selectedSubmission.githubLink && (
+                      <div>
+                        <a
+                          href={selectedSubmission.githubLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-600 hover:text-indigo-800 text-sm"
+                        >
+                          View Repository
+                        </a>
+                      </div>
+                    )}
+
+                    {selectedSubmission.liveDemoLink && (
+                      <div>
+                        <a
+                          href={selectedSubmission.liveDemoLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-600 hover:text-indigo-800 text-sm"
+                        >
+                          View Demo
+                        </a>
+                      </div>
+                    )}
+
+                    <div>
+                      {review.status === 'approved' ? (
+                        <button
+                          onClick={() => handleGenerateProjectCertificate(selectedSubmission.id || selectedSubmission._id)}
+                          className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                        >
+                          Generate Certificate
+                        </button>
+                      ) : review.status === 'rejected' ? (
+                        <div className="space-y-2">
+                          <button
+                            onClick={handleProjectReview}
+                            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+                          >
+                            Submit Rejection
+                          </button>
+                          <p className="text-sm text-red-600">
+                            This project will be marked as rejected and the learner will need to resubmit.
+                          </p>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={handleProjectReview}
+                          className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors"
+                        >
+                          Submit Review
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-slate-500">
+                    <FaFileAlt className="text-4xl mx-auto mb-2" />
+                    <p>Select a submission to review</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Certificates Grid */}
-        {loading ? (
+        {activeTab !== 'projects' && (loading ? (
           <div className="text-center py-12">
             <FaSpinner className="text-6xl text-slate-300 mx-auto mb-4 animate-spin" />
             <h3 className="text-xl font-medium text-slate-900 mb-2">Loading certificates...</h3>
             <p className="text-slate-600">Please wait while we fetch the data.</p>
           </div>
         ) : filteredCertificates.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
             {filteredCertificates.map((certificate) => (
               <CertificateCard key={certificate.id} certificate={certificate} />
             ))}
@@ -625,14 +1221,238 @@ const TutorCertificates = () => {
             <h3 className="text-xl font-medium text-slate-900 mb-2">No certificates found</h3>
             <p className="text-slate-600">Try adjusting your search or filters</p>
           </div>
-        )}
-      </div>
+        ))}
 
       {/* Create/Edit Certificate Modal */}
       {showCreateModal && <CreateCertificateModal />}
 
       {/* Certificate Preview Modal */}
       {showPreviewModal && selectedCertificate && <CertificatePreviewModal />}
+
+        {/* Create Project Modal */}
+        {showCreateProjectModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b">
+                <h3 className="text-2xl font-bold text-slate-900">Create New Project</h3>
+                <button
+                  onClick={() => setShowCreateProjectModal(false)}
+                  className="text-slate-500 hover:text-slate-700"
+                >
+                  <FaTimes className="text-xl" />
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <form className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Course *</label>
+                    <select
+                      value={newProject.courseId}
+                      onChange={(e) => setNewProject(prev => ({ ...prev, courseId: e.target.value }))}
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                      <option value="">Select Course</option>
+                      {courses.map(course => (
+                        <option key={course.id} value={course.id}>{course.title}</option>
+                      ))}
+                    </select>
+                    {courses.length === 0 && (
+                      <p className="text-sm text-red-600 mt-1">
+                        No courses available. Please create a course first.
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Project Title *</label>
+                    <input
+                      type="text"
+                      value={newProject.title}
+                      onChange={(e) => setNewProject(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      placeholder="Enter project title"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Description *</label>
+                    <textarea
+                      value={newProject.description}
+                      onChange={(e) => setNewProject(prev => ({ ...prev, description: e.target.value }))}
+                      rows={4}
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      placeholder="Describe the project requirements and objectives"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Requirements</label>
+                    <textarea
+                      value={newProject.requirements}
+                      onChange={(e) => setNewProject(prev => ({ ...prev, requirements: e.target.value }))}
+                      rows={3}
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      placeholder="List specific requirements and deliverables"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Deadline (Optional)</label>
+                    <input
+                      type="date"
+                      value={newProject.deadline}
+                      onChange={(e) => setNewProject(prev => ({ ...prev, deadline: e.target.value }))}
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div className="flex space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowCreateProjectModal(false)}
+                      className="flex-1 bg-slate-500 text-white py-3 rounded-lg font-bold hover:bg-slate-600 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCreateProject}
+                      className="flex-1 bg-indigo-500 text-white py-3 rounded-lg font-bold hover:bg-indigo-600 transition-colors"
+                    >
+                      <FaSave className="mr-2 inline" />
+                      Create Project
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Certificate Form Modal */}
+        {showCertificateForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b">
+                <h3 className="text-2xl font-bold text-slate-900">Generate Certificate</h3>
+                <button
+                  onClick={() => setShowCertificateForm(false)}
+                  className="text-slate-500 hover:text-slate-700"
+                >
+                  <FaTimes className="text-xl" />
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <form className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Student Name *</label>
+                      <input
+                        type="text"
+                        value={certificateForm.studentName}
+                        onChange={(e) => setCertificateForm(prev => ({ ...prev, studentName: e.target.value }))}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="Enter student name"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Student Email</label>
+                      <input
+                        type="email"
+                        value={certificateForm.studentEmail}
+                        onChange={(e) => setCertificateForm(prev => ({ ...prev, studentEmail: e.target.value }))}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="Enter student email"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Course *</label>
+                      <input
+                        type="text"
+                        value={certificateForm.courseName}
+                        onChange={(e) => setCertificateForm(prev => ({ ...prev, courseName: e.target.value }))}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="Enter course name"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Course Completion Date</label>
+                      <input
+                        type="date"
+                        value={certificateForm.completionDate}
+                        onChange={(e) => setCertificateForm(prev => ({ ...prev, completionDate: e.target.value }))}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Grade</label>
+                      <select
+                        value={certificateForm.grade}
+                        onChange={(e) => setCertificateForm(prev => ({ ...prev, grade: e.target.value }))}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      >
+                        <option value="">Select Grade</option>
+                        {grades.map(grade => (
+                          <option key={grade} value={grade}>{grade}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Certificate Number</label>
+                      <input
+                        type="text"
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="Auto-generated"
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Notes</label>
+                    <textarea
+                      value={certificateForm.notes}
+                      onChange={(e) => setCertificateForm(prev => ({ ...prev, notes: e.target.value }))}
+                      rows={4}
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      placeholder="Add any additional notes or comments..."
+                    />
+                  </div>
+
+                  <div className="flex space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowCertificateForm(false)}
+                      className="flex-1 bg-slate-500 text-white py-3 rounded-lg font-bold hover:bg-slate-600 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSubmitCertificateForm}
+                      className="flex-1 bg-indigo-500 text-white py-3 rounded-lg font-bold hover:bg-indigo-600 transition-colors"
+                    >
+                      <FaSave className="mr-2 inline" />
+                      Generate Certificate
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

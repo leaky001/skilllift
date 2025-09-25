@@ -221,9 +221,7 @@ export const getNotificationIcon = (type) => {
     live_session_reminder: '📅',
     live_session_started: '🎥',
     live_session_updated: '🔄',
-    live_class_scheduled: '📅',
-    live_class_started: '🎥',
-    live_class_ended: '🏁',
+    // live_class_* removed - Live class functionality deleted
     
     // Replay related
     replay_uploaded: '🎬',
@@ -290,7 +288,7 @@ export const getNotificationColor = (type) => {
     assignment_created: 'indigo',
     assignment_due: 'amber',
     live_session_reminder: 'amber',
-    live_class_scheduled: 'amber',
+    // live_class_* removed - Live class functionality deleted
     system_maintenance: 'amber',
     
     // Error/Rejection
@@ -308,8 +306,7 @@ export const getNotificationColor = (type) => {
     assignment_submitted: 'indigo',
     live_session_started: 'indigo',
     live_session_updated: 'indigo',
-    live_class_started: 'indigo',
-    live_class_ended: 'indigo',
+    // live_class_* removed - Live class functionality deleted
     replay_uploaded: 'indigo',
     course_update: 'indigo',
     user_approval: 'indigo',

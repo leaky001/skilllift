@@ -1,7 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import WebSocketTest from '../components/WebSocketTest';
 
 const TestPage = () => {
   const { user, isAuthenticated, isLoading, isInitialized, error, login, logout } = useAuth();
@@ -375,7 +374,7 @@ const TestPage = () => {
         {isAuthenticated && (
           <div className="bg-white rounded-lg shadow-md p-6 mt-6">
             <h2 className="text-xl font-semibold mb-4">WebSocket Test</h2>
-            <WebSocketTest />
+            <p className="text-gray-600">WebSocket test component removed - using live class system instead.</p>
           </div>
         )}
       </div>

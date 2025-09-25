@@ -665,10 +665,10 @@ const LearnerCourseDetail = () => {
                               <button
                                 onClick={() => {
                                   console.log('Join Class button clicked!', liveClass._id);
-                                  console.log('Navigating to:', `/learner/live-classes/${liveClass._id}/room`);
+                                  console.log('Navigating to tutor page:', `/tutor/live-classes/${liveClass._id}/room`);
                                   
-                                  // Use React Router navigation only
-                                  navigate(`/learner/live-classes/${liveClass._id}/room`);
+                                  // Navigate to tutor's live class page so learners and tutors connect
+                                  navigate(`/tutor/live-classes/${liveClass._id}/room`);
                                   console.log('Navigation called successfully');
                                 }}
                                 className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors cursor-pointer"

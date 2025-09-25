@@ -3,7 +3,7 @@ const router = express.Router();
 const { protect, authorize } = require('../middleware/authMiddleware');
 const asyncHandler = require('express-async-handler');
 const Notification = require('../models/Notification');
-const LiveClass = require('../models/LiveClass');
+// LiveClass model removed - Live class functionality deleted
 const Enrollment = require('../models/Enrollment');
 
 // Helper function to map notification types to announcement types
@@ -15,8 +15,7 @@ const getAnnouncementType = (notificationType) => {
       return 'course';
     case 'assignment_created':
       return 'assignment';
-    case 'live_class_scheduled':
-      return 'live-class';
+    // live_class_scheduled removed - Live class functionality deleted
     case 'replay_uploaded':
       return 'replay';
     case 'announcement':
@@ -33,8 +32,7 @@ const getActionUrl = (notificationType, data) => {
       return data?.courseId ? `/learner/courses/${data.courseId}` : '/learner/courses';
     case 'assignment_created':
       return data?.assignmentId ? `/learner/assignments/${data.assignmentId}` : '/learner/assignments';
-    case 'live_class_scheduled':
-      return data?.liveClassId ? `/learner/live-classes/${data.liveClassId}` : '/learner/live-classes';
+    // live_class_scheduled removed - Live class functionality deleted
     case 'replay_uploaded':
       return '/learner/replays';
     default:
@@ -58,73 +56,7 @@ const getTimeAgo = (date) => {
 // @desc    Get upcoming live classes for learner
 // @route   GET /api/learner/upcoming-sessions
 // @access  Private (Learner)
-router.get('/upcoming-sessions', protect, authorize('learner'), asyncHandler(async (req, res) => {
-  try {
-    const learnerId = req.user._id;
-    const { limit = 5 } = req.query;
-    
-    console.log('📅 Fetching upcoming sessions for learner:', learnerId);
-    
-    // Get learner's enrolled courses
-    const enrollments = await Enrollment.find({ learner: learnerId })
-      .populate('course', 'title')
-      .select('course');
-    
-    const enrolledCourseIds = enrollments.map(enrollment => enrollment.course._id);
-    
-    if (enrolledCourseIds.length === 0) {
-      return res.status(200).json({
-        success: true,
-        data: [],
-        message: 'No enrolled courses found'
-      });
-    }
-    
-    // Get upcoming live sessions for enrolled courses
-    const upcomingSessions = await LiveClass.find({
-      course: { $in: enrolledCourseIds },
-      startTime: { $gte: new Date() },
-      status: { $in: ['scheduled', 'ready'] }
-    })
-    .populate('course', 'title')
-    .populate('tutor', 'name')
-    .sort('startTime')
-    .limit(parseInt(limit));
-
-    // Format sessions
-    const formattedSessions = upcomingSessions.map(session => ({
-      id: session._id,
-      title: session.title,
-      description: session.description,
-      instructor: session.tutor?.name || 'Unknown Instructor',
-      instructorId: session.tutor?._id,
-      date: session.startTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase(),
-      time: `${session.startTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${session.endTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`,
-      duration: Math.round((session.endTime - session.startTime) / (1000 * 60)), // duration in minutes
-      status: session.status,
-      participants: session.enrolledLearners?.length || 0,
-      maxParticipants: session.maxParticipants || 100,
-      courseId: session.course?._id,
-      courseTitle: session.course?.title || 'Unknown Course',
-      meetingLink: session.meetingLink,
-      isEnrolled: true
-    }));
-
-    res.status(200).json({
-      success: true,
-      data: formattedSessions,
-      message: 'Upcoming sessions retrieved successfully'
-    });
-
-  } catch (error) {
-    console.error('Error fetching upcoming sessions:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch upcoming sessions',
-      error: error.message
-    });
-  }
-}));
+// Removed - Live class functionality deleted
 
 // @desc    Get recent announcements for learner
 // @route   GET /api/learner/announcements
@@ -139,7 +71,7 @@ router.get('/announcements', protect, authorize('learner'), asyncHandler(async (
     // Build query for notifications that are announcements
     let query = { 
       recipient: learnerId,
-      type: { $in: ['announcement', 'course_available', 'assignment_created', 'live_class_scheduled', 'replay_uploaded', 'course_approval', 'course_rejection'] }
+      type: { $in: ['announcement', 'course_available', 'assignment_created', 'replay_uploaded', 'course_approval', 'course_rejection'] }
     };
     
     // Filter unread only if requested
@@ -235,39 +167,20 @@ router.get('/dashboard-summary', protect, authorize('learner'), asyncHandler(asy
     
     console.log('📊 Fetching dashboard summary for learner:', learnerId);
     
-    // Get upcoming live sessions from database
+    // Get upcoming live sessions from database - Removed live class functionality
     const enrollments = await Enrollment.find({ learner: learnerId })
       .populate('course', 'title')
       .select('course');
     
     const enrolledCourseIds = enrollments.map(enrollment => enrollment.course._id);
     
-    const upcomingSessions = await LiveClass.find({
-      course: { $in: enrolledCourseIds },
-      startTime: { $gte: new Date() },
-      status: { $in: ['scheduled', 'ready'] }
-    })
-    .populate('course', 'title')
-    .populate('tutor', 'name')
-    .sort('startTime')
-    .limit(3);
-
-    // Format upcoming sessions
-    const formattedSessions = upcomingSessions.map(session => ({
-      id: session._id,
-      title: session.title,
-      date: session.startTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase(),
-      time: `${session.startTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${session.endTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`,
-      instructor: session.tutor?.name || 'Unknown Instructor',
-      participants: session.enrolledLearners?.length || 0,
-      status: session.status === 'ready' ? 'join' : 'set-reminder',
-      courseTitle: session.course?.title || 'Unknown Course'
-    }));
+    // Live class sessions removed - Live class functionality deleted
+    const formattedSessions = [];
 
     // Get recent announcements from database
     const notifications = await Notification.find({
       recipient: learnerId,
-      type: { $in: ['announcement', 'course_available', 'assignment_created', 'live_class_scheduled', 'replay_uploaded', 'course_approval', 'course_rejection'] }
+      type: { $in: ['announcement', 'course_available', 'assignment_created', 'replay_uploaded', 'course_approval', 'course_rejection'] }
     })
     .populate('sender', 'name email avatar')
     .sort('-createdAt')
@@ -292,7 +205,7 @@ router.get('/dashboard-summary', protect, authorize('learner'), asyncHandler(asy
     const unreadCount = await Notification.countDocuments({
       recipient: learnerId,
       isRead: false,
-      type: { $in: ['announcement', 'course_available', 'assignment_created', 'live_class_scheduled', 'replay_uploaded', 'course_approval', 'course_rejection'] }
+      type: { $in: ['announcement', 'course_available', 'assignment_created', 'replay_uploaded', 'course_approval', 'course_rejection'] }
     });
 
     res.status(200).json({

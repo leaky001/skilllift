@@ -41,6 +41,7 @@ const courseSchema = new mongoose.Schema({
   
   // Enhanced content structure
   lessons: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Lesson' }],
+  liveClasses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'LiveClass' }],
   totalLessons: { type: Number, default: 0 },
   totalDuration: { type: Number, default: 0 }, // in minutes
   

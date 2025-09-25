@@ -86,7 +86,7 @@ const LearnerProfile = () => {
   };
 
   const getBackendOrigin = () => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
     // strip trailing /api if present
     return apiUrl.replace(/\/api$/i, '');
   };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getMyEnrollments } from '../../services/courseService';
@@ -6,6 +6,8 @@ import { getMyReviews } from '../../services/reviewService';
 import learnerDashboardService from '../../services/learnerDashboardService';
 import { useStreakTracking } from '../../hooks/useStreakTracking';
 import { showError } from '../../services/toastService.jsx';
+import { logger } from '../../config/environment';
+import EnvironmentDebugger from '../../components/EnvironmentDebugger';
 import { 
   FaBookOpen, 
   FaPlay, 
@@ -43,9 +45,9 @@ const LearnerDashboard = () => {
   // Load all dashboard data on component mount
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, []); // Empty dependency array to run only once
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -64,26 +66,26 @@ const LearnerDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const loadDashboardSummary = async () => {
     try {
-      console.log('🔄 Loading learner dashboard summary...');
+      logger.log('🔄 Loading learner dashboard summary...');
       const response = await learnerDashboardService.getDashboardSummary();
-      console.log('📊 Dashboard summary response:', response);
+      logger.log('📊 Dashboard summary response:', response);
       if (response.success) {
         setUpcomingSessions(response.data.upcomingSessions || []);
         setRecentAnnouncements(response.data.recentAnnouncements || []);
-        console.log('✅ Dashboard summary loaded successfully:', response.data);
+        logger.log('✅ Dashboard summary loaded successfully:', response.data);
       } else {
-        console.error('⚠️ Dashboard summary response not successful:', response.message);
+        logger.warn('⚠️ Dashboard summary response not successful:', response.message);
         // Set empty arrays as fallback
         setUpcomingSessions([]);
         setRecentAnnouncements([]);
       }
     } catch (error) {
-      console.error('❌ Error loading dashboard summary:', error);
-      console.error('❌ Error details:', error.response?.data);
+      logger.error('❌ Error loading dashboard summary:', error);
+      logger.error('❌ Error details:', error.response?.data);
       // Set empty arrays as fallback
       setUpcomingSessions([]);
       setRecentAnnouncements([]);
@@ -92,21 +94,21 @@ const LearnerDashboard = () => {
 
   const loadEnrollments = async () => {
     try {
-      console.log('🔄 Loading learner enrollments...');
+      logger.log('🔄 Loading learner enrollments...');
       const response = await getMyEnrollments();
-      console.log('📚 Enrollments response:', response);
+      logger.log('📚 Enrollments response:', response);
       if (response.success) {
         setEnrollments(response.data || []);
-        console.log('✅ Enrollments loaded successfully:', response.data);
-        console.log('📊 Enrollment count:', response.data?.length || 0);
-        console.log('📊 Enrollment details:', response.data);
+        logger.log('✅ Enrollments loaded successfully:', response.data);
+        logger.log('📊 Enrollment count:', response.data?.length || 0);
+        logger.log('📊 Enrollment details:', response.data);
       } else {
-        console.error('⚠️ Enrollments response not successful:', response.message);
+        logger.warn('⚠️ Enrollments response not successful:', response.message);
         showError('Failed to load enrollments');
       }
     } catch (error) {
-      console.error('❌ Error loading enrollments:', error);
-      console.error('❌ Error details:', error.response?.data);
+      logger.error('❌ Error loading enrollments:', error);
+      logger.error('❌ Error details:', error.response?.data);
       showError('Error loading enrollments');
     }
   };
@@ -118,17 +120,17 @@ const LearnerDashboard = () => {
         setReviews(response.data || []);
       }
     } catch (error) {
-      console.error('Error loading reviews:', error);
+      logger.error('Error loading reviews:', error);
     }
   };
 
   // Debug enrollments data
-  console.log('🔍 Dashboard Debug - Enrollments:', enrollments);
-  console.log('🔍 Dashboard Debug - Enrollments length:', enrollments.length);
-  console.log('🔍 Dashboard Debug - Enrollments statuses:', enrollments.map(e => ({ id: e._id, status: e.status, course: e.course?.title })));
+  logger.debug('🔍 Dashboard Debug - Enrollments:', enrollments);
+  logger.debug('🔍 Dashboard Debug - Enrollments length:', enrollments.length);
+  logger.debug('🔍 Dashboard Debug - Enrollments statuses:', enrollments.map(e => ({ id: e._id, status: e.status, course: e.course?.title })));
 
-  // Stats cards with real data
-  const stats = [
+  // Stats cards with real data - memoized to prevent recalculation
+  const stats = useMemo(() => [
     {
       title: 'Total Courses',
       value: enrollments.length.toString(),
@@ -165,21 +167,22 @@ const LearnerDashboard = () => {
       borderColor: 'border-secondary-200',
       gradient: 'from-secondary-500 to-secondary-600'
     },
-  ];
+  ], [enrollments]);
 
-  // Continue Learning courses (from real enrollments)
-  const continueLearningCourses = enrollments
-    .filter(enrollment => enrollment.status === 'active' && enrollment.progress < 100)
-    .slice(0, 2)
-    .map(enrollment => ({
-      id: enrollment._id,
-      title: enrollment.course?.title || 'Unknown Course',
-      instructor: enrollment.tutor?.name || 'Unknown Instructor',
-      progress: enrollment.progress || 0,
-      category: enrollment.course?.category || 'General',
-      rating: enrollment.course?.rating || 4.5,
-      students: enrollment.course?.totalEnrollments || 0
-    }));
+  // Continue Learning courses (from real enrollments) - memoized
+  const continueLearningCourses = useMemo(() => 
+    enrollments
+      .filter(enrollment => enrollment.status === 'active' && enrollment.progress < 100)
+      .slice(0, 2)
+      .map(enrollment => ({
+        id: enrollment._id,
+        title: enrollment.course?.title || 'Unknown Course',
+        instructor: enrollment.tutor?.name || 'Unknown Instructor',
+        progress: enrollment.progress || 0,
+        category: enrollment.course?.category || 'General',
+        rating: enrollment.course?.rating || 4.5,
+        students: enrollment.course?.totalEnrollments || 0
+      })), [enrollments]);
 
   const StatCard = ({ title, value, icon: Icon, color, bgColor, borderColor, gradient }) => (
     <div className={`${bgColor} border ${borderColor} rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
@@ -277,13 +280,11 @@ const LearnerDashboard = () => {
         <div className={`p-3 rounded-xl ${
           announcement.type === 'course' ? 'bg-primary-100 text-primary-600' :
           announcement.type === 'assignment' ? 'bg-accent-100 text-accent-600' :
-          announcement.type === 'live-class' ? 'bg-secondary-100 text-secondary-600' :
           announcement.type === 'replay' ? 'bg-primary-100 text-primary-600' :
           'bg-slate-100 text-slate-600'
         }`}>
           {announcement.type === 'course' && <FaBookOpen className="text-xl" />}
           {announcement.type === 'assignment' && <FaClipboard className="text-xl" />}
-          {announcement.type === 'live-class' && <FaVideo className="text-xl" />}
           {announcement.type === 'replay' && <FaPlay className="text-xl" />}
           {announcement.type === 'system' && <FaCog className="text-xl" />}
         </div>
@@ -340,7 +341,7 @@ const LearnerDashboard = () => {
       {/* Tabs */}
       <div className="bg-white rounded-2xl shadow-lg p-2 mb-8 border border-slate-200">
         <div className="flex space-x-1">
-          {['overview', 'replays', 'ratings', 'tutor-feedback', 'payments', 'notifications'].map((tab) => (
+          {['overview', 'replays', 'ratings', 'tutor-feedback', 'payments', 'notifications', 'stream-test'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -350,7 +351,9 @@ const LearnerDashboard = () => {
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
-              {tab === 'tutor-feedback' ? 'Tutor Feedback' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab === 'tutor-feedback' ? 'Tutor Feedback' : 
+               tab === 'stream-test' ? 'Stream Test' : 
+               tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
         </div>
@@ -375,35 +378,67 @@ const LearnerDashboard = () => {
             </div>
           </div>
 
+          {/* Project Requirement Notice */}
+          <div className="mb-8">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <FaGraduationCap className="text-blue-600 text-xl" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                    🎓 Certificate Requirements
+                  </h3>
+                  <p className="text-blue-800 mb-3">
+                    To receive your certificate, you must complete the final project assigned by your tutor. 
+                    Wait for your tutor to assign the project, then submit your work for review.
+                  </p>
+                  <div className="flex items-center space-x-4 text-sm text-blue-700">
+                    <div className="flex items-center space-x-2">
+                      <FaClipboard className="text-blue-500" />
+                      <span>Complete assigned project</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <FaStar className="text-blue-500" />
+                      <span>Get tutor approval</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <FaTrophy className="text-blue-500" />
+                      <span>Receive certificate</span>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <Link 
+                      to="/learner/certificates" 
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    >
+                      <FaEye className="mr-2" />
+                      View Project Assignments
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Bottom Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Upcoming Sessions */}
+            {/* Upcoming Sessions - Removed Live Classes */}
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-3xl font-bold text-slate-900">Upcoming Sessions</h2>
                 <div className="flex items-center space-x-4">
-                  <Link to="/learner/live-session" className="bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors flex items-center text-sm">
-                    <FaVideo className="mr-2" />
-                    Join Live Session
-                  </Link>
-                  <Link to="/learner/live-classes" className="text-primary-600 hover:text-primary-700 font-medium flex items-center space-x-2">
-                    <span>View All</span>
-                    <FaArrowRight className="text-sm" />
-                  </Link>
+                  <span className="text-slate-500 text-sm">Live classes removed</span>
                 </div>
               </div>
               <div className="space-y-4">
-                {upcomingSessions.length > 0 ? (
-                  upcomingSessions.map((session) => (
-                    <SessionCard key={session.id} session={session} />
-                  ))
-                ) : (
-                  <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-100 text-center">
-                    <FaCalendarAlt className="text-4xl text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-slate-600 mb-2">No upcoming sessions</h3>
-                    <p className="text-slate-500">Your upcoming live classes will appear here.</p>
-                  </div>
-                )}
+                <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-100 text-center">
+                  <FaCalendarAlt className="text-4xl text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-slate-600 mb-2">No upcoming sessions</h3>
+                  <p className="text-slate-500">Live class functionality has been removed.</p>
+                </div>
               </div>
             </div>
 
@@ -442,10 +477,10 @@ const LearnerDashboard = () => {
             <div className="text-center">
               <FaVideo className="text-6xl text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-600 mb-2">No replays available yet</h3>
-              <p className="text-gray-500 mb-6">Your recorded live sessions will appear here after they're processed.</p>
-              <Link to="/learner/live-classes" className="inline-block px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium">
-                Go to Live Classes
-              </Link>
+              <p className="text-gray-500 mb-6">Recorded sessions will appear here after they're processed.</p>
+              <span className="inline-block px-6 py-3 bg-gray-300 text-gray-500 rounded-lg font-medium">
+                Live Classes Removed
+              </span>
             </div>
           </div>
         </div>
@@ -593,6 +628,13 @@ const LearnerDashboard = () => {
               </Link>
             </div>
           </div>
+        </div>
+      )}
+
+      {activeTab === 'stream-test' && (
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">Stream SDK Test</h2>
+          <p className="text-gray-600 mb-8">Stream SDK test removed - live class functionality deleted.</p>
         </div>
       )}
     </div>
