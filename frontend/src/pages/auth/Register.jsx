@@ -82,7 +82,10 @@ const Register = () => {
         
         // Register user (this will trigger email verification)
         const result = await register(userData);
+        console.log('📝 Registration result:', result);
+        
         if (result.success) {
+          console.log('✅ Registration successful, redirecting to email verification');
           // Store email in localStorage as backup
           localStorage.setItem('pendingVerificationEmail', values.email);
           
@@ -93,6 +96,8 @@ const Register = () => {
               message: 'Please verify your email to complete registration'
             }
           });
+        } else {
+          console.log('❌ Registration failed:', result.error);
         }
       } catch (error) {
         console.error('Registration error:', error);

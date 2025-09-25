@@ -232,11 +232,19 @@ export const AuthProvider = ({ children }) => {
     try {
       dispatch({ type: 'LOGIN_START' });
       
+      console.log('🔄 Registering user with data:', { ...userData, password: '[HIDDEN]' });
+      
       const response = await apiService.post('/auth/register', userData);
+      
+      console.log('📝 Registration response:', response.data);
+      console.log('📝 Response success:', response.data.success);
+      console.log('📝 Response data:', response.data.data);
       
       if (response.data.success) {
         const user = response.data.data;
         const tabId = getTabId();
+        
+        console.log('✅ Registration successful, storing user:', user);
         
         // Store in tab-specific sessionStorage
         sessionStorage.setItem(getStorageKey('user'), JSON.stringify(user));
@@ -251,11 +259,16 @@ export const AuthProvider = ({ children }) => {
         showSuccess(`Welcome to SkillLift, ${user.name}!`);
         return { success: true, user };
       } else {
+        console.log('❌ Registration failed - success: false');
         dispatch({ type: 'LOGIN_FAILURE', payload: response.data.message });
         showError(response.data.message || 'Registration failed');
         return { success: false, error: response.data.message };
       }
     } catch (error) {
+      console.log('❌ Registration error caught:', error);
+      console.log('❌ Error response:', error.response?.data);
+      console.log('❌ Error status:', error.response?.status);
+      
       const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
       dispatch({ type: 'LOGIN_FAILURE', payload: errorMessage });
       
