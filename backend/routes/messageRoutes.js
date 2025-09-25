@@ -46,11 +46,6 @@ router.get('/learner-tutors', messageController.getLearnerTutors);
 // @access  Private
 router.get('/unread-count', messageController.getUnreadCount);
 
-// @desc    Get message details
-// @route   GET /api/messages/:id
-// @access  Private
-router.get('/:id', messageController.getMessage);
-
 // @desc    Reply to message
 // @route   POST /api/messages/:id/reply
 // @access  Private
@@ -65,5 +60,10 @@ router.delete('/:id', messageController.deleteMessage);
 // @route   PUT /api/messages/:id/read
 // @access  Private
 router.put('/:id/read', messageController.updateMessageStatus);
+
+// @desc    Get message details (MUST BE LAST - catches all other routes)
+// @route   GET /api/messages/:id
+// @access  Private
+router.get('/:id', messageController.getMessage);
 
 module.exports = router;

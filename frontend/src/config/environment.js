@@ -9,8 +9,10 @@ export const getApiUrl = () => {
     cleanUrl = envUrl.split('||')[0].trim();
   }
   
-  // Default fallback
-  const defaultUrl = 'https://skilllift.onrender.com/api';
+  // Use localhost for development, deployed URL for production
+  const defaultUrl = import.meta.env.DEV 
+    ? 'http://localhost:3002/api'  // Local development
+    : 'https://skilllift.onrender.com/api';  // Production
   
   const finalUrl = cleanUrl || defaultUrl;
   
@@ -18,7 +20,8 @@ export const getApiUrl = () => {
     originalEnv: envUrl,
     cleanedUrl: cleanUrl,
     finalUrl: finalUrl,
-    isProduction: import.meta.env.PROD
+    isProduction: import.meta.env.PROD,
+    isDevelopment: import.meta.env.DEV
   });
   
   return finalUrl;
@@ -42,6 +45,10 @@ export const logger = {
     if (import.meta.env.DEV) {
       console.log(`🐛 ${message}`, data || '');
     }
+  },
+  // Add log method as alias for info to prevent errors
+  log: (message, data) => {
+    console.log(`ℹ️ ${message}`, data || '');
   }
 };
 
