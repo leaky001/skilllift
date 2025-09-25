@@ -11,7 +11,7 @@ const validateRegistration = [
   body('name').trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
-  body('phone').matches(/^(\+234|234|0)?[789][01]\d{8}$/).withMessage('Please provide a valid Nigerian phone number'),
+  body('phone').matches(/^[\+]?[1-9][\d]{7,14}$/).withMessage('Please provide a valid phone number'),
   body('role').isIn(['tutor', 'learner']).withMessage('Role must be either tutor or learner')
 ];
 
@@ -31,11 +31,19 @@ const getAdminUserId = async () => {
 // @route   POST /api/auth/register
 // @access  Public
 exports.registerUser = asyncHandler(async (req, res) => {
+  console.log('📱 Registration request received:', {
+    userAgent: req.get('User-Agent'),
+    ip: req.ip,
+    body: { ...req.body, password: '[HIDDEN]' }
+  });
+
   // Check validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('❌ Registration validation errors:', errors.array());
     return res.status(400).json({
       success: false,
+      message: 'Validation failed. Please check your input.',
       errors: errors.array()
     });
   }

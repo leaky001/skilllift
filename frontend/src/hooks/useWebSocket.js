@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { config } from '../config/config';
+import config from '../config/config';
 
 const useWebSocket = (roomId = null) => {
   const { user, token } = useAuth();

@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { showSuccess, showError, showWarning, showInfo } from './toastService.jsx';
+import { config } from '../config/environment';
 
-// Create axios instance with default config
+// Create axios instance with clean configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://skilllift.onrender.com/api',
+  baseURL: config.apiUrl,
   timeout: 30000, // Increased from 10s to 30s for better reliability
   headers: {
     'Content-Type': 'application/json',
