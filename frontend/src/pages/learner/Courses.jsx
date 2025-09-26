@@ -28,9 +28,7 @@ import { getThumbnailUrl, getPlaceholderImage, getCSSPlaceholder } from '../../u
 import PaymentModal from '../../components/PaymentModal';
 
 const LearnerCourses = () => {
-  console.log('🎯 LearnerCourses component rendering...');
   const { user, isAuthenticated, isInitialized } = useAuth();
-  console.log('🎯 Auth state:', { user, isAuthenticated, isInitialized });
   const [searchParams, setSearchParams] = useSearchParams();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +72,6 @@ const LearnerCourses = () => {
   ];
 
   useEffect(() => {
-    console.log('🎯 useEffect: Loading courses...');
     loadCourses();
   }, []);
 
@@ -88,7 +85,6 @@ const LearnerCourses = () => {
   useEffect(() => {
     const paymentSuccess = searchParams.get('paymentSuccess');
     if (paymentSuccess === 'true' && user && courses.length > 0) {
-      console.log('🔄 Payment success detected, refreshing enrollment status...');
       // Force immediate refresh with cache busting
       loadEnrollmentStatuses(true);
       // Remove the parameter from URL
@@ -105,7 +101,6 @@ const LearnerCourses = () => {
     if (!user || courses.length === 0) return;
     
     const interval = setInterval(() => {
-      console.log('🔄 Periodic refresh (enrollment status + course data)...');
       loadEnrollmentStatuses(true); // Force refresh every 30 seconds
       loadCourses(); // Also refresh course data to get updated ratings
     }, 30000); // 30 seconds
@@ -116,27 +111,17 @@ const LearnerCourses = () => {
   const loadCourses = async () => {
     try {
       setLoading(true);
-      console.log('🔄 Loading courses...');
       const response = await getCourses({
         status: 'published',
         isApproved: true
       });
       
-      console.log('📚 Courses API response:', response);
-      
       if (response.success) {
-        console.log('📚 Courses loaded successfully:', response.data?.length || 0);
-        response.data?.forEach(course => {
-          console.log(`  - ${course.title}: rating=${course.rating}, totalRatings=${course.totalRatings}`);
-        });
         setCourses(response.data || []);
       } else {
-        console.error('❌ Failed to load courses:', response.message);
         showError('Failed to load courses: ' + (response.message || 'Unknown error'));
       }
     } catch (error) {
-      console.error('❌ Error loading courses:', error);
-      console.error('❌ Error details:', error.message, error.stack);
       showServerError();
     } finally {
       setLoading(false);
@@ -158,8 +143,6 @@ const LearnerCourses = () => {
           
           const response = await checkEnrollmentStatus(course._id, forceRefresh);
           if (response.success) {
-            console.log(`🔍 Course ${course.title} enrollment status:`, response.data);
-            console.log(`🔍 Installment info:`, response.data.installmentInfo);
             statuses[course._id] = response.data;
           }
         } catch (error) {
@@ -167,7 +150,6 @@ const LearnerCourses = () => {
         }
       }
       setEnrollmentStatuses(statuses);
-      console.log('✅ All enrollment statuses updated:', statuses);
     } catch (error) {
       console.error('Error loading enrollment statuses:', error);
     }
@@ -181,11 +163,8 @@ const LearnerCourses = () => {
         return;
       }
 
-      console.log('🔍 Enrolling in course:', course.title, 'Price:', course.price);
-
       // Check if course is free
       if (course.price === 0 || course.price === null || course.price === undefined) {
-        console.log('✅ Free course - enrolling directly');
         // Free course - enroll directly
         const response = await enrollInCourse(courseId);
         if (response.success) {
@@ -196,13 +175,11 @@ const LearnerCourses = () => {
           showError(response.message || 'Failed to enroll in course');
         }
       } else {
-        console.log('💰 Paid course - showing payment modal');
         // Paid course - show payment modal directly
         setSelectedCourse(course);
         setShowPaymentModal(true);
       }
     } catch (error) {
-      console.error('❌ Error enrolling in course:', error);
       showError('Error enrolling in course. Please try again.');
     }
   };
@@ -309,7 +286,6 @@ const LearnerCourses = () => {
           alt={course.title}
           className="w-full h-full object-cover"
           onError={(e) => {
-            console.log('❌ Image failed to load:', e.target.src);
             // Hide the image and use CSS background instead
             e.target.style.display = 'none';
             e.target.parentElement.style.background = getCSSPlaceholder(course.category);
@@ -516,34 +492,6 @@ const LearnerCourses = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-primary-50 p-6">
-      {/* Debug Information */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <h3 className="font-semibold text-blue-800 mb-2">🔍 Debug Information:</h3>
-        <div className="text-sm text-blue-700 space-y-1">
-          <div>• Authentication: {isAuthenticated ? '✅ Logged In' : '❌ Not Logged In'}</div>
-          <div>• User: {user ? user.name : 'No user'}</div>
-          <div>• Loading: {loading ? '⏳ Loading...' : '✅ Loaded'}</div>
-          <div>• Courses Count: {courses.length}</div>
-          <div>• Filtered Courses: {filteredCourses.length}</div>
-        </div>
-        <div className="mt-4">
-          <button 
-            onClick={loadCourses}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            🔄 Reload Courses
-          </button>
-          <button 
-            onClick={() => {
-              console.log('🔍 Current state:', { courses, loading, isAuthenticated, user });
-              console.log('🔍 API URL:', import.meta.env.VITE_API_URL || 'http://localhost:3002/api');
-            }}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors ml-2"
-          >
-            📊 Log State
-          </button>
-        </div>
-      </div>
 
       {/* Debug Authentication Button */}
       {!isAuthenticated && (
