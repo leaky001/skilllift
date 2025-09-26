@@ -197,7 +197,7 @@ const SharedLiveClassRoom = () => {
           backgroundColor: '#111827',
           margin: 0,
           padding: 0,
-          overflow: 'hidden'
+          overflow: 'auto'
         }}
       >
         {/* Minimal Header */}
