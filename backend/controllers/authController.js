@@ -11,7 +11,7 @@ const validateRegistration = [
   body('name').trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
-  body('phone').matches(/^[\+]?[1-9][\d]{7,14}$/).withMessage('Please provide a valid phone number'),
+  body('phone').matches(/^[\+]?[0-9\s\-\(\)]{7,20}$/).withMessage('Please provide a valid phone number'),
   body('role').isIn(['tutor', 'learner']).withMessage('Role must be either tutor or learner')
 ];
 
