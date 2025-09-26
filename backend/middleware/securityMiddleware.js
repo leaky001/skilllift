@@ -97,6 +97,14 @@ const corsOptions = {
       'http://127.0.0.1:5173',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:4173',
+      // Vercel domains
+      'https://skilllift.vercel.app',
+      'https://skilllift-git-main-leaky001.vercel.app',
+      'https://skilllift-git-main-leaky001s-projects.vercel.app',
+      // Custom domain (if you have one)
+      'https://skilllift.com',
+      'https://www.skilllift.com',
+      // Environment variable
       process.env.FRONTEND_URL
     ].filter(Boolean);
     
@@ -110,9 +118,16 @@ const corsOptions = {
       return callback(null, true);
     }
     
+    // Allow any Vercel domain
+    if (origin && origin.includes('.vercel.app')) {
+      return callback(null, true);
+    }
+    
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      console.log('❌ CORS blocked origin:', origin);
+      console.log('✅ Allowed origins:', allowedOrigins);
       callback(new Error('Not allowed by CORS'));
     }
   },
