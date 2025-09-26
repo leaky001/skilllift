@@ -104,6 +104,7 @@ const corsOptions = {
       // Custom domain (if you have one)
       'https://skilllift.com',
       'https://www.skilllift.com',
+       "https://skilllift-ublj.vercel.app",
       // Environment variable
       process.env.FRONTEND_URL
     ].filter(Boolean);
