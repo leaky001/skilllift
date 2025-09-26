@@ -806,7 +806,7 @@ const StreamVideoCall = ({
   }
 
   return (
-    <div className="h-full w-full bg-gray-900">
+    <div className="h-full w-full bg-gray-900 overflow-auto">
       <StreamVideo client={client}>
         <div className="h-full w-full flex flex-col">
           {/* Minimal Header */}
