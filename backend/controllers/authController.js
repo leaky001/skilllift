@@ -31,16 +31,10 @@ const getAdminUserId = async () => {
 // @route   POST /api/auth/register
 // @access  Public
 exports.registerUser = asyncHandler(async (req, res) => {
-  console.log('📱 Registration request received:', {
-    userAgent: req.get('User-Agent'),
-    ip: req.ip,
-    body: { ...req.body, password: '[HIDDEN]' }
-  });
 
   // Check validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log('❌ Registration validation errors:', errors.array());
     return res.status(400).json({
       success: false,
       message: 'Validation failed. Please check your input.',
