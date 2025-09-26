@@ -33,7 +33,6 @@ import {
 } from '../../services/tutorService';
 
 const TutorCertificates = () => {
-  console.log('🎓 TutorCertificates component loaded!');
   
   const { user } = useAuth();
 
@@ -133,11 +132,9 @@ const TutorCertificates = () => {
   const loadCertificates = async () => {
     try {
       setLoading(true);
-      console.log('🔄 Loading tutor certificates...');
       
       const token = getAuthToken();
       if (!token) {
-        console.log('❌ No auth token found');
         setCertificates([]);
         return;
       }
@@ -150,14 +147,11 @@ const TutorCertificates = () => {
       
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ Tutor certificates loaded:', result);
         setCertificates(result.certificates || []);
       } else {
-        console.log('⚠️ No certificates found or error loading');
         setCertificates([]);
       }
     } catch (error) {
-      console.error('❌ Error loading certificates:', error);
       setCertificates([]);
     } finally {
       setLoading(false);
@@ -166,7 +160,6 @@ const TutorCertificates = () => {
 
   const loadProjectSubmissions = async () => {
     try {
-      console.log('🔄 Loading tutor projects...');
       const response = await fetch('http://localhost:3002/api/project-submissions/tutor-projects', {
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`
@@ -175,14 +168,11 @@ const TutorCertificates = () => {
       
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ Tutor projects loaded:', result);
         setProjectSubmissions(result.projects || []);
       } else {
-        console.log('⚠️ No tutor projects found');
         setProjectSubmissions([]);
       }
     } catch (error) {
-      console.error('❌ Error loading tutor projects:', error);
       setProjectSubmissions([]);
     }
   };
@@ -315,11 +305,8 @@ const TutorCertificates = () => {
 
   const handleGenerateProjectCertificate = async (submissionId) => {
     try {
-      console.log('🔄 Opening certificate form for submission:', submissionId);
-      
       // Use id or _id as fallback
       const finalSubmissionId = submissionId || selectedSubmission?.id || selectedSubmission?._id;
-      console.log('🔍 Using submission ID for certificate:', finalSubmissionId);
       
       // Pre-fill the form with submission data
       if (selectedSubmission) {
@@ -345,7 +332,6 @@ const TutorCertificates = () => {
       // Show the certificate form modal
       setShowCertificateForm(true);
     } catch (error) {
-      console.error('❌ Error opening certificate form:', error);
       alert('Error opening certificate form');
     }
   };
@@ -867,17 +853,6 @@ const TutorCertificates = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Debug info */}
-      <div className="bg-blue-100 p-4 text-center">
-        <p className="text-blue-800">🎓 Tutor Certificates Page Loaded Successfully!</p>
-        <p className="text-blue-600">Active Tab: {activeTab}</p>
-        <p className="text-blue-600">Certificates Count: {certificates.length}</p>
-        <p className="text-blue-600">Project Submissions Count: {projectSubmissions.length}</p>
-        <p className="text-blue-600">Learner Submissions Count: {learnerSubmissions.length}</p>
-        <p className="text-blue-600">Tutor Courses Count: {courses.length}</p>
-        <p className="text-blue-600">Enrolled Students Count: {enrolledStudents.length}</p>
-        <p className="text-blue-600">Loading: {loading ? 'Yes' : 'No'}</p>
-      </div>
       
       {/* Header */}
       <div className="bg-white shadow-sm border-b">

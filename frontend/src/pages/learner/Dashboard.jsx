@@ -7,7 +7,6 @@ import learnerDashboardService from '../../services/learnerDashboardService';
 import { useStreakTracking } from '../../hooks/useStreakTracking';
 import { showError } from '../../services/toastService.jsx';
 import { logger } from '../../config/environment';
-import EnvironmentDebugger from '../../components/EnvironmentDebugger';
 import { 
   FaBookOpen, 
   FaPlay, 
@@ -70,22 +69,16 @@ const LearnerDashboard = () => {
 
   const loadDashboardSummary = async () => {
     try {
-      logger.info('🔄 Loading learner dashboard summary...');
       const response = await learnerDashboardService.getDashboardSummary();
-      logger.info('📊 Dashboard summary response:', response);
       if (response.success) {
         setUpcomingSessions(response.data.upcomingSessions || []);
         setRecentAnnouncements(response.data.recentAnnouncements || []);
-        logger.info('✅ Dashboard summary loaded successfully:', response.data);
       } else {
-        logger.warn('⚠️ Dashboard summary response not successful:', response.message);
         // Set empty arrays as fallback
         setUpcomingSessions([]);
         setRecentAnnouncements([]);
       }
     } catch (error) {
-      logger.error('❌ Error loading dashboard summary:', error);
-      logger.error('❌ Error details:', error.response?.data);
       // Set empty arrays as fallback
       setUpcomingSessions([]);
       setRecentAnnouncements([]);
@@ -94,21 +87,13 @@ const LearnerDashboard = () => {
 
   const loadEnrollments = async () => {
     try {
-      logger.log('🔄 Loading learner enrollments...');
       const response = await getMyEnrollments();
-      logger.log('📚 Enrollments response:', response);
       if (response.success) {
         setEnrollments(response.data || []);
-        logger.log('✅ Enrollments loaded successfully:', response.data);
-        logger.log('📊 Enrollment count:', response.data?.length || 0);
-        logger.log('📊 Enrollment details:', response.data);
       } else {
-        logger.warn('⚠️ Enrollments response not successful:', response.message);
         showError('Failed to load enrollments');
       }
     } catch (error) {
-      logger.error('❌ Error loading enrollments:', error);
-      logger.error('❌ Error details:', error.response?.data);
       showError('Error loading enrollments');
     }
   };
@@ -120,14 +105,10 @@ const LearnerDashboard = () => {
         setReviews(response.data || []);
       }
     } catch (error) {
-      logger.error('Error loading reviews:', error);
+      // Handle error silently
     }
   };
 
-  // Debug enrollments data
-  logger.debug('🔍 Dashboard Debug - Enrollments:', enrollments);
-  logger.debug('🔍 Dashboard Debug - Enrollments length:', enrollments.length);
-  logger.debug('🔍 Dashboard Debug - Enrollments statuses:', enrollments.map(e => ({ id: e._id, status: e.status, course: e.course?.title })));
 
   // Stats cards with real data - memoized to prevent recalculation
   const stats = useMemo(() => [
