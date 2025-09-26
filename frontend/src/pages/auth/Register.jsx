@@ -5,7 +5,6 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../../context/AuthContext';
 import { showSuccess, showError, showValidationError } from '../../services/toastService.jsx';
-import MobileDebugger from '../../components/MobileDebugger';
 import { 
   FaGraduationCap, 
   FaUser, 
@@ -67,12 +66,6 @@ const Register = () => {
     onSubmit: async (values) => {
       setIsLoading(true);
       
-      // Mobile debugging
-      console.log('📱 Mobile registration attempt:', {
-        userAgent: navigator.userAgent,
-        isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
-        values: { ...values, password: '[HIDDEN]' }
-      });
       
       try {
         const userData = {
@@ -82,10 +75,8 @@ const Register = () => {
         
         // Register user (this will trigger email verification)
         const result = await register(userData);
-        console.log('📝 Registration result:', result);
         
         if (result.success) {
-          console.log('✅ Registration successful, redirecting to email verification');
           // Store email in localStorage as backup
           localStorage.setItem('pendingVerificationEmail', values.email);
           
@@ -96,13 +87,8 @@ const Register = () => {
               message: 'Please verify your email to complete registration'
             }
           });
-        } else {
-          console.log('❌ Registration failed:', result.error);
         }
       } catch (error) {
-        console.error('Registration error:', error);
-        console.error('Error response:', error.response?.data);
-        console.error('Error status:', error.response?.status);
         
         // Handle specific error types
         if (error.response?.status === 400) {
@@ -128,7 +114,6 @@ const Register = () => {
 
   const handleSocialLogin = (provider) => {
     // TODO: Implement social registration
-    console.log(`Registering with ${provider} as ${role}`);
   };
 
   const getRoleInfo = () => {
@@ -171,7 +156,6 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <MobileDebugger />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
