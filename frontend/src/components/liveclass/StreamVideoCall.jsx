@@ -806,35 +806,35 @@ const StreamVideoCall = ({
   }
 
   return (
-    <div className="h-full w-full bg-gray-900 overflow-auto">
+    <div className="h-full w-full bg-primary-950 overflow-auto">
       <StreamVideo client={client}>
         <div className="h-full w-full flex flex-col">
           {/* Minimal Header */}
-          <div className="bg-gray-800 text-white p-2 flex justify-between items-center">
+          <div className="bg-primary-800 text-white p-2 flex justify-between items-center">
                 <div className="flex items-center space-x-4">
                   <h1 className="text-lg font-bold">Live Class</h1>
-                  <span className="text-xs text-gray-300">
+                  <span className="text-xs text-primary-200">
                     {participants.length} participant{participants.length !== 1 ? 's' : ''}
                   </span>
                 </div>
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setIsFullScreen(!isFullScreen)}
-                className="p-1 hover:bg-gray-700 rounded text-sm"
+                className="p-1 hover:bg-primary-700 rounded text-sm transition-colors"
                 title={isFullScreen ? "Switch to Grid View" : "Switch to Full Screen"}
               >
                 {isFullScreen ? '⊞' : '⛶'}
               </button>
               <button
                 onClick={() => setShowParticipants(!showParticipants)}
-                    className="p-1 hover:bg-gray-700 rounded text-sm"
+                    className="p-1 hover:bg-primary-700 rounded text-sm transition-colors"
                 title="Show Participants"
               >
                 👥
               </button>
                   <button
                     onClick={() => setShowChat(!showChat)}
-                    className="p-1 hover:bg-gray-700 rounded text-sm"
+                    className="p-1 hover:bg-primary-700 rounded text-sm transition-colors"
                     title="Show Chat"
                   >
                     💬
@@ -844,7 +844,7 @@ const StreamVideoCall = ({
 
           {/* Main Video Area */}
           <div className="flex-1 flex">
-            <div className="flex-1 relative bg-gray-800">
+            <div className="flex-1 relative bg-primary-900">
               {/* Video Display */}
               <div className="h-full">
                 {!localStream ? (
@@ -853,8 +853,8 @@ const StreamVideoCall = ({
                     <div className="text-center text-white">
                       <div className="text-6xl mb-4">🎥</div>
                       <h2 className="text-2xl font-bold mb-2">Waiting for participants...</h2>
-                      <p className="text-gray-300 mb-4">Call ID: {callId}</p>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-primary-200 mb-4">Call ID: {callId}</p>
+                      <p className="text-sm text-primary-300">
                         {isHost ? 'You are the Host' : 'You are a Student'}
                       </p>
                     </div>
@@ -862,7 +862,7 @@ const StreamVideoCall = ({
                 ) : isFullScreen && participants.length === 0 ? (
                   // Full screen when alone
                   <div className="h-full w-full">
-                    <div className="relative w-full h-full bg-gray-700 overflow-hidden">
+                    <div className="relative w-full h-full bg-primary-800 overflow-hidden">
                       <video
                         autoPlay
                         muted
@@ -874,13 +874,13 @@ const StreamVideoCall = ({
                           }
                         }}
                       />
-                      <div className="absolute bottom-4 left-4 text-white text-sm bg-black bg-opacity-50 px-3 py-2 rounded-lg">
+                      <div className="absolute bottom-4 left-4 text-white text-sm bg-primary-900 bg-opacity-80 px-3 py-2 rounded-lg backdrop-blur-sm">
                         <div className="font-medium">You ({user.name})</div>
                         <div className="text-xs">
                           {isHost ? 'Host' : 'Student'} • {isMuted ? 'Muted' : 'Unmuted'} • {isVideoOn ? 'Video On' : 'Video Off'}
                         </div>
                       </div>
-                      <div className="absolute top-4 right-4 text-white text-sm bg-black bg-opacity-50 px-3 py-2 rounded-lg">
+                      <div className="absolute top-4 right-4 text-white text-sm bg-primary-900 bg-opacity-80 px-3 py-2 rounded-lg backdrop-blur-sm">
                         <div className="text-center">
                           <div className="text-lg font-bold">Live Class</div>
                           <div className="text-xs">Call ID: {callId}</div>
@@ -891,7 +891,7 @@ const StreamVideoCall = ({
                 ) : participants.length === 0 ? (
                   // Host alone - full screen
                   <div className="h-full w-full">
-                    <div className="relative w-full h-full bg-gray-700 overflow-hidden">
+                    <div className="relative w-full h-full bg-primary-800 overflow-hidden">
                       <video
                         autoPlay
                         muted
@@ -923,7 +923,7 @@ const StreamVideoCall = ({
                     {/* Host Video - Left Side */}
                     {localStream && (
                       <div className="w-1/2 h-full p-2">
-                        <div className="relative bg-gray-700 rounded-lg overflow-hidden border-2 border-blue-500 shadow-lg h-full">
+                        <div className="relative bg-primary-800 rounded-lg overflow-hidden border-2 border-primary-500 shadow-lg h-full">
                           <video
                             autoPlay
                             muted
@@ -957,7 +957,7 @@ const StreamVideoCall = ({
                             trackLabel: track?.mediaStreamTrack?.label
                           });
                           return (
-                            <div key={userId} className="relative bg-gray-700 rounded-lg overflow-hidden border-2 border-green-400 shadow-lg">
+                            <div key={userId} className="relative bg-primary-800 rounded-lg overflow-hidden border-2 border-secondary-400 shadow-lg">
                               <video
                                 autoPlay
                                 playsInline
@@ -992,11 +992,11 @@ const StreamVideoCall = ({
 
                         {/* Placeholder for participants without video */}
                         {participants.filter(p => !remoteStreams.has(p.user?.id || p.user_id)).map((participant, index) => (
-                          <div key={`no-video-${participant.user?.id || participant.user_id || index}`} className="relative bg-gray-700 rounded-lg overflow-hidden border-2 border-gray-500 shadow-lg flex items-center justify-center">
+                          <div key={`no-video-${participant.user?.id || participant.user_id || index}`} className="relative bg-primary-800 rounded-lg overflow-hidden border-2 border-primary-500 shadow-lg flex items-center justify-center">
                             <div className="text-center text-white">
                               <div className="text-4xl mb-2">👤</div>
                               <p className="text-sm font-medium">{participant.name || participant.user?.name || 'Student'}</p>
-                              <p className="text-xs text-gray-300">Camera off</p>
+                              <p className="text-xs text-primary-300">Camera off</p>
                             </div>
                           </div>
                         ))}
@@ -1034,25 +1034,25 @@ const StreamVideoCall = ({
 
                 {/* Participants List */}
                 {showParticipants && (
-                  <div className="w-80 bg-gray-800 border-l border-gray-700">
-                    <div className="p-4 border-b border-gray-700">
+                  <div className="w-80 bg-primary-800 border-l border-primary-700">
+                    <div className="p-4 border-b border-primary-700">
                       <h3 className="text-white font-semibold">
                         Participants ({participants.length})
                       </h3>
                     </div>
                     <div className="p-4 space-y-2">
                       {/* Host/Current User */}
-                      <div className="text-white text-sm bg-gray-700 p-2 rounded border-l-4 border-blue-500">
+                      <div className="text-white text-sm bg-primary-700 p-2 rounded border-l-4 border-primary-500">
                         <p className="font-medium">You ({user.name})</p>
-                        <p className="text-xs text-gray-300">
+                        <p className="text-xs text-primary-300">
                           {isHost ? 'Host' : 'Student'} • {isMuted ? 'Muted' : 'Unmuted'} • {isVideoOn ? 'Video On' : 'Video Off'}
                         </p>
                       </div>
                       {/* Other Participants */}
                       {participants.map((participant, index) => (
-                        <div key={participant.user_id || index} className="text-white text-sm bg-gray-700 p-2 rounded border-l-4 border-green-500">
+                        <div key={participant.user_id || index} className="text-white text-sm bg-primary-700 p-2 rounded border-l-4 border-secondary-500">
                           <p className="font-medium">{participant.name || 'Unknown User'}</p>
-                          <p className="text-xs text-gray-300">Student</p>
+                          <p className="text-xs text-primary-300">Student</p>
                         </div>
                       ))}
                     </div>
@@ -1061,27 +1061,27 @@ const StreamVideoCall = ({
 
             {/* Chat Panel */}
             {showChat && (
-              <div className="w-80 bg-gray-800 border-l border-gray-700 flex flex-col">
-                <div className="p-4 border-b border-gray-700">
+              <div className="w-80 bg-primary-800 border-l border-primary-700 flex flex-col">
+                <div className="p-4 border-b border-primary-700">
                   <h3 className="text-white font-semibold">Chat</h3>
                 </div>
                 <div className="flex-1 p-4 overflow-y-auto space-y-2">
                   {console.log('💬 Rendering chat messages:', chatMessages.length, 'messages')}
                   {chatMessages.length === 0 ? (
-                    <div className="text-gray-400 text-sm">No messages yet</div>
+                    <div className="text-primary-400 text-sm">No messages yet</div>
                   ) : (
                     chatMessages.map((message) => {
                       console.log('💬 Rendering message:', message);
                       return (
                         <div key={message.id} className="text-white text-sm">
-                          <div className="font-medium text-blue-400">{message.user.name}</div>
-                          <div className="text-gray-300">{message.text}</div>
+                          <div className="font-medium text-primary-400">{message.user.name}</div>
+                          <div className="text-primary-300">{message.text}</div>
                         </div>
                       );
                     })
                   )}
                 </div>
-                <div className="p-4 border-t border-gray-700">
+                <div className="p-4 border-t border-primary-700">
                   <div className="flex space-x-2 mb-2">
                     <button
                       onClick={() => {
@@ -1097,7 +1097,7 @@ const StreamVideoCall = ({
                         console.log('💬 Adding test message:', testMessage);
                         setChatMessages(prev => [...prev, testMessage]);
                       }}
-                      className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                      className="px-3 py-1 bg-primary-600 text-white text-xs rounded hover:bg-primary-700 transition-colors"
                     >
                       Test Chat
                     </button>
@@ -1109,11 +1109,11 @@ const StreamVideoCall = ({
                       onChange={(e) => setNewMessage(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()}
                       placeholder="Type a message..."
-                      className="flex-1 bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
+                      className="flex-1 bg-primary-700 text-white px-3 py-2 rounded-lg border border-primary-600 focus:border-primary-500 focus:outline-none transition-colors"
                     />
                     <button
                       onClick={sendChatMessage}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                      className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
                     >
                       Send
                     </button>

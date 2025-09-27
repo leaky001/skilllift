@@ -184,7 +184,7 @@ const SharedLiveClassRoom = () => {
   if (isInCall && currentCallId && streamToken) {
     return (
       <div 
-        className="fixed inset-0 z-[9999] bg-gray-900" 
+        className="fixed inset-0 z-[9999] bg-primary-950" 
         style={{ 
           position: 'fixed', 
           top: 0, 
@@ -194,24 +194,24 @@ const SharedLiveClassRoom = () => {
           width: '100vw', 
           height: '100vh',
           zIndex: 9999,
-          backgroundColor: '#111827',
+          backgroundColor: '#1E1B4B',
           margin: 0,
           padding: 0,
           overflow: 'auto'
         }}
       >
         {/* Minimal Header */}
-        <div className="bg-gray-800 p-3 flex items-center justify-between">
+        <div className="bg-primary-800 p-3 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={handleBack}
-              className="text-gray-300 hover:text-white transition-colors"
+              className="text-primary-300 hover:text-white transition-colors"
             >
               <FaArrowLeft className="text-lg" />
             </button>
             <div>
               <h1 className="text-white text-lg font-semibold">{liveClass?.title}</h1>
-              <p className="text-gray-300 text-xs">
+              <p className="text-primary-300 text-xs">
                 Call ID: {currentCallId} • Role: {isHost ? 'Host' : 'Student'}
               </p>
             </div>
@@ -222,7 +222,7 @@ const SharedLiveClassRoom = () => {
             </span>
             <button
               onClick={handleLeaveCall}
-              className="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 flex items-center space-x-1 text-sm"
+              className="bg-error-600 text-white px-3 py-1 rounded-lg hover:bg-error-700 flex items-center space-x-1 text-sm transition-colors"
             >
               <FaTimes className="text-sm" />
               <span>Leave</span>
@@ -246,10 +246,10 @@ const SharedLiveClassRoom = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-background-light flex items-center justify-center">
         <div className="text-center">
-          <FaSpinner className="animate-spin text-4xl text-green-600 mx-auto mb-4" />
-          <p className="text-lg text-gray-600">Loading live class...</p>
+          <FaSpinner className="animate-spin text-4xl text-primary-600 mx-auto mb-4" />
+          <p className="text-lg text-text-secondary">Loading live class...</p>
         </div>
       </div>
     );
@@ -257,14 +257,14 @@ const SharedLiveClassRoom = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-background-light flex items-center justify-center">
         <div className="text-center">
-          <FaExclamationTriangle className="text-6xl text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-red-800 mb-2">Error Loading Live Class</h2>
-          <p className="text-red-600 mb-4">{error}</p>
+          <FaExclamationTriangle className="text-6xl text-error-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-error-800 mb-2">Error Loading Live Class</h2>
+          <p className="text-error-600 mb-4">{error}</p>
           <button
             onClick={handleBack}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+            className="bg-error-600 text-white px-4 py-2 rounded-lg hover:bg-error-700 transition-colors"
           >
             Go Back
           </button>
@@ -275,14 +275,14 @@ const SharedLiveClassRoom = () => {
 
   if (!liveClass) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-background-light flex items-center justify-center">
         <div className="text-center">
-          <FaVideo className="text-6xl text-gray-300 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Live Class Not Found</h2>
-          <p className="text-gray-500 mb-4">The live class you're looking for doesn't exist.</p>
+          <FaVideo className="text-6xl text-primary-300 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-text-primary mb-2">Live Class Not Found</h2>
+          <p className="text-text-secondary mb-4">The live class you're looking for doesn't exist.</p>
           <button
             onClick={handleBack}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
           >
             Go Back
           </button>
@@ -292,40 +292,40 @@ const SharedLiveClassRoom = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white p-6">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-background-light p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center space-x-4 mb-4">
             <button
               onClick={handleBack}
-              className="text-gray-600 hover:text-gray-800 transition-colors"
+              className="text-text-secondary hover:text-text-primary transition-colors"
             >
               <FaArrowLeft className="text-xl" />
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{liveClass.title}</h1>
-              <p className="text-gray-600">{liveClass.description}</p>
+              <h1 className="text-3xl font-bold text-text-primary">{liveClass.title}</h1>
+              <p className="text-text-secondary">{liveClass.description}</p>
             </div>
           </div>
           
           {/* Debug Role Buttons */}
-          <div className="bg-yellow-100 border border-yellow-400 rounded-lg p-4 mb-4">
-            <h3 className="text-sm font-semibold text-yellow-800 mb-2">Debug Role Detection</h3>
+          <div className="bg-accent-100 border border-accent-400 rounded-lg p-4 mb-4">
+            <h3 className="text-sm font-semibold text-accent-800 mb-2">Debug Role Detection</h3>
             <div className="flex space-x-2">
               <button
                 onClick={() => forceRole('host')}
-                className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                className="bg-secondary-600 text-white px-3 py-1 rounded text-sm hover:bg-secondary-700 transition-colors"
               >
                 Force Host (Tutor)
               </button>
               <button
                 onClick={() => forceRole('participant')}
-                className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                className="bg-primary-600 text-white px-3 py-1 rounded text-sm hover:bg-primary-700 transition-colors"
               >
                 Force Participant (Learner)
               </button>
-              <span className="text-sm text-gray-600 self-center">
+              <span className="text-sm text-text-secondary self-center">
                 Current: {isHost ? 'Host' : 'Participant'}
               </span>
             </div>
@@ -333,9 +333,9 @@ const SharedLiveClassRoom = () => {
         </div>
 
         {/* Live Class Card */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-background-surface rounded-lg shadow-sm border border-primary-200 overflow-hidden">
           {/* Course Image */}
-          <div className="h-48 bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
+          <div className="h-48 bg-gradient-to-br from-primary-400 to-secondary-500 flex items-center justify-center">
             <FaVideo className="text-6xl text-white opacity-80" />
           </div>
 
@@ -345,21 +345,21 @@ const SharedLiveClassRoom = () => {
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(liveClass.status)}`}>
                 {liveClass.status}
               </span>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-text-secondary">
                 <span className="font-medium">Role:</span> {isHost ? 'Host (Tutor)' : 'Participant (Learner)'}
               </div>
             </div>
 
             <div className="space-y-3 mb-6">
-              <div className="flex items-center text-sm text-gray-500">
+              <div className="flex items-center text-sm text-text-secondary">
                 <FaCalendarAlt className="mr-2" />
                 {formatDate(liveClass.scheduledDate)}
               </div>
-              <div className="flex items-center text-sm text-gray-500">
+              <div className="flex items-center text-sm text-text-secondary">
                 <FaClock className="mr-2" />
                 {liveClass.duration || 60} minutes
               </div>
-              <div className="flex items-center text-sm text-gray-500">
+              <div className="flex items-center text-sm text-text-secondary">
                 <FaUsers className="mr-2" />
                 {liveClass.attendees?.length || 0} participants
               </div>
@@ -371,7 +371,7 @@ const SharedLiveClassRoom = () => {
                 <button
                   onClick={joinLiveClass}
                   disabled={isJoining}
-                  className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 flex items-center space-x-2 font-medium transition-colors disabled:opacity-50"
+                  className="bg-secondary-600 text-white px-8 py-3 rounded-lg hover:bg-secondary-700 flex items-center space-x-2 font-medium transition-colors disabled:opacity-50"
                 >
                   {isJoining ? (
                     <>
@@ -389,12 +389,12 @@ const SharedLiveClassRoom = () => {
                 <div className="text-center">
                   <button
                     disabled
-                    className="bg-gray-300 text-gray-500 px-8 py-3 rounded-lg cursor-not-allowed flex items-center space-x-2 font-medium"
+                    className="bg-primary-300 text-primary-500 px-8 py-3 rounded-lg cursor-not-allowed flex items-center space-x-2 font-medium"
                   >
                     <FaVideo />
                     <span>Live Class Not Active</span>
                   </button>
-                  <p className="text-gray-500 text-sm mt-2">
+                  <p className="text-text-secondary text-sm mt-2">
                     The live class is not currently active. Please wait for the tutor to start it.
                   </p>
                 </div>
