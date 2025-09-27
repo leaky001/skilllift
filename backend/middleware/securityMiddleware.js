@@ -90,21 +90,12 @@ const dashboardLimiter = createRateLimiter(
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
+      // Local development
       'http://localhost:5173',
       'http://localhost:3000',
-      'http://localhost:3001',
-      'http://localhost:4173',
       'http://127.0.0.1:5173',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:4173',
-      // Vercel domains
-      'https://skilllift.vercel.app',
-      'https://skilllift-git-main-leaky001.vercel.app',
-      'https://skilllift-git-main-leaky001s-projects.vercel.app',
-      // Custom domain (if you have one)
-      'https://skilllift.com',
-      'https://www.skilllift.com',
-       "https://skilllift-ublj.vercel.app",
+      // Production Vercel domain
+      'https://skilllift-ublj.vercel.app',
       // Environment variable
       process.env.FRONTEND_URL
     ].filter(Boolean);
