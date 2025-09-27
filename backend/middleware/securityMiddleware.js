@@ -96,6 +96,8 @@ const corsOptions = {
       'http://127.0.0.1:5173',
       // Production Vercel domain
       'https://skilllift-ublj.vercel.app',
+      // Production Render backend domain
+      'https://skilllift.onrender.com',
       // Environment variable
       process.env.FRONTEND_URL
     ].filter(Boolean);
