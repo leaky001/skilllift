@@ -95,7 +95,7 @@ const corsOptions = {
       'http://localhost:3000',
       'http://127.0.0.1:5173',
       // Production Vercel domain
-      'https://skilllift-ublj.vercel.app',
+      'https://skilllift-lyart.vercel.app',
       // Production Render backend domain
       'https://skilllift.onrender.com',
       // Environment variable
