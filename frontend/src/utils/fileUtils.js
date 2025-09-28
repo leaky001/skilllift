@@ -1,6 +1,9 @@
 // Utility functions for handling file URLs
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+// Use the environment configuration for API URL
+import { config } from '../config/environment.js';
+
+const API_BASE_URL = config.apiUrl;
 
 /**
  * Constructs the full URL for uploaded files
