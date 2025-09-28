@@ -162,9 +162,27 @@ export const checkEnrollmentStatus = async (courseId, forceRefresh = false) => {
       ? `/enrollments/check-status/${courseId}?t=${Date.now()}`
       : `/enrollments/check-status/${courseId}`;
     
-    const response = await api.get(url);
+    const response = await api.get(url, {
+      timeout: 10000 // Increased to 10 second timeout
+    });
     return response.data;
   } catch (error) {
+    console.error('Error checking enrollment status:', error);
+    
+    // Handle timeout specifically
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      console.warn('Enrollment status check timed out, returning default status');
+      return {
+        success: false,
+        message: 'Enrollment status check timed out. Please try again.',
+        data: {
+          isEnrolled: false,
+          enrollmentStatus: 'timeout',
+          paymentStatus: 'unknown'
+        }
+      };
+    }
+    
     throw error.response?.data || error.message;
   }
 };

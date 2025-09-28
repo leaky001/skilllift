@@ -1,5 +1,8 @@
 // Simple Replay Service
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3002/api';
+// Use the environment configuration for API URL
+import { config } from '../config/environment.js';
+
+const API_BASE_URL = config.apiUrl;
 
 export const replayService = {
   // Upload replay for tutors

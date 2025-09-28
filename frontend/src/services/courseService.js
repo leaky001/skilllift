@@ -231,7 +231,7 @@ export const getMyEnrollments = async (params = {}) => {
 export const checkEnrollmentStatus = async (courseId, forceRefresh = false) => {
   try {
     const response = await apiService.get(`/enrollments/check-status/${courseId}`, {
-      timeout: 5000, // 5 second timeout
+      timeout: 10000, // Increased to 10 second timeout
       params: forceRefresh ? { refresh: true } : {}
     });
     return response.data;
@@ -240,6 +240,7 @@ export const checkEnrollmentStatus = async (courseId, forceRefresh = false) => {
     
     // Handle timeout specifically
     if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      console.warn('Enrollment status check timed out, returning default status');
       return {
         success: false,
         message: 'Enrollment status check timed out. Please try again.',
