@@ -97,7 +97,7 @@ const corsOptions = {
       // Production Vercel domain
       'https://skilllift-lyart.vercel.app',
       // Production Render backend domain
-      'https://skilllift.onrender.com',
+      
       // Environment variable
       process.env.FRONTEND_URL
     ].filter(Boolean);
