@@ -143,7 +143,7 @@ const LearnerLayout = () => {
                   <div className="w-8 h-8 rounded-full overflow-hidden">
                     {user?.profilePicture ? (
                       <img
-                        src={`${(import.meta.env.VITE_API_URL || 'http://localhost:3002/api').replace(/\/api$/i,'')}${user.profilePicture}`}
+                        src={user.profilePicture.startsWith('http') ? user.profilePicture : `${(import.meta.env.VITE_API_URL || 'http://localhost:3002/api').replace(/\/api$/i,'')}${user.profilePicture}`}
                         alt="Avatar"
                         className="w-full h-full object-cover"
                       />
