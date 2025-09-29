@@ -63,9 +63,15 @@ const StreamVideoCall = ({
           image: user.profilePicture || undefined,
         };
 
+        // Check if Stream API key is configured
+        const streamApiKey = import.meta.env.VITE_STREAM_API_KEY;
+        if (!streamApiKey || streamApiKey === 'your_stream_api_key_here') {
+          throw new Error('Stream.io API key not configured. Please set VITE_STREAM_API_KEY in your environment variables.');
+        }
+
         // Initialize Stream Video client (use getOrCreateInstance to avoid duplicates)
         const streamClient = StreamVideoClient.getOrCreateInstance({
-          apiKey: import.meta.env.VITE_STREAM_API_KEY,
+          apiKey: streamApiKey,
           user: streamUser,
           token: streamToken,
         });
