@@ -166,7 +166,7 @@ const CourseRatingDisplay = ({ courseId, showTitle = true }) => {
                   <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                     {rating.rater.profilePicture ? (
                       <img
-                        src={rating.rater.profilePicture}
+                        src={rating.rater.profilePicture.startsWith('http') ? rating.rater.profilePicture : `${(import.meta.env.VITE_API_URL || 'http://localhost:3002/api').replace(/\/api$/i,'')}${rating.rater.profilePicture}`}
                         alt={rating.rater.name}
                         className="w-8 h-8 rounded-full object-cover"
                       />
