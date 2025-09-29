@@ -272,20 +272,16 @@ exports.createCourse = asyncHandler(async (req, res) => {
           });
           thumbnail = result.secure_url;
         } else {
-          // Fallback to local storage
-          const fileName = `thumbnails/${Date.now()}-${req.files.thumbnail[0].originalname}`;
-          const filePath = `uploads/${fileName}`;
-          fs.copyFileSync(req.files.thumbnail[0].path, filePath);
-          thumbnail = `/uploads/${fileName}`;
+          // Fallback to local storage - use multer's generated filename
+          const multerFilename = req.files.thumbnail[0].filename;
+          thumbnail = `/uploads/thumbnails/${multerFilename}`;
         }
         fs.unlinkSync(req.files.thumbnail[0].path);
       } catch (error) {
         console.error('Error uploading thumbnail:', error);
-        // Fallback to local storage
-        const fileName = `thumbnails/${Date.now()}-${req.files.thumbnail[0].originalname}`;
-        const filePath = `uploads/${fileName}`;
-        fs.copyFileSync(req.files.thumbnail[0].path, filePath);
-        thumbnail = `/uploads/${fileName}`;
+        // Fallback to local storage - use multer's generated filename
+        const multerFilename = req.files.thumbnail[0].filename;
+        thumbnail = `/uploads/thumbnails/${multerFilename}`;
         fs.unlinkSync(req.files.thumbnail[0].path);
       }
     }
@@ -544,32 +540,16 @@ exports.updateCourse = asyncHandler(async (req, res) => {
           });
           req.body.thumbnail = result.secure_url;
         } else {
-          // Fallback to local storage
-          const fileName = `thumbnails/${Date.now()}-${req.files.thumbnail[0].originalname}`;
-          const filePath = `uploads/${fileName}`;
-          if (!fs.existsSync('uploads')) {
-            fs.mkdirSync('uploads', { recursive: true });
-          }
-          if (!fs.existsSync('uploads/thumbnails')) {
-            fs.mkdirSync('uploads/thumbnails', { recursive: true });
-          }
-          fs.copyFileSync(req.files.thumbnail[0].path, filePath);
-          req.body.thumbnail = `/uploads/${fileName}`;
+          // Fallback to local storage - use multer's generated filename
+          const multerFilename = req.files.thumbnail[0].filename;
+          req.body.thumbnail = `/uploads/thumbnails/${multerFilename}`;
         }
         fs.unlinkSync(req.files.thumbnail[0].path);
       } catch (error) {
         console.error('Error uploading thumbnail:', error);
-        // Fallback to local storage
-        const fileName = `thumbnails/${Date.now()}-${req.files.thumbnail[0].originalname}`;
-        const filePath = `uploads/${fileName}`;
-        if (!fs.existsSync('uploads')) {
-          fs.mkdirSync('uploads', { recursive: true });
-        }
-        if (!fs.existsSync('uploads/thumbnails')) {
-          fs.mkdirSync('uploads/thumbnails', { recursive: true });
-        }
-        fs.copyFileSync(req.files.thumbnail[0].path, filePath);
-        req.body.thumbnail = `/uploads/${fileName}`;
+        // Fallback to local storage - use multer's generated filename
+        const multerFilename = req.files.thumbnail[0].filename;
+        req.body.thumbnail = `/uploads/thumbnails/${multerFilename}`;
         fs.unlinkSync(req.files.thumbnail[0].path);
       }
     }
