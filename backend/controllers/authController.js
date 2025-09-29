@@ -5,6 +5,7 @@ const generateToken = require('../utils/generateToken');
 const { sendEmailVerification, sendWelcomeEmail, sendPasswordResetEmail } = require('../utils/sendEmail');
 const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
+const fs = require('fs');
 
 // Validation middleware
 const validateRegistration = [
@@ -418,8 +419,20 @@ exports.updateUserProfile = asyncHandler(async (req, res) => {
   }
   // Handle profile picture upload
   if (req.file) {
-    // File was uploaded via multer
-    user.profilePicture = `/uploads/profile-pictures/${req.file.filename}`;
+    try {
+      // Upload to Cloudinary
+      const { cloudinary } = require('../config/cloudinary');
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'profile-pictures',
+        transformation: [{ width: 200, height: 200, crop: 'fill' }]
+      });
+      user.profilePicture = result.secure_url;
+      console.log('✅ Profile picture uploaded to Cloudinary:', user.profilePicture);
+      fs.unlinkSync(req.file.path);
+    } catch (error) {
+      console.error('❌ Error uploading profile picture to Cloudinary:', error);
+      throw new Error('Failed to upload profile picture. Please try again.');
+    }
   } else if (profilePicture) {
     // Profile picture URL provided directly
     user.profilePicture = profilePicture;
