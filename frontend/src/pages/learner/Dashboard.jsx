@@ -322,7 +322,7 @@ const LearnerDashboard = () => {
       {/* Tabs */}
       <div className="bg-white rounded-2xl shadow-lg p-2 mb-8 border border-slate-200">
         <div className="flex space-x-1">
-          {['overview', 'replays', 'ratings', 'tutor-feedback', 'payments', 'notifications', 'stream-test'].map((tab) => (
+          {['overview', 'replays', 'ratings', 'tutor-feedback', 'payments', 'notifications'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -333,7 +333,6 @@ const LearnerDashboard = () => {
               }`}
             >
               {tab === 'tutor-feedback' ? 'Tutor Feedback' : 
-               tab === 'stream-test' ? 'Stream Test' : 
                tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
@@ -612,12 +611,6 @@ const LearnerDashboard = () => {
         </div>
       )}
 
-      {activeTab === 'stream-test' && (
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Stream SDK Test</h2>
-          <p className="text-gray-600 mb-8">Stream SDK test removed - live class functionality deleted.</p>
-        </div>
-      )}
     </div>
   );
 };
