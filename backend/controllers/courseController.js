@@ -264,25 +264,17 @@ exports.createCourse = asyncHandler(async (req, res) => {
     
     if (req.files.thumbnail) {
       try {
-        // Try Cloudinary first
-        if (process.env.CLOUDINARY_CLOUD_NAME) {
-          const result = await cloudinary.uploader.upload(req.files.thumbnail[0].path, {
-            folder: 'course-thumbnails',
-            transformation: [{ width: 400, height: 300, crop: 'fill' }]
-          });
-          thumbnail = result.secure_url;
-        } else {
-          // Fallback to local storage - use multer's generated filename
-          const multerFilename = req.files.thumbnail[0].filename;
-          thumbnail = `/uploads/thumbnails/${multerFilename}`;
-        }
+        // Always use Cloudinary for production
+        const result = await cloudinary.uploader.upload(req.files.thumbnail[0].path, {
+          folder: 'course-thumbnails',
+          transformation: [{ width: 400, height: 300, crop: 'fill' }]
+        });
+        thumbnail = result.secure_url;
+        console.log('✅ Thumbnail uploaded to Cloudinary:', thumbnail);
         fs.unlinkSync(req.files.thumbnail[0].path);
       } catch (error) {
-        console.error('Error uploading thumbnail:', error);
-        // Fallback to local storage - use multer's generated filename
-        const multerFilename = req.files.thumbnail[0].filename;
-        thumbnail = `/uploads/thumbnails/${multerFilename}`;
-        fs.unlinkSync(req.files.thumbnail[0].path);
+        console.error('❌ Error uploading thumbnail to Cloudinary:', error);
+        throw new Error('Failed to upload thumbnail. Please try again.');
       }
     }
 
@@ -532,25 +524,17 @@ exports.updateCourse = asyncHandler(async (req, res) => {
     // Handle thumbnail
     if (req.files.thumbnail) {
       try {
-        // Try Cloudinary first
-        if (process.env.CLOUDINARY_CLOUD_NAME) {
-          const result = await cloudinary.uploader.upload(req.files.thumbnail[0].path, {
-            folder: 'course-thumbnails',
-            transformation: [{ width: 400, height: 300, crop: 'fill' }]
-          });
-          req.body.thumbnail = result.secure_url;
-        } else {
-          // Fallback to local storage - use multer's generated filename
-          const multerFilename = req.files.thumbnail[0].filename;
-          req.body.thumbnail = `/uploads/thumbnails/${multerFilename}`;
-        }
+        // Always use Cloudinary for production
+        const result = await cloudinary.uploader.upload(req.files.thumbnail[0].path, {
+          folder: 'course-thumbnails',
+          transformation: [{ width: 400, height: 300, crop: 'fill' }]
+        });
+        req.body.thumbnail = result.secure_url;
+        console.log('✅ Thumbnail updated to Cloudinary:', req.body.thumbnail);
         fs.unlinkSync(req.files.thumbnail[0].path);
       } catch (error) {
-        console.error('Error uploading thumbnail:', error);
-        // Fallback to local storage - use multer's generated filename
-        const multerFilename = req.files.thumbnail[0].filename;
-        req.body.thumbnail = `/uploads/thumbnails/${multerFilename}`;
-        fs.unlinkSync(req.files.thumbnail[0].path);
+        console.error('❌ Error uploading thumbnail to Cloudinary:', error);
+        throw new Error('Failed to upload thumbnail. Please try again.');
       }
     }
 
