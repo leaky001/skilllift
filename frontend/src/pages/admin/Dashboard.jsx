@@ -28,8 +28,6 @@ import {
   FaFlag,
   FaLock,
   FaUnlock,
-  FaRocket,
-  FaFlask,
   FaSpinner,
   FaBookOpen,
   FaUserClock,
@@ -37,7 +35,6 @@ import {
 } from 'react-icons/fa';
 import { 
   getDashboardStats, 
-  getPendingUsers,
   getRecentUsers, 
   getRecentTransactions, 
   getComplaints 
@@ -76,7 +73,7 @@ const AdminDashboard = () => {
         complaintsResponse
       ] = await Promise.allSettled([
         getDashboardStats(),
-        getPendingUsers(),
+        getRecentUsers(10),
         getRecentTransactions(10),
         getComplaints({ limit: 10, status: 'open' })
       ]);
@@ -84,6 +81,7 @@ const AdminDashboard = () => {
       // Handle stats response
       if (statsResponse.status === 'fulfilled' && statsResponse.value.success) {
         const overview = statsResponse.value.data.overview || {};
+        console.log('Dashboard stats response:', statsResponse.value.data);
         const statsArray = [
           {
             id: 'totalUsers',
@@ -109,11 +107,12 @@ const AdminDashboard = () => {
         ];
         setStats(statsArray);
       } else {
+        console.log('Stats API failed:', statsResponse);
         // Fallback stats if API fails
         setStats([
-          { id: 'totalUsers', title: 'Total Users', value: 156, icon: FaUsers, color: 'blue' },
-          { id: 'totalRevenue', title: 'Total Revenue', value: '$12,450', icon: FaDollarSign, color: 'green' },
-          { id: 'totalCourses', title: 'Total Courses', value: 28, icon: FaGraduationCap, color: 'purple' }
+          { id: 'totalUsers', title: 'Total Users', value: 0, icon: FaUsers, color: 'blue' },
+          { id: 'totalRevenue', title: 'Total Revenue', value: '$0', icon: FaDollarSign, color: 'green' },
+          { id: 'totalCourses', title: 'Total Courses', value: 0, icon: FaGraduationCap, color: 'purple' }
         ]);
       }
       
@@ -153,48 +152,28 @@ const AdminDashboard = () => {
       
       // Handle users response
       if (usersResponse.status === 'fulfilled' && usersResponse.value.success) {
+        console.log('Users response:', usersResponse.value.data);
         setRecentUsers(usersResponse.value.data || []);
       } else {
-        // Sample recent users for demonstration
-        setRecentUsers([
-          {
-            _id: '1',
-            name: 'Alice Johnson',
-            email: 'alice@example.com',
-            role: 'tutor',
-            accountStatus: 'active',
-            createdAt: new Date().toISOString()
-          },
-          {
-            _id: '2',
-            name: 'Bob Wilson',
-            email: 'bob@example.com',
-            role: 'learner',
-            accountStatus: 'active',
-            createdAt: new Date().toISOString()
-          },
-          {
-            _id: '3',
-            name: 'Carol Davis',
-            email: 'carol@example.com',
-            role: 'tutor',
-            accountStatus: 'pending',
-            createdAt: new Date().toISOString()
-          }
-        ]);
+        console.log('Users API failed:', usersResponse);
+        setRecentUsers([]);
       }
       
       // Handle transactions response
       if (transactionsResponse.status === 'fulfilled' && transactionsResponse.value.success) {
+        console.log('Transactions response:', transactionsResponse.value.data);
         setRecentTransactions(transactionsResponse.value.data || []);
       } else {
+        console.log('Transactions API failed:', transactionsResponse);
         setRecentTransactions([]);
       }
       
       // Handle complaints response
       if (complaintsResponse.status === 'fulfilled' && complaintsResponse.value.success) {
+        console.log('Complaints response:', complaintsResponse.value.data);
         setComplaints(complaintsResponse.value.data || []);
       } else {
+        console.log('Complaints API failed:', complaintsResponse);
         setComplaints([]);
       }
     } catch (error) {
@@ -395,20 +374,6 @@ const AdminDashboard = () => {
               <p className="text-slate-600 mt-1">Monitor and manage the platform</p>
             </div>
             <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => console.log('Quick Test clicked')}
-                className="flex items-center space-x-2 px-4 py-2 bg-secondary-500 hover:bg-secondary-600 text-white rounded-lg transition-colors shadow-sm hover:shadow-md"
-              >
-                <FaFlask className="h-4 w-4" />
-                <span>Quick Test</span>
-              </button>
-              <button 
-                onClick={() => console.log('Full Test clicked')}
-                className="flex items-center space-x-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors shadow-sm hover:shadow-md"
-              >
-                <FaRocket className="h-4 w-4" />
-                <span>Full Test</span>
-              </button>
               <div className="relative">
                 <input
                   type="text"
@@ -470,11 +435,19 @@ const AdminDashboard = () => {
                   View All Users
                 </Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {recentUsers.map((user) => (
-                  <UserCard key={user._id || user.id} user={user} />
-                ))}
-              </div>
+              {recentUsers.length === 0 ? (
+                <div className="bg-white rounded-2xl p-8 shadow-lg text-center">
+                  <FaUsers className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No recent users</h3>
+                  <p className="text-gray-500">No recent user registrations to display.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {recentUsers.map((user) => (
+                    <UserCard key={user._id || user.id} user={user} />
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Quick Actions */}
@@ -502,12 +475,28 @@ const AdminDashboard = () => {
 
         {activeTab === 'user-management' && (
           <div>
-            <h2 className="text-2xl font-bold text-neutral-900 mb-6">User Management</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recentUsers.map((user) => (
-                <UserCard key={user._id || user.id} user={user} />
-              ))}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-neutral-900">User Management</h2>
+              <Link 
+                to="/admin/users"
+                className="text-blue-600 hover:text-blue-700 font-medium"
+              >
+                View All Users
+              </Link>
             </div>
+            {recentUsers.length === 0 ? (
+              <div className="bg-white rounded-2xl p-8 shadow-lg text-center">
+                <FaUsers className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
+                <p className="text-gray-500">There are no users to display at this time.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {recentUsers.map((user) => (
+                  <UserCard key={user._id || user.id} user={user} />
+                ))}
+              </div>
+            )}
           </div>
         )}
 

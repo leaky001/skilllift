@@ -183,7 +183,7 @@ const Login = () => {
         {/* Back to Role Selection */}
         <div className="text-center">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/role-selection')}
             className="text-slate-600 hover:text-slate-900 transition-colors flex items-center justify-center mx-auto"
           >
             <FaArrowLeft className="mr-2" />
@@ -267,43 +267,6 @@ const Login = () => {
               )}
             </div>
 
-            {/* Role Selection */}
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-slate-700 mb-2">
-                Login As
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaShieldAlt className="h-5 w-5 text-slate-400" />
-                </div>
-                <select
-                  id="role"
-                  name="role"
-                  value={role}
-                  onChange={(e) => {
-                    const newRole = e.target.value;
-                    // Navigate to role-specific login page
-                    if (newRole === 'admin') {
-                      navigate('/admin/login');
-                    } else if (newRole === 'tutor') {
-                      navigate('/tutor/login');
-                    } else if (newRole === 'learner') {
-                      navigate('/learner/login');
-                    }
-                  }}
-                  className="appearance-none relative block w-full pl-10 pr-10 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-white"
-                >
-                  <option value="learner">Learner</option>
-                  <option value="tutor">Tutor</option>
-                  <option value="admin">Admin</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
-            </div>
 
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
@@ -340,7 +303,7 @@ const Login = () => {
                     Signing in...
                   </div>
                 ) : (
-                  `Sign in as ${role.charAt(0).toUpperCase() + role.slice(1)}`
+                  `Sign in as ${finalRole.charAt(0).toUpperCase() + finalRole.slice(1)}`
                 )}
               </button>
             </div>
@@ -378,15 +341,15 @@ const Login = () => {
           </form>
 
           {/* Sign Up Link - Hidden for Admin users */}
-          {role !== 'admin' && (
+          {finalRole !== 'admin' && (
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Don't have an account?{' '}
                 <a 
-                  href={`/register?role=${role}`}
+                  href={`/register?role=${finalRole}`}
                   className={`font-medium ${roleInfo.accentColor} hover:underline`}
                 >
-                  Sign up as a {role}
+                  Sign up as a {finalRole}
                 </a>
               </p>
             </div>
