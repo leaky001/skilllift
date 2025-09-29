@@ -13,8 +13,8 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   });
 
   if (!isAuthenticated) {
-    console.log('❌ User not authenticated, redirecting to login');
-    return <Navigate to="/login" replace />;
+    console.log('❌ User not authenticated, redirecting to landing page');
+    return <Navigate to="/" replace />;
   }
 
   // Check email verification for non-admin users (disabled for now)

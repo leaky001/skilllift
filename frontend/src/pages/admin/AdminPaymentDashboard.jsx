@@ -34,12 +34,21 @@ const AdminPaymentDashboard = () => {
         limit: 50
       });
 
+      console.log('Payment response:', response);
+
       if (response?.success) {
-        setPayments(response.data.payments || []);
-        setStatistics(response.data.statistics || {});
+        setPayments(response.data || []);
+        // Calculate statistics from the payments data
+        const stats = {
+          totalAmount: response.data?.reduce((sum, payment) => sum + (payment.amount || 0), 0) || 0,
+          successfulPayments: response.data?.filter(p => p.status === 'successful').length || 0,
+          pendingPayments: response.data?.filter(p => p.status === 'pending').length || 0,
+          failedPayments: response.data?.filter(p => p.status === 'failed').length || 0
+        };
+        setStatistics(stats);
       } else {
-        setPayments(response?.data?.payments || []);
-        setStatistics(response?.data?.statistics || {});
+        setPayments(response?.data || []);
+        setStatistics({});
       }
     } catch (error) {
       console.error('Error fetching payments:', error);

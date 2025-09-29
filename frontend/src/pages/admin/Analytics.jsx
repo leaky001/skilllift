@@ -29,114 +29,67 @@ const Analytics = () => {
         adminService.getEngagementAnalytics(timeframe)
       ]);
 
-      // Set platform stats with fallback - Always show sample data for now
-      const samplePlatformStats = {
-        totalUsers: 156,
-        totalCourses: 28,
-        totalRevenue: 12450,
-        activeUsers: 89,
-        growthRate: 12.5
-      };
-      
+      console.log('Analytics API responses:', { platform, users, courses, revenue, engagement });
+
+      // Set platform stats with fallback
       if (platform.status === 'fulfilled' && platform.value.success && platform.value.data) {
+        console.log('Using real platform stats:', platform.value.data);
         setPlatformStats(platform.value.data);
       } else {
+        console.log('Platform API failed, using fallback data');
+        const samplePlatformStats = {
+          totalUsers: 0,
+          totalCourses: 0,
+          totalRevenue: 0,
+          activeUsers: 0,
+          growthRate: 0
+        };
         setPlatformStats(samplePlatformStats);
       }
 
-      // Set user analytics with fallback - Always show sample data for now
-      const sampleUserAnalytics = {
-        totalUsers: 156,
-        newUsers: 23,
-        activeUsers: 89,
-        userGrowth: 15.2,
-        userDistribution: { tutors: 45, learners: 111 }
-      };
-      
+      // Set user analytics with fallback
       if (users.status === 'fulfilled' && users.value.success && users.value.data) {
+        console.log('Using real user analytics:', users.value.data);
         setUserAnalytics(users.value.data);
       } else {
-        setUserAnalytics(sampleUserAnalytics);
+        console.log('User analytics API failed, using fallback data');
+        setUserAnalytics(null);
       }
 
-      // Set course analytics with fallback - Always show sample data for now
-      const sampleCourseAnalytics = {
-        totalCourses: 28,
-        publishedCourses: 25,
-        pendingCourses: 3,
-        courseGrowth: 8.7,
-        averageRating: 4.6
-      };
-      
+      // Set course analytics with fallback
       if (courses.status === 'fulfilled' && courses.value.success && courses.value.data) {
+        console.log('Using real course analytics:', courses.value.data);
         setCourseAnalytics(courses.value.data);
       } else {
-        setCourseAnalytics(sampleCourseAnalytics);
+        console.log('Course analytics API failed, using fallback data');
+        setCourseAnalytics(null);
       }
 
-      // Set revenue analytics with fallback - Always show sample data for now
-      const sampleRevenueAnalytics = {
-        totalRevenue: 12450,
-        monthlyRevenue: 3200,
-        revenueGrowth: 18.3,
-        averageTransaction: 89
-      };
-      
+      // Set revenue analytics with fallback
       if (revenue.status === 'fulfilled' && revenue.value.success && revenue.value.data) {
+        console.log('Using real revenue analytics:', revenue.value.data);
         setRevenueAnalytics(revenue.value.data);
       } else {
-        setRevenueAnalytics(sampleRevenueAnalytics);
+        console.log('Revenue analytics API failed, using fallback data');
+        setRevenueAnalytics(null);
       }
 
-      // Set engagement analytics with fallback - Always show sample data for now
-      const sampleEngagementAnalytics = {
-        totalEnrollments: 234,
-        completionRate: 78.5,
-        averageSessionTime: 45,
-        userRetention: 82.3
-      };
-      
+      // Set engagement analytics with fallback
       if (engagement.status === 'fulfilled' && engagement.value.success && engagement.value.data) {
+        console.log('Using real engagement analytics:', engagement.value.data);
         setEngagementAnalytics(engagement.value.data);
       } else {
-        setEngagementAnalytics(sampleEngagementAnalytics);
+        console.log('Engagement analytics API failed, using fallback data');
+        setEngagementAnalytics(null);
       }
     } catch (error) {
       console.error('Error fetching analytics:', error);
-      // Set all fallback data
-      setPlatformStats({
-        totalUsers: 0,
-        totalCourses: 0,
-        totalRevenue: 0,
-        activeUsers: 0,
-        growthRate: 0
-      });
-      setUserAnalytics({
-        totalUsers: 0,
-        newUsers: 0,
-        activeUsers: 0,
-        userGrowth: 0,
-        userDistribution: { tutors: 0, learners: 0 }
-      });
-      setCourseAnalytics({
-        totalCourses: 0,
-        publishedCourses: 0,
-        pendingCourses: 0,
-        courseGrowth: 0,
-        averageRating: 0
-      });
-      setRevenueAnalytics({
-        totalRevenue: 0,
-        monthlyRevenue: 0,
-        revenueGrowth: 0,
-        averageTransaction: 0
-      });
-      setEngagementAnalytics({
-        totalEnrollments: 0,
-        completionRate: 0,
-        averageSessionTime: 0,
-        userRetention: 0
-      });
+      // Set all data to null to show empty states
+      setPlatformStats(null);
+      setUserAnalytics(null);
+      setCourseAnalytics(null);
+      setRevenueAnalytics(null);
+      setEngagementAnalytics(null);
     } finally {
       setLoading(false);
     }

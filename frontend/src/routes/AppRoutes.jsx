@@ -72,6 +72,8 @@ import AdminTutorMessaging from '../pages/admin/AdminTutorMessaging';
 import AdminSettings from '../pages/admin/Settings';
 import AdminPaymentDashboard from '../pages/admin/AdminPaymentDashboard';
 import KYCManagement from '../pages/admin/KYCManagement';
+import Analytics from '../pages/admin/Analytics';
+import AdminNotifications from '../pages/admin/Notifications';
 
 // Auth Pages
 import Login from '../pages/auth/Login';
@@ -190,6 +192,8 @@ const AppRoutes = () => {
         <Route path="ratings" element={<AdminRatings />} />
         <Route path="tutor-messages" element={<AdminTutorMessaging />} />
         <Route path="payments" element={<AdminPaymentDashboard />} />
+        <Route path="analytics" element={<Analytics />} />
+        <Route path="notifications" element={<AdminNotifications />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
 

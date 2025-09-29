@@ -37,85 +37,19 @@ const AdminNotifications = () => {
     try {
       setLoading(true);
       
-      // Sample notifications - Always show sample data for now
-      const sampleNotifications = [
-        {
-          _id: '1',
-          title: 'New Course Submission',
-          message: 'John Smith has submitted a new course for review',
-          type: 'course_submission',
-          priority: 'medium',
-          isRead: false,
-          createdAt: new Date().toISOString()
-        },
-        {
-          _id: '2',
-          title: 'User Registration',
-          message: 'A new tutor has registered and needs approval',
-          type: 'user_registration',
-          priority: 'high',
-          isRead: true,
-          createdAt: new Date().toISOString()
-        },
-        {
-          _id: '3',
-          title: 'Payment Completed',
-          message: 'Payment of $299 has been processed successfully',
-          type: 'payment',
-          priority: 'low',
-          isRead: false,
-          createdAt: new Date().toISOString()
-        },
-        {
-          _id: '4',
-          title: 'Course Approved',
-          message: 'Advanced React Development course has been approved',
-          type: 'course_approval',
-          priority: 'medium',
-          isRead: true,
-          createdAt: new Date().toISOString()
-        }
-      ];
       
       const response = await getSystemNotifications();
+      console.log('Notifications API response:', response);
       if (response && response.success && response.data && response.data.length > 0) {
+        console.log('Using real notifications data:', response.data);
         setNotifications(response.data);
       } else {
-        setNotifications(sampleNotifications);
-        console.log('Using sample notifications data');
+        console.log('Notifications API failed or returned empty data, using fallback');
+        setNotifications([]);
       }
     } catch (error) {
       console.error('Error loading notifications:', error);
-      // Set sample notifications on error too
-      setNotifications([
-        {
-          _id: '1',
-          title: 'New Course Submission',
-          message: 'John Smith has submitted a new course for review',
-          type: 'course_submission',
-          priority: 'medium',
-          isRead: false,
-          createdAt: new Date().toISOString()
-        },
-        {
-          _id: '2',
-          title: 'User Registration',
-          message: 'A new tutor has registered and needs approval',
-          type: 'user_registration',
-          priority: 'high',
-          isRead: true,
-          createdAt: new Date().toISOString()
-        },
-        {
-          _id: '3',
-          title: 'Payment Completed',
-          message: 'Payment of $299 has been processed successfully',
-          type: 'payment',
-          priority: 'low',
-          isRead: false,
-          createdAt: new Date().toISOString()
-        }
-      ]);
+      setNotifications([]);
     } finally {
       setLoading(false);
     }
@@ -354,8 +288,15 @@ const AdminNotifications = () => {
 
       {/* Notifications List */}
       <div className="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden">
-        <div className="divide-y divide-neutral-200">
-          {filteredNotifications.map((notification) => (
+        {filteredNotifications.length === 0 ? (
+          <div className="p-8 text-center">
+            <FaBell className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No notifications found</h3>
+            <p className="text-gray-500">There are no notifications to display at this time.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-neutral-200">
+            {filteredNotifications.map((notification) => (
             <div
               key={`admin-notification-${notification.id}`}
               onClick={() => handleNotificationClick(notification)}
@@ -424,7 +365,8 @@ const AdminNotifications = () => {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Notification Detail Modal */}

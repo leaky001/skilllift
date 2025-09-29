@@ -19,7 +19,8 @@ import {
   FaTrophy,
   FaCalendarAlt,
   FaStar,
-  FaClock
+  FaClock,
+  FaCheck
 } from 'react-icons/fa';
 import { getMyNotifications, markNotificationAsRead } from '../../services/learnerService';
 import { showSuccess, showError } from '../../services/toastService';
@@ -234,24 +235,38 @@ const LearnerNotifications = () => {
               return (
                 <div
                   key={`learner-notification-${notification._id}`}
-                  className={`bg-white rounded-lg shadow-sm p-6 transition-all hover:shadow-md ${
-                    !notification.isRead ? 'border-l-4 border-blue-500' : ''
-                  }`}
+                  className={`bg-white rounded-xl shadow-md border-l-4 ${
+                    notification.priority === 'high' ? 'border-l-red-500' :
+                    notification.priority === 'medium' ? 'border-l-amber-500' :
+                    notification.priority === 'low' ? 'border-l-blue-500' :
+                    'border-l-slate-300'
+                  } ${!notification.isRead ? '' : 'opacity-75'} hover:shadow-lg transition-shadow`}
                 >
-                  <div className="flex items-start space-x-4">
-                    <div className={`p-3 rounded-lg ${getPriorityColor(notification.priority)}`}>
-                      <IconComponent className="text-lg" />
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                            {notification.title}
-                          </h3>
-                          <p className="text-gray-600 mb-2">
-                            {notification.message}
-                          </p>
+                  <div className="p-4">
+                    <div className="flex items-start space-x-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        notification.priority === 'high' ? 'bg-red-100' :
+                        notification.priority === 'medium' ? 'bg-amber-100' :
+                        notification.priority === 'low' ? 'bg-blue-100' :
+                        'bg-slate-100'
+                      } flex-shrink-0`}>
+                        <IconComponent className={`text-lg ${
+                          notification.priority === 'high' ? 'text-red-600' :
+                          notification.priority === 'medium' ? 'text-amber-600' :
+                          notification.priority === 'low' ? 'text-blue-600' :
+                          'text-slate-600'
+                        }`} />
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className={`font-semibold text-slate-900 ${!notification.isRead ? 'font-bold' : ''}`}>
+                              {notification.title}
+                            </h4>
+                            <p className="text-slate-600 text-sm mt-1">
+                              {notification.message}
+                            </p>
                           
                           {/* Special handling for assignment notifications */}
                           {(notification.type === 'assignment_created' || notification.type === 'assignment_published') && notification.data?.dueDate && (
@@ -394,35 +409,39 @@ const LearnerNotifications = () => {
                             </div>
                           )}
                           
-                          <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            <span className="flex items-center">
-                              <FaClock className="mr-1" />
-                              {formatTime(notification.createdAt)}
-                            </span>
-                            
-                            {notification.courseTitle && (
-                              <span className="flex items-center">
-                                <FaBookOpen className="mr-1" />
-                                {notification.courseTitle}
+                            <div className="flex items-center space-x-4 mt-2 text-xs text-slate-500">
+                              <span className="flex items-center space-x-1">
+                                <FaClock />
+                                <span>{formatTime(notification.createdAt)}</span>
                               </span>
-                            )}
-                            
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(notification.priority)}`}>
-                              {notification.priority}
-                            </span>
+                              
+                              {notification.courseTitle && (
+                                <span className="flex items-center space-x-1">
+                                  <FaBookOpen />
+                                  <span>{notification.courseTitle}</span>
+                                </span>
+                              )}
+                              
+                              {notification.priority === 'high' && (
+                                <span className="flex items-center space-x-1 text-red-600 font-medium">
+                                  <FaExclamationTriangle />
+                                  <span>High Priority</span>
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2 ml-4">
-                          {!notification.isRead && (
-                            <button
-                              onClick={() => handleMarkAsRead(notification._id)}
-                              className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                              title="Mark as read"
-                            >
-                              <FaEye />
-                            </button>
-                          )}
+                          
+                          <div className="flex items-center space-x-2 ml-3">
+                            {!notification.isRead && (
+                              <button
+                                onClick={() => handleMarkAsRead(notification._id)}
+                                className="p-1 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded"
+                                title="Mark as read"
+                              >
+                                <FaCheck className="text-sm" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

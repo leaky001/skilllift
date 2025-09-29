@@ -36,12 +36,10 @@ const AdminLayout = () => {
     { name: 'User Management', href: '/admin/users', icon: FaUsers },
     { name: 'KYC Management', href: '/admin/kyc', icon: FaShieldAlt },
     { name: 'Payments', href: '/admin/payments', icon: FaCreditCard },
-    { name: 'Mentorship', href: '/admin/mentorship', icon: FaGraduationCap },
     { name: 'Ratings', href: '/admin/ratings', icon: FaStar },
-    { name: 'Messages', href: '/admin/messages', icon: FaEnvelope },
     { name: 'Analytics', href: '/admin/analytics', icon: FaChartLine },
-    { name: 'Settings', href: '/admin/settings', icon: FaCog },
     { name: 'Notifications', href: '/admin/notifications', icon: FaBell },
+    { name: 'Settings', href: '/admin/settings', icon: FaCog },
   ];
 
   const handleLogout = () => {
