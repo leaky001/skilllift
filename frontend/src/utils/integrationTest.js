@@ -176,7 +176,7 @@ export const testServiceFunctionality = async (serviceName) => {
 export const testAPIConnectivity = async () => {
   try {
       // Test basic API call with proper URL
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     const response = await fetch(`${apiUrl}/api/health`);
     if (response.ok) {
       const data = await response.json();
@@ -283,7 +283,7 @@ export const testEmailVerification = async () => {
       role: 'learner'
     };
 
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     const response = await fetch(`${apiUrl}/api/auth/register`, {
       method: 'POST',
       headers: {

@@ -49,7 +49,7 @@ const EnvironmentDebugger = () => {
           <pre className="text-yellow-700 text-xs bg-yellow-100 p-2 rounded overflow-x-auto">
 {`VITE_STREAM_API_KEY=j86qtfj4kzaf
 VITE_STREAM_API_SECRET=qknvfbg6wb9dcw3akapwc8tsj74h77axb2xsdhyd7tvgqbqyv9xyeejm5bjd4a7k
-VITE_API_URL=http://localhost:3001/api`}
+VITE_API_URL=http://localhost:5000/api`}
           </pre>
         </div>
 

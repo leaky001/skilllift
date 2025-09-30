@@ -95,7 +95,6 @@ const MobileNavigation = () => {
       { name: 'Live Classes', icon: FaVideo, path: '/live-classes' },
       { name: 'Assignments', icon: FaFileAlt, path: '/assignments' },
       { name: 'Certificates', icon: FaCertificate, path: '/certificates' },
-      { name: 'Mentorship', icon: FaHandshake, path: '/mentorship' },
       { name: 'Payments', icon: FaCreditCard, path: '/payments' },
     ];
 

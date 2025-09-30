@@ -11,7 +11,7 @@ export const getApiUrl = () => {
   
   // Use localhost for development, deployed URL for production
   const defaultUrl = import.meta.env.DEV 
-    ? 'http://localhost:3002/api'  // Local development
+    ? 'http://localhost:5000/api'  // Local development
     : 'https://skilllift.onrender.com/api';  // Production
   
   const finalUrl = cleanUrl || defaultUrl;
