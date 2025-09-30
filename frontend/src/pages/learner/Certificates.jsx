@@ -20,6 +20,7 @@ import {
   FaGlobe
 } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
+import { apiService } from '../../services/api';
 
 const LearnerCertificates = () => {
   const { user } = useAuth();
@@ -67,34 +68,9 @@ const LearnerCertificates = () => {
 
   const loadProjectNotifications = async () => {
     try {
-      // Use the same token retrieval logic as assigned projects
-      let token = localStorage.getItem('token') || 
-                  sessionStorage.getItem('token') ||
-                  localStorage.getItem('authToken') ||
-                  sessionStorage.getItem('authToken');
-      
-      if (!token) {
-        const sessionKeys = Object.keys(sessionStorage);
-        const skillliftTokenKey = sessionKeys.find(key => key.includes('skilllift_tab_') && key.includes('_token'));
-        if (skillliftTokenKey) {
-          token = sessionStorage.getItem(skillliftTokenKey);
-        }
-      }
-
-      if (!token) {
-        console.error('❌ No authentication token found for project notifications');
-        return;
-      }
-
-      const response = await fetch('http://localhost:3002/api/project-notifications/learner', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      const data = await response.json();
-      if (data.success) {
-        setProjectNotifications(data.notifications || []);
+      const response = await apiService.get('/project-notifications/learner');
+      if (response.data.success) {
+        setProjectNotifications(response.data.notifications || []);
       }
     } catch (error) {
       console.error('Error loading project notifications:', error);
@@ -104,34 +80,9 @@ const LearnerCertificates = () => {
 
   const loadCertificates = async () => {
     try {
-      // Use the same token retrieval logic as assigned projects
-      let token = localStorage.getItem('token') || 
-                  sessionStorage.getItem('token') ||
-                  localStorage.getItem('authToken') ||
-                  sessionStorage.getItem('authToken');
-      
-      if (!token) {
-        const sessionKeys = Object.keys(sessionStorage);
-        const skillliftTokenKey = sessionKeys.find(key => key.includes('skilllift_tab_') && key.includes('_token'));
-        if (skillliftTokenKey) {
-          token = sessionStorage.getItem(skillliftTokenKey);
-        }
-      }
-
-      if (!token) {
-        console.error('❌ No authentication token found for certificates');
-        return;
-      }
-
-      const response = await fetch('http://localhost:3002/api/certificates/learner', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      const data = await response.json();
-      if (data.success) {
-        setCertificates(data.certificates || []);
+      const response = await apiService.get('/certificates/learner');
+      if (response.data.success) {
+        setCertificates(response.data.certificates || []);
       }
     } catch (error) {
       console.error('Error loading certificates:', error);
@@ -140,34 +91,9 @@ const LearnerCertificates = () => {
 
   const loadProjectSubmissions = async () => {
     try {
-      // Use the same token retrieval logic as assigned projects
-      let token = localStorage.getItem('token') || 
-                  sessionStorage.getItem('token') ||
-                  localStorage.getItem('authToken') ||
-                  sessionStorage.getItem('authToken');
-      
-      if (!token) {
-        const sessionKeys = Object.keys(sessionStorage);
-        const skillliftTokenKey = sessionKeys.find(key => key.includes('skilllift_tab_') && key.includes('_token'));
-        if (skillliftTokenKey) {
-          token = sessionStorage.getItem(skillliftTokenKey);
-        }
-      }
-
-      if (!token) {
-        console.error('❌ No authentication token found for project submissions');
-        return;
-      }
-
-      const response = await fetch('http://localhost:3002/api/project-submissions/learner', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      const data = await response.json();
-      if (data.success) {
-        setProjectSubmissions(data.submissions || []);
+      const response = await apiService.get('/project-submissions/learner');
+      if (response.data.success) {
+        setProjectSubmissions(response.data.submissions || []);
       }
     } catch (error) {
       console.error('Error loading project submissions:', error);
@@ -176,112 +102,21 @@ const LearnerCertificates = () => {
 
   const loadAssignedProjects = async () => {
     try {
-      // Try multiple token locations
-      let token = localStorage.getItem('token') || 
-                  sessionStorage.getItem('token') ||
-                  localStorage.getItem('authToken') ||
-                  sessionStorage.getItem('authToken');
-      
-      // Check for tab-specific tokens (like the tutor page uses)
-      if (!token) {
-        const tabId = localStorage.getItem('currentTabId') || sessionStorage.getItem('currentTabId');
-        if (tabId) {
-          token = localStorage.getItem(`skilllift_tab_${tabId}_token`) || 
-                  sessionStorage.getItem(`skilllift_tab_${tabId}_token`);
-        }
-      }
-      
-      // Check for any skilllift tab token in sessionStorage
-      if (!token) {
-        const sessionKeys = Object.keys(sessionStorage);
-        const skillliftTokenKey = sessionKeys.find(key => key.includes('skilllift_tab_') && key.includes('_token'));
-        if (skillliftTokenKey) {
-          token = sessionStorage.getItem(skillliftTokenKey);
-          console.log('🔍 Found skilllift token key:', skillliftTokenKey);
-        }
-      }
-      
-      console.log('🔍 Loading assigned projects with token:', token ? 'Present' : 'Missing');
-      console.log('🔍 Token preview:', token ? token.substring(0, 50) + '...' : 'No token');
-      console.log('🔍 All localStorage keys:', Object.keys(localStorage));
-      console.log('🔍 All sessionStorage keys:', Object.keys(sessionStorage));
-      
-      // Show all keys that might contain tokens
-      const allKeys = [...Object.keys(localStorage), ...Object.keys(sessionStorage)];
-      const tokenKeys = allKeys.filter(key => 
-        key.toLowerCase().includes('token') || 
-        key.toLowerCase().includes('auth') ||
-        key.toLowerCase().includes('jwt') ||
-        key.toLowerCase().includes('bearer')
-      );
-      console.log('🔍 Potential token keys:', tokenKeys);
-      
-      // Show values of potential token keys
-      tokenKeys.forEach(key => {
-        const value = localStorage.getItem(key) || sessionStorage.getItem(key);
-        console.log(`🔍 Key "${key}":`, value ? value.substring(0, 50) + '...' : 'empty');
-      });
-      
-      if (!token) {
-        console.error('❌ No authentication token found in any location');
-        return;
-      }
-      
-      const response = await fetch('http://localhost:3002/api/project-submissions/learner-assigned', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      console.log('🔍 Response status:', response.status);
-      console.log('🔍 Response ok:', response.ok);
-      
-      const data = await response.json();
-      console.log('🔍 Assigned projects response:', data);
-      
-      if (data.success) {
-        console.log('🔍 Setting assigned projects:', data.projects);
-        setAssignedProjects(data.projects || []);
-      } else {
-        console.error('❌ Failed to load assigned projects:', data);
+      const response = await apiService.get('/project-submissions/learner-assigned');
+      if (response.data.success) {
+        setAssignedProjects(response.data.projects || []);
       }
     } catch (error) {
-      console.error('❌ Error loading assigned projects:', error);
+      console.error('Error loading assigned projects:', error);
     }
   };
 
   const loadCourses = async () => {
     try {
-      // Use the same token retrieval logic as assigned projects
-      let token = localStorage.getItem('token') || 
-                  sessionStorage.getItem('token') ||
-                  localStorage.getItem('authToken') ||
-                  sessionStorage.getItem('authToken');
-      
-      if (!token) {
-        const sessionKeys = Object.keys(sessionStorage);
-        const skillliftTokenKey = sessionKeys.find(key => key.includes('skilllift_tab_') && key.includes('_token'));
-        if (skillliftTokenKey) {
-          token = sessionStorage.getItem(skillliftTokenKey);
-        }
-      }
-
-      if (!token) {
-        console.error('❌ No authentication token found for courses');
-        return;
-      }
-
-      const response = await fetch('http://localhost:3002/api/courses/enrolled', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      const data = await response.json();
-      if (data.success) {
+      const response = await apiService.get('/courses/enrolled');
+      if (response.data.success) {
         // Find courses that need project submission
-        const coursesNeedingProjects = data.courses.filter(course => 
+        const coursesNeedingProjects = response.data.courses.filter(course => 
           course.isCompleted && !course.hasProjectSubmission
         );
         if (coursesNeedingProjects.length > 0) {
@@ -316,25 +151,6 @@ const LearnerCertificates = () => {
 
     setSubmitting(true);
     try {
-      // Get the same token that works for assigned projects
-      let token = localStorage.getItem('token') || 
-                  sessionStorage.getItem('token') ||
-                  localStorage.getItem('authToken') ||
-                  sessionStorage.getItem('authToken');
-      
-      if (!token) {
-        const sessionKeys = Object.keys(sessionStorage);
-        const skillliftTokenKey = sessionKeys.find(key => key.includes('skilllift_tab_') && key.includes('_token'));
-        if (skillliftTokenKey) {
-          token = sessionStorage.getItem(skillliftTokenKey);
-        }
-      }
-
-      if (!token) {
-        alert('Authentication required. Please log in again.');
-        return;
-      }
-
       const formData = new FormData();
       formData.append('title', submission.title);
       formData.append('description', submission.description);
@@ -342,38 +158,15 @@ const LearnerCertificates = () => {
       formData.append('liveDemoLink', submission.liveDemoLink);
       formData.append('projectId', selectedProject.id || selectedProject._id);
       formData.append('courseId', selectedProject.courseId);
-      
-      console.log('🔍 Submitting project with data:', {
-        title: submission.title,
-        description: submission.description,
-        projectId: selectedProject.id || selectedProject._id,
-        courseId: selectedProject.courseId,
-        selectedProject: selectedProject
-      });
-      
-      console.log('🔍 Selected project keys:', Object.keys(selectedProject));
-      console.log('🔍 Selected project values:', selectedProject);
-      console.log('🔍 Project ID type:', typeof (selectedProject.id || selectedProject._id));
-      console.log('🔍 Course ID type:', typeof selectedProject.courseId);
-      console.log('🔍 Project ID value:', selectedProject.id || selectedProject._id);
-      console.log('🔍 Course ID value:', selectedProject.courseId);
 
       // Upload files
       submission.files.forEach((fileObj, index) => {
         formData.append('files', fileObj.file);
       });
 
-      const response = await fetch('http://localhost:3002/api/project-submissions/submit', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
-
-      const data = await response.json();
+      const response = await apiService.upload('/project-submissions/submit', formData);
       
-      if (response.ok && data.success) {
+      if (response.data.success) {
         alert('Project submitted successfully!');
         setSubmission({
           title: '',
@@ -388,7 +181,7 @@ const LearnerCertificates = () => {
         loadProjectSubmissions();
         loadAssignedProjects(); // Refresh assigned projects
       } else {
-        alert(data.message || 'Failed to submit project');
+        alert(response.data.message || 'Failed to submit project');
       }
     } catch (error) {
       console.error('Error submitting project:', error);

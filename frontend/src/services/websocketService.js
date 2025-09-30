@@ -25,7 +25,7 @@ class WebSocketService {
     }
 
     this.token = token;
-    const serverUrl = import.meta.env.VITE_WS_URL || 'http://localhost:3002';
+    const serverUrl = import.meta.env.VITE_WS_URL || 'http://localhost:5000';
     
     console.log('🔌 Attempting to connect to Socket.IO server:', serverUrl);
     console.log('🔌 Token available:', !!token);
