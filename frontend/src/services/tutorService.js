@@ -183,7 +183,7 @@ export const deleteCourse = async (courseId) => {
 export const getTutorCourses = async (params = {}) => {
   try {
     console.log('🔄 getTutorCourses called with params:', params);
-    console.log('🌐 API Base URL:', import.meta.env.VITE_API_URL || 'http://localhost:3002/api');
+    console.log('🌐 API Base URL:', import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
     
     const response = await apiService.get('/courses/tutor/my-courses', { params });
     console.log('✅ getTutorCourses response:', response.data);

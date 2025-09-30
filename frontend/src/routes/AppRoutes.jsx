@@ -19,7 +19,6 @@ import AssignmentSubmission from '../pages/learner/AssignmentSubmission';
 import LearnerReplays from '../pages/learner/Replays';
 import LearnerRatings from '../pages/learner/Ratings';
 import RateCourses from '../pages/learner/RateCourses';
-import LearnerMentors from '../pages/learner/Mentorship';
 import LearnerPayments from '../pages/learner/Payments';
 import LearnerNotifications from '../pages/learner/Notifications';
 import LearnerTutorMessaging from '../pages/learner/LearnerTutorMessaging';
@@ -134,7 +133,6 @@ const AppRoutes = () => {
         <Route path="replays" element={<LearnerReplays />} />
         <Route path="ratings" element={<LearnerRatings />} />
         <Route path="rate-courses" element={<RateCourses />} />
-        <Route path="mentors" element={<LearnerMentors />} />
         <Route path="payments" element={<LearnerPayments />} />
         <Route path="notifications" element={<LearnerNotifications />} />
         <Route path="messages" element={<LearnerTutorMessaging />} />

@@ -16,7 +16,17 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 5173,
-      host: true
+      host: true,
+      hmr: {
+        port: 5174
+      },
+      watch: {
+        usePolling: false,
+        interval: 1000
+      }
+    },
+    optimizeDeps: {
+      include: ['react', 'react-dom', 'react-router-dom']
     }
   }
 })

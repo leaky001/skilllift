@@ -2,13 +2,13 @@
 export const config = {
   // API Configuration
   api: {
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5001/api',
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
     timeout: import.meta.env.VITE_API_TIMEOUT || 10000,
   },
 
   // WebSocket Configuration
   websocket: {
-    url: import.meta.env.VITE_WS_URL || 'ws://localhost:5001',
+    url: import.meta.env.VITE_WS_URL || 'ws://localhost:5000',
     reconnectInterval: 5000,
     maxReconnectAttempts: 5,
     pingInterval: 30000,

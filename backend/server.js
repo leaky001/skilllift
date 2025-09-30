@@ -237,7 +237,7 @@ app.use('*', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 3002; // Use port 3002
+const PORT = process.env.PORT || 5000; // Use port 5000
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 SkillLift Backend API running on port ${PORT}`);

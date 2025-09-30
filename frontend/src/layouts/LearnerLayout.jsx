@@ -35,7 +35,6 @@ const LearnerLayout = () => {
     { name: 'Class Replays', href: '/learner/replays', icon: FaPlay },
     { name: 'Assignments', href: '/learner/assignments', icon: FaFileAlt },
     { name: 'Certificates', href: '/learner/certificates', icon: FaCertificate },
-    { name: 'Mentorship', href: '/learner/mentorship', icon: FaGraduationCap },
     { name: 'Rate Courses', href: '/learner/rate-courses', icon: FaStar },
     { name: 'Tutor Feedback', href: '/learner/tutor-feedback', icon: FaComments },
     { name: 'Notifications', href: '/learner/notifications', icon: FaBell },
@@ -143,7 +142,7 @@ const LearnerLayout = () => {
                   <div className="w-8 h-8 rounded-full overflow-hidden">
                     {user?.profilePicture ? (
                       <img
-                        src={user.profilePicture.startsWith('http') ? user.profilePicture : `${(import.meta.env.VITE_API_URL || 'http://localhost:3002/api').replace(/\/api$/i,'')}${user.profilePicture}`}
+                        src={user.profilePicture.startsWith('http') ? user.profilePicture : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api$/i,'')}${user.profilePicture}`}
                         alt="Avatar"
                         className="w-full h-full object-cover"
                       />
