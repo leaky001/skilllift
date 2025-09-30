@@ -195,6 +195,21 @@ const TutorLiveClasses = () => {
     }
   };
 
+  const handleDeleteLiveClass = async (liveClassId) => {
+    if (!window.confirm('Are you sure you want to delete this live class? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await liveClassService.deleteLiveClass(liveClassId);
+      toast.success('Live class deleted successfully!');
+      loadCourses(); // Reload to update the list
+    } catch (error) {
+      console.error('Error deleting live class:', error);
+      toast.error('Failed to delete live class');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -361,21 +376,31 @@ const TutorLiveClasses = () => {
                             </div>
                           </div>
 
-                          <button
-                            onClick={() => handleStartLiveClass(liveClass._id)}
-                            className={`w-full flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors ${
-                              liveClass.status === 'ready' || liveClass.status === 'scheduled'
-                                ? 'bg-green-600 text-white hover:bg-green-700'
-                                : liveClass.status === 'live'
-                                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            }`}
-                            disabled={liveClass.status === 'ended' || liveClass.status === 'cancelled'}
-                          >
-                            <FaPlay className="mr-2" />
-                            {liveClass.status === 'ready' || liveClass.status === 'scheduled' ? 'Start Live Class' : 
-                             liveClass.status === 'live' ? 'Join Live Class' : 'Not Available'}
-                          </button>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleStartLiveClass(liveClass._id)}
+                              className={`flex-1 flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors ${
+                                liveClass.status === 'ready' || liveClass.status === 'scheduled'
+                                  ? 'bg-green-600 text-white hover:bg-green-700'
+                                  : liveClass.status === 'live'
+                                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              }`}
+                              disabled={liveClass.status === 'ended' || liveClass.status === 'cancelled'}
+                            >
+                              <FaPlay className="mr-2" />
+                              {liveClass.status === 'ready' || liveClass.status === 'scheduled' ? 'Start Live Class' : 
+                               liveClass.status === 'live' ? 'Join Live Class' : 'Not Available'}
+                            </button>
+                            
+                            <button
+                              onClick={() => handleDeleteLiveClass(liveClass._id)}
+                              className="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                              title="Delete Live Class"
+                            >
+                              <FaTimes />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}

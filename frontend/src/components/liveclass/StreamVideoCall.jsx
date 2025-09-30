@@ -22,6 +22,7 @@ const StreamVideoCall = ({
   const [error, setError] = useState(null);
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [localStream, setLocalStream] = useState(null);
@@ -30,6 +31,8 @@ const StreamVideoCall = ({
   const [participants, setParticipants] = useState([]);
   const [remoteStreams, setRemoteStreams] = useState(new Map());
   const [isFullScreen, setIsFullScreen] = useState(true);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [screenShareStream, setScreenShareStream] = useState(null);
   const initializedRef = useRef(false);
 
   useEffect(() => {
@@ -125,14 +128,33 @@ const StreamVideoCall = ({
           console.log('🎥 Participant joined:', event.participant);
           console.log('🎥 Participant data:', JSON.stringify(event.participant, null, 2));
           
+          const participantId = event.participant.user?.id || event.participant.user_id;
+          const currentUserId = user._id.toString();
+          const participantIdStr = participantId ? participantId.toString() : '';
+          const currentUserIdStr = currentUserId.toString();
+          
+          // Don't show join notification for self
+          if (participantIdStr !== currentUserIdStr) {
+            const participantName = event.participant.user?.name || event.participant.name || 'Someone';
+            
+            // Add join notification to chat
+            const joinMessage = {
+              id: Date.now(),
+              text: `${participantName} joined the live class`,
+              user: {
+                id: 'system',
+                name: 'System'
+              },
+              timestamp: new Date().toISOString(),
+              isSystemMessage: true
+            };
+            
+            setChatMessages(prev => [...prev, joinMessage]);
+            toast.success(`${participantName} joined the live class`);
+          }
+          
           setParticipants(prev => {
             // Check if this is the current user (host) - don't add them as participant
-            const participantId = event.participant.user?.id || event.participant.user_id;
-            const currentUserId = user._id.toString();
-            // Convert both to strings for comparison
-            const participantIdStr = participantId ? participantId.toString() : '';
-            const currentUserIdStr = currentUserId.toString();
-            
             if (participantIdStr === currentUserIdStr) {
               console.log('🎥 Ignoring self-join event for host:', participantIdStr);
               return prev;
@@ -162,6 +184,23 @@ const StreamVideoCall = ({
         streamCall.on('call.session_participant_left', (event) => {
           console.log('🎥 Participant left:', event.participant);
           const participantId = event.participant.user?.id || event.participant.user_id;
+          const participantName = event.participant.user?.name || event.participant.name || 'Someone';
+          
+          // Add leave notification to chat
+          const leaveMessage = {
+            id: Date.now(),
+            text: `${participantName} left the live class`,
+            user: {
+              id: 'system',
+              name: 'System'
+            },
+            timestamp: new Date().toISOString(),
+            isSystemMessage: true
+          };
+          
+          setChatMessages(prev => [...prev, leaveMessage]);
+          toast.info(`${participantName} left the live class`);
+          
           setParticipants(prev => prev.filter(p => (p.user?.id || p.user_id) !== participantId));
           setRemoteStreams(prev => {
             const newMap = new Map(prev);
@@ -303,6 +342,37 @@ const StreamVideoCall = ({
           console.log('💬 Call custom senderName:', event.call?.custom?.senderName);
           
           if (event.call && event.call.custom) {
+            // Check if class has ended
+            if (event.call.custom.classEnded) {
+              console.log('💬 Class ended notification received');
+              toast.info('The live class has ended');
+              
+              // Add end message to chat
+              const endMessage = {
+                id: Date.now(),
+                text: 'The live class has ended. Thank you for participating!',
+                user: {
+                  id: 'system',
+                  name: 'System'
+                },
+                timestamp: new Date().toISOString(),
+                isSystemMessage: true
+              };
+              
+              setChatMessages(prev => {
+                const exists = prev.some(msg => msg.id === endMessage.id);
+                if (!exists) {
+                  return [...prev, endMessage];
+                }
+                return prev;
+              });
+              
+              // Auto-leave after 3 seconds
+              setTimeout(() => {
+                handleLeaveCall();
+              }, 3000);
+            }
+            
             // Check for chat messages in custom data
             if (event.call.custom.chatMessages) {
               console.log('💬 Received chat messages from call.update:', event.call.custom.chatMessages);
@@ -501,6 +571,9 @@ const StreamVideoCall = ({
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
       }
+      if (screenShareStream) {
+        screenShareStream.getTracks().forEach(track => track.stop());
+      }
     };
   }, [callId, streamToken, user, isHost]);
 
@@ -620,6 +693,7 @@ const StreamVideoCall = ({
       });
       
       setLocalStream(stream);
+      setIsVideoOn(true);
       console.log('🎥 Local camera started successfully');
       
       // Enable camera in Stream call
@@ -630,7 +704,13 @@ const StreamVideoCall = ({
       
     } catch (error) {
       console.error('🎥 Error accessing camera:', error);
-      toast.error('Failed to access camera. Please check permissions.');
+      if (error.name === 'NotAllowedError') {
+        toast.error('Camera permission denied. Please allow camera access and try again.');
+      } else if (error.name === 'NotFoundError') {
+        toast.error('No camera found. Please connect a camera and try again.');
+      } else {
+        toast.error('Failed to access camera. Please check permissions.');
+      }
     }
   };
 
@@ -657,14 +737,113 @@ const StreamVideoCall = ({
     if (call) {
       try {
         if (isVideoOn) {
+          // Disable camera
           await call.camera.disable();
           setIsVideoOn(false);
+          console.log('🎥 Camera disabled');
         } else {
+          // Enable camera
           await call.camera.enable();
           setIsVideoOn(true);
+          console.log('🎥 Camera enabled');
         }
       } catch (error) {
         console.error('Error toggling camera:', error);
+        toast.error('Failed to toggle camera');
+      }
+    } else {
+      // If no call yet, try to start camera directly
+      if (!isVideoOn) {
+        await startLocalCamera();
+      }
+    }
+  };
+
+  const toggleScreenShare = async () => {
+    try {
+      if (isScreenSharing) {
+        // Stop screen sharing
+        if (screenShareStream) {
+          screenShareStream.getTracks().forEach(track => track.stop());
+          setScreenShareStream(null);
+        }
+        setIsScreenSharing(false);
+        toast.info('Screen sharing stopped');
+      } else {
+        // Start screen sharing
+        try {
+          const stream = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+              mediaSource: 'screen',
+              width: { ideal: 1920 },
+              height: { ideal: 1080 }
+            },
+            audio: true
+          });
+          
+          setScreenShareStream(stream);
+          setIsScreenSharing(true);
+          toast.success('Screen sharing started');
+          
+          // Handle when user stops sharing via browser UI
+          stream.getVideoTracks()[0].addEventListener('ended', () => {
+            setIsScreenSharing(false);
+            setScreenShareStream(null);
+            toast.info('Screen sharing stopped');
+          });
+          
+        } catch (error) {
+          console.error('Error starting screen share:', error);
+          if (error.name === 'NotAllowedError') {
+            toast.error('Screen sharing permission denied');
+          } else {
+            toast.error('Failed to start screen sharing');
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling screen share:', error);
+      toast.error('Failed to toggle screen sharing');
+    }
+  };
+
+  const sendEmojiReaction = async (emoji) => {
+    if (call) {
+      try {
+        const reactionMessage = {
+          id: Date.now(),
+          text: emoji,
+          user: {
+            id: user._id.toString(),
+            name: user.name
+          },
+          timestamp: new Date().toISOString(),
+          isReaction: true
+        };
+
+        // Add to local state immediately
+        setChatMessages(prev => [...prev, reactionMessage]);
+        
+        // Try to send via Stream.io
+        try {
+          await call.update({
+            custom: {
+              chatMessages: [...chatMessages, reactionMessage],
+              lastMessage: reactionMessage,
+              senderId: user._id.toString(),
+              senderName: user.name,
+              timestamp: Date.now()
+            }
+          });
+        } catch (error) {
+          console.log('Emoji reaction sync failed:', error);
+        }
+        
+        setShowEmojiPicker(false);
+        toast.success('Emoji sent!');
+      } catch (error) {
+        console.error('Error sending emoji reaction:', error);
+        toast.error('Failed to send emoji');
       }
     }
   };
@@ -754,6 +933,37 @@ const StreamVideoCall = ({
 
   const handleLeaveCall = async () => {
     try {
+      // If host is ending the call, notify all participants
+      if (isHost && call) {
+        const endMessage = {
+          id: Date.now(),
+          text: 'The live class has ended. Thank you for participating!',
+          user: {
+            id: 'system',
+            name: 'System'
+          },
+          timestamp: new Date().toISOString(),
+          isSystemMessage: true
+        };
+        
+        // Try to send end notification to all participants
+        try {
+          await call.update({
+            custom: {
+              chatMessages: [...chatMessages, endMessage],
+              lastMessage: endMessage,
+              classEnded: true,
+              endedBy: user.name,
+              endTime: Date.now()
+            }
+          });
+        } catch (error) {
+          console.log('Failed to send end notification:', error);
+        }
+        
+        toast.info('Live class ended. All participants will be notified.');
+      }
+      
       if (call) {
         await call.leave();
       }
@@ -762,6 +972,9 @@ const StreamVideoCall = ({
       }
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
+      }
+      if (screenShareStream) {
+        screenShareStream.getTracks().forEach(track => track.stop());
       }
       if (onCallEnd) onCallEnd();
     } catch (error) {
@@ -826,31 +1039,168 @@ const StreamVideoCall = ({
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setIsFullScreen(!isFullScreen)}
-                className="p-1 hover:bg-primary-700 rounded text-sm transition-colors"
+                className="p-2 hover:bg-primary-700 rounded-lg transition-colors"
                 title={isFullScreen ? "Switch to Grid View" : "Switch to Full Screen"}
               >
-                {isFullScreen ? '⊞' : '⛶'}
+                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
+                </svg>
               </button>
               <button
                 onClick={() => setShowParticipants(!showParticipants)}
-                    className="p-1 hover:bg-primary-700 rounded text-sm transition-colors"
+                className="p-2 hover:bg-primary-700 rounded-lg transition-colors"
                 title="Show Participants"
               >
-                👥
+                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H16c-.8 0-1.54.37-2.01.99L12 11l-1.99-2.01A2.5 2.5 0 0 0 8 8H5.46c-.8 0-1.54.37-2.01.99L1 15.5V22h2v-6h2.5l2.54-7.63A1.5 1.5 0 0 1 9.46 8H12c.8 0 1.54.37 2.01.99L16 11l1.99-2.01A2.5 2.5 0 0 1 20 8h2.54c.8 0 1.54.37 2.01.99L27 15.5V22h-7z"/>
+                  <circle cx="9" cy="9" r="2"/>
+                  <path d="M9 13c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
               </button>
-                  <button
-                    onClick={() => setShowChat(!showChat)}
-                    className="p-1 hover:bg-primary-700 rounded text-sm transition-colors"
-                    title="Show Chat"
-                  >
-                    💬
-                  </button>
+              <button
+                onClick={() => setShowChat(!showChat)}
+                className="p-2 hover:bg-primary-700 rounded-lg transition-colors"
+                title="Show Chat"
+              >
+                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                </svg>
+              </button>
             </div>
           </div>
 
           {/* Main Video Area */}
           <div className="flex-1 flex">
             <div className="flex-1 relative bg-primary-900">
+              
+              {/* Professional Video Call Controls - Always visible at bottom */}
+              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center space-x-3 z-10 bg-black bg-opacity-50 backdrop-blur-sm rounded-full px-6 py-3">
+                {/* Microphone Toggle */}
+                <button
+                  onClick={toggleMute}
+                  className={`p-3 rounded-full transition-all duration-200 hover:scale-105 ${
+                    isMuted 
+                      ? 'bg-red-500 hover:bg-red-600 text-white' 
+                      : 'bg-white hover:bg-gray-100 text-gray-700'
+                  } shadow-lg`}
+                  title={isMuted ? 'Unmute' : 'Mute'}
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    {isMuted ? (
+                      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    ) : (
+                      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    )}
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                  </svg>
+                </button>
+
+                {/* Camera Toggle */}
+                <button
+                  onClick={toggleVideo}
+                  className={`p-3 rounded-full transition-all duration-200 hover:scale-105 ${
+                    isVideoOn 
+                      ? 'bg-white hover:bg-gray-100 text-gray-700' 
+                      : 'bg-red-500 hover:bg-red-600 text-white'
+                  } shadow-lg`}
+                  title={isVideoOn ? 'Turn off camera' : 'Turn on camera'}
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+                  </svg>
+                </button>
+
+                {/* Chat Toggle */}
+                <button
+                  onClick={() => setShowChat(!showChat)}
+                  className={`p-3 rounded-full transition-all duration-200 hover:scale-105 ${
+                    showChat 
+                      ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+                      : 'bg-white hover:bg-gray-100 text-gray-700'
+                  } shadow-lg`}
+                  title="Toggle Chat"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                  </svg>
+                </button>
+
+                {/* Participants Toggle */}
+                <button
+                  onClick={() => setShowParticipants(!showParticipants)}
+                  className={`p-3 rounded-full transition-all duration-200 hover:scale-105 ${
+                    showParticipants 
+                      ? 'bg-green-500 hover:bg-green-600 text-white' 
+                      : 'bg-white hover:bg-gray-100 text-gray-700'
+                  } shadow-lg`}
+                  title="Show Participants"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H16c-.8 0-1.54.37-2.01.99L12 11l-1.99-2.01A2.5 2.5 0 0 0 8 8H5.46c-.8 0-1.54.37-2.01.99L1 15.5V22h2v-6h2.5l2.54-7.63A1.5 1.5 0 0 1 9.46 8H12c.8 0 1.54.37 2.01.99L16 11l1.99-2.01A2.5 2.5 0 0 1 20 8h2.54c.8 0 1.54.37 2.01.99L27 15.5V22h-7z"/>
+                    <circle cx="9" cy="9" r="2"/>
+                    <path d="M9 13c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                  </svg>
+                </button>
+
+                {/* Emoji Picker */}
+                <button
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className={`p-3 rounded-full transition-all duration-200 hover:scale-105 ${
+                    showEmojiPicker 
+                      ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
+                      : 'bg-white hover:bg-gray-100 text-gray-700'
+                  } shadow-lg`}
+                  title="Emoji Reactions"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    <circle cx="8.5" cy="9.5" r="1.5"/>
+                    <circle cx="15.5" cy="9.5" r="1.5"/>
+                    <path d="M12 17.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                  </svg>
+                </button>
+
+                {/* Screen Share Toggle */}
+                <button
+                  onClick={toggleScreenShare}
+                  className={`p-3 rounded-full transition-all duration-200 hover:scale-105 ${
+                    isScreenSharing 
+                      ? 'bg-purple-500 hover:bg-purple-600 text-white' 
+                      : 'bg-white hover:bg-gray-100 text-gray-700'
+                  } shadow-lg`}
+                  title={isScreenSharing ? "Stop Screen Share" : "Start Screen Share"}
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2H0c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2h-4zM4 5h16v11H4V5zm8 14c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
+                  </svg>
+                </button>
+
+                {/* View Toggle */}
+                <button
+                  onClick={() => setIsFullScreen(!isFullScreen)}
+                  className={`p-3 rounded-full transition-all duration-200 hover:scale-105 ${
+                    isFullScreen 
+                      ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+                      : 'bg-white hover:bg-gray-100 text-gray-700'
+                  } shadow-lg`}
+                  title={isFullScreen ? "Switch to Grid View" : "Switch to Full Screen"}
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
+                  </svg>
+                </button>
+
+                {/* End Call */}
+                <button
+                  onClick={handleLeaveCall}
+                  className="p-3 rounded-full bg-red-500 hover:bg-red-600 text-white transition-all duration-200 hover:scale-105 shadow-lg"
+                  title={isHost ? 'End call' : 'Leave call'}
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.1-.7-.28-.79-.73-1.68-1.36-2.66-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/>
+                  </svg>
+                </button>
+              </div>
               {/* Video Display */}
               <div className="h-full">
                 {!localStream ? (
@@ -863,6 +1213,33 @@ const StreamVideoCall = ({
                       <p className="text-sm text-primary-300">
                         {isHost ? 'You are the Host' : 'You are a Student'}
                       </p>
+                    </div>
+                  </div>
+                ) : isScreenSharing && screenShareStream ? (
+                  // Screen sharing view
+                  <div className="h-full w-full">
+                    <div className="relative w-full h-full bg-primary-800 overflow-hidden">
+                      <video
+                        autoPlay
+                        muted
+                        playsInline
+                        className="w-full h-full object-contain"
+                        ref={(video) => {
+                          if (video && screenShareStream) {
+                            video.srcObject = screenShareStream;
+                          }
+                        }}
+                      />
+                      <div className="absolute top-4 left-4 text-white text-sm bg-red-600 bg-opacity-90 px-3 py-2 rounded-lg backdrop-blur-sm">
+                        <div className="font-medium">🔴 Screen Sharing</div>
+                        <div className="text-xs">You are sharing your screen</div>
+                      </div>
+                      <div className="absolute bottom-4 left-4 text-white text-sm bg-primary-900 bg-opacity-80 px-3 py-2 rounded-lg backdrop-blur-sm">
+                        <div className="font-medium">You ({user.name})</div>
+                        <div className="text-xs">
+                          {isHost ? 'Host' : 'Student'} • {isMuted ? 'Muted' : 'Unmuted'} • Screen Sharing
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ) : isFullScreen && participants.length === 0 ? (
@@ -1012,30 +1389,6 @@ const StreamVideoCall = ({
                 )}
               </div>
 
-              {/* Controls */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4">
-                <button
-                  onClick={toggleMute}
-                  className={`p-3 rounded-full ${isMuted ? 'bg-red-600' : 'bg-gray-600'} text-white hover:opacity-80 transition-colors`}
-                  title={isMuted ? 'Unmute' : 'Mute'}
-                >
-                  {isMuted ? '🔇' : '🎤'}
-                </button>
-                <button
-                  onClick={toggleVideo}
-                  className={`p-3 rounded-full ${isVideoOn ? 'bg-gray-600' : 'bg-red-600'} text-white hover:opacity-80 transition-colors`}
-                  title={isVideoOn ? 'Turn off camera' : 'Turn on camera'}
-                >
-                  {isVideoOn ? '📹' : '📷'}
-                </button>
-                <button
-                  onClick={handleLeaveCall}
-                  className="p-3 rounded-full bg-red-600 text-white hover:opacity-80 transition-colors"
-                  title={isHost ? 'End call' : 'Leave call'}
-                >
-                  📞
-                </button>
-              </div>
             </div>
 
                 {/* Participants List */}
@@ -1080,8 +1433,12 @@ const StreamVideoCall = ({
                       console.log('💬 Rendering message:', message);
                       return (
                         <div key={message.id} className="text-white text-sm">
-                          <div className="font-medium text-primary-400">{message.user.name}</div>
-                          <div className="text-primary-300">{message.text}</div>
+                          <div className={`font-medium ${message.isSystemMessage ? 'text-yellow-400' : 'text-primary-400'}`}>
+                            {message.user.name}
+                          </div>
+                          <div className={`${message.isSystemMessage ? 'text-yellow-300 italic' : 'text-primary-300'} ${message.isReaction ? 'text-2xl' : ''}`}>
+                            {message.text}
+                          </div>
                         </div>
                       );
                     })
@@ -1124,6 +1481,32 @@ const StreamVideoCall = ({
                       Send
                     </button>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Emoji Picker Panel */}
+            {showEmojiPicker && (
+              <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-2xl p-4 z-20">
+                <div className="grid grid-cols-6 gap-2">
+                  {['👍', '👎', '❤️', '😂', '😮', '😢', '👏', '🔥', '💯', '🎉', '🤔', '😴', '😍', '😎', '🤯', '💪', '🙌', '👌', '✌️', '🤝', '🎯', '🚀', '⭐', '💡'].map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => sendEmojiReaction(emoji)}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-2xl"
+                      title={`Send ${emoji}`}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-3 pt-3 border-t border-gray-200 text-center">
+                  <button
+                    onClick={() => setShowEmojiPicker(false)}
+                    className="text-gray-500 hover:text-gray-700 text-sm"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
             )}

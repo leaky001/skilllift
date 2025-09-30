@@ -31,6 +31,7 @@ import {
   getTutorCourses,
   getTutorLearners
 } from '../../services/tutorService';
+import { apiService } from '../../services/api';
 
 const TutorCertificates = () => {
   
@@ -132,22 +133,9 @@ const TutorCertificates = () => {
   const loadCertificates = async () => {
     try {
       setLoading(true);
-      
-      const token = getAuthToken();
-      if (!token) {
-        setCertificates([]);
-        return;
-      }
-
-      const response = await fetch('http://localhost:3002/api/certificates/tutor', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        setCertificates(result.certificates || []);
+      const response = await apiService.get('/certificates/tutor');
+      if (response.data.success) {
+        setCertificates(response.data.certificates || []);
       } else {
         setCertificates([]);
       }
@@ -160,15 +148,9 @@ const TutorCertificates = () => {
 
   const loadProjectSubmissions = async () => {
     try {
-      const response = await fetch('http://localhost:3002/api/project-submissions/tutor-projects', {
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`
-        }
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        setProjectSubmissions(result.projects || []);
+      const response = await apiService.get('/project-submissions/tutor-projects');
+      if (response.data.success) {
+        setProjectSubmissions(response.data.projects || []);
       } else {
         setProjectSubmissions([]);
       }
@@ -180,22 +162,10 @@ const TutorCertificates = () => {
   const loadLearnerSubmissions = async () => {
     try {
       console.log('🔄 Loading learner submissions...');
-      const response = await fetch('http://localhost:3002/api/project-submissions/tutor', {
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`
-        }
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Learner submissions loaded:', result);
-        console.log('🔍 Raw submissions array:', result.submissions);
-        console.log('🔍 First submission structure:', result.submissions?.[0]);
-        console.log('🔍 First submission keys:', result.submissions?.[0] ? Object.keys(result.submissions[0]) : 'No submissions');
-        console.log('🔍 First submission ID:', result.submissions?.[0]?.id);
-        console.log('🔍 First submission _id:', result.submissions?.[0]?._id);
-        console.log('🔍 First submission status:', result.submissions?.[0]?.status);
-        setLearnerSubmissions(result.submissions || []);
+      const response = await apiService.get('/project-submissions/tutor');
+      if (response.data.success) {
+        console.log('✅ Learner submissions loaded:', response.data);
+        setLearnerSubmissions(response.data.submissions || []);
       } else {
         console.log('⚠️ No learner submissions found');
         setLearnerSubmissions([]);
@@ -277,25 +247,16 @@ const TutorCertificates = () => {
 
       console.log('🔍 Sending review data:', review);
       
-      const response = await fetch(`http://localhost:3002/api/project-submissions/${submissionId}/review`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getAuthToken()}`
-        },
-        body: JSON.stringify(review)
-      });
+      const response = await apiService.put(`/project-submissions/${submissionId}/review`, review);
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Review submitted successfully:', result);
+      if (response.data.success) {
+        console.log('✅ Review submitted successfully:', response.data);
         alert('Review submitted successfully!');
         // Reload project submissions
         loadProjectSubmissions();
       } else {
-        const error = await response.json();
-        console.error('❌ Error submitting review:', error);
-        alert(`Error submitting review: ${error.message || 'Unknown error'}`);
+        console.error('❌ Error submitting review:', response.data);
+        alert(`Error submitting review: ${response.data.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('❌ Error submitting review:', error);
@@ -354,18 +315,10 @@ const TutorCertificates = () => {
       }
 
       // Call the backend API to generate certificate
-      const response = await fetch('http://localhost:3002/api/certificates', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(certificateForm)
-      });
+      const response = await apiService.post('/certificates', certificateForm);
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Certificate generated successfully:', result);
+      if (response.data.success) {
+        console.log('✅ Certificate generated successfully:', response.data);
         alert('Certificate generated successfully!');
         // Close modal and reload certificates
         setShowCertificateForm(false);
@@ -379,9 +332,8 @@ const TutorCertificates = () => {
         });
         loadCertificates();
       } else {
-        const error = await response.json();
-        console.error('❌ Error generating certificate:', error);
-        alert(`Error generating certificate: ${error.message || 'Unknown error'}`);
+        console.error('❌ Error generating certificate:', response.data);
+        alert(`Error generating certificate: ${response.data.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('❌ Error generating certificate:', error);
@@ -407,26 +359,17 @@ const TutorCertificates = () => {
       }
 
       // Call the backend API to generate certificate
-      const response = await fetch('http://localhost:3002/api/certificates', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
+      const response = await apiService.post('/certificates', formData);
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Certificate generated successfully:', result);
+      if (response.data.success) {
+        console.log('✅ Certificate generated successfully:', response.data);
         alert('Certificate generated successfully!');
         // Close modal and reload certificates
         setShowCreateModal(false);
         loadCertificates();
       } else {
-        const error = await response.json();
-        console.error('❌ Error generating certificate:', error);
-        alert(`Error generating certificate: ${error.message || 'Unknown error'}`);
+        console.error('❌ Error generating certificate:', response.data);
+        alert(`Error generating certificate: ${response.data.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('❌ Error generating certificate:', error);
@@ -482,18 +425,10 @@ const TutorCertificates = () => {
       console.log('🔍 Available courses:', courses);
 
       // Call the backend API to create project
-      const response = await fetch('http://localhost:3002/api/project-submissions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(newProject)
-      });
+      const response = await apiService.post('/project-submissions', newProject);
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Project created successfully:', result);
+      if (response.data.success) {
+        console.log('✅ Project created successfully:', response.data);
         alert('Project created successfully!');
         setShowCreateProjectModal(false);
         setNewProject({
@@ -506,9 +441,8 @@ const TutorCertificates = () => {
         // Reload project submissions to show the new project
         loadProjectSubmissions();
       } else {
-        const error = await response.json();
-        console.error('❌ Error creating project:', error);
-        alert(`Error creating project: ${error.message || 'Unknown error'}`);
+        console.error('❌ Error creating project:', response.data);
+        alert(`Error creating project: ${response.data.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('❌ Error creating project:', error);

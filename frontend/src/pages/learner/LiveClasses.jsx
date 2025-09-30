@@ -219,7 +219,8 @@ const LearnerLiveClasses = () => {
                     }`}
                   >
                     <FaPlay className="mr-2" />
-                    {liveClass.status === 'live' ? 'Join Live Class' : 'Not Available'}
+                    {liveClass.status === 'live' ? 'Join Live Class' : 
+                     liveClass.status === 'ready' || liveClass.status === 'scheduled' ? 'Waiting for Tutor to Start' : 'Not Available'}
                     <FaArrowRight className="ml-2" />
                   </button>
                 </div>
