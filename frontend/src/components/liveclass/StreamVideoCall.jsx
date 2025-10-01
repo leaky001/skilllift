@@ -84,6 +84,21 @@ const StreamVideoCall = ({
         // Create call with the specific callId - use 'default' for proper permissions
         const streamCall = streamClient.call('default', callId);
         
+        // Check for media device support before joining
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          toast.error('Your browser does not support camera/microphone access');
+          return;
+        }
+
+        // Request permissions first
+        try {
+          await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          console.log('✅ Media permissions granted');
+        } catch (permissionError) {
+          console.warn('⚠️ Media permissions not granted:', permissionError);
+          toast.warning('Camera/microphone permissions not granted. You can still join but may need to enable them manually.');
+        }
+
         // Join the call - create if host, join if participant
         try {
           await streamCall.join({ 
@@ -430,8 +445,14 @@ const StreamVideoCall = ({
           }]);
         });
 
-        // Start local camera
-        await startLocalCamera();
+        // Try to start local camera, but don't fail if it doesn't work
+        try {
+          await startLocalCamera();
+        } catch (cameraError) {
+          console.warn('⚠️ Could not start local camera automatically:', cameraError);
+          // Don't show error toast here as it's not critical for joining the call
+          // User can manually start camera using the button
+        }
         
         // Set up periodic chat sync to ensure messages are shared
         const chatSyncInterval = setInterval(async () => {
@@ -680,17 +701,97 @@ const StreamVideoCall = ({
 
   const startLocalCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: 'user'
-        },
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true
-        }
+      // Check if media devices are available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Media devices not supported');
+      }
+
+      console.log('🎥 Requesting camera access...');
+
+      // First, enumerate available devices
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      const audioDevices = devices.filter(device => device.kind === 'audioinput');
+      
+      console.log('🎥 Available devices:', {
+        video: videoDevices.length,
+        audio: audioDevices.length,
+        total: devices.length
       });
+      
+      console.log('🎥 Video devices:', videoDevices.map(d => ({ id: d.deviceId, label: d.label })));
+      console.log('🎥 Audio devices:', audioDevices.map(d => ({ id: d.deviceId, label: d.label })));
+
+      if (videoDevices.length === 0) {
+        throw new Error('No camera devices found');
+      }
+
+      // Try different camera access strategies
+      let stream = null;
+      let strategy = '';
+
+      // Strategy 1: Try with specific device ID
+      if (videoDevices[0].deviceId) {
+        try {
+          strategy = 'specific device';
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { deviceId: { exact: videoDevices[0].deviceId } },
+            audio: true
+          });
+          console.log('🎥 Success with specific device strategy');
+        } catch (error) {
+          console.warn('🎥 Specific device strategy failed:', error.message);
+        }
+      }
+
+      // Strategy 2: Try with basic constraints
+      if (!stream) {
+        try {
+          strategy = 'basic constraints';
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: true
+          });
+          console.log('🎥 Success with basic constraints strategy');
+        } catch (error) {
+          console.warn('🎥 Basic constraints strategy failed:', error.message);
+        }
+      }
+
+      // Strategy 3: Try with minimal constraints
+      if (!stream) {
+        try {
+          strategy = 'minimal constraints';
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true
+          });
+          console.log('🎥 Success with minimal constraints strategy');
+        } catch (error) {
+          console.warn('🎥 Minimal constraints strategy failed:', error.message);
+        }
+      }
+
+      // Strategy 4: Try video only
+      if (!stream) {
+        try {
+          strategy = 'video only';
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true
+          });
+          console.log('🎥 Success with video only strategy');
+        } catch (error) {
+          console.warn('🎥 Video only strategy failed:', error.message);
+        }
+      }
+
+      if (!stream) {
+        throw new Error('All camera access strategies failed');
+      }
+      
+      console.log('🎥 Camera stream obtained with strategy:', strategy);
+      console.log('🎥 Video tracks:', stream.getVideoTracks().length);
+      console.log('🎥 Audio tracks:', stream.getAudioTracks().length);
       
       setLocalStream(stream);
       setIsVideoOn(true);
@@ -698,18 +799,39 @@ const StreamVideoCall = ({
       
       // Enable camera in Stream call
       if (call) {
-        await call.camera.enable();
-        await call.microphone.enable();
+        try {
+          await call.camera.enable();
+          console.log('🎥 Stream camera enabled');
+        } catch (streamError) {
+          console.warn('⚠️ Could not enable Stream camera:', streamError);
+        }
+        
+        try {
+          await call.microphone.enable();
+          console.log('🎤 Stream microphone enabled');
+        } catch (micError) {
+          console.warn('⚠️ Could not enable Stream microphone:', micError);
+        }
       }
       
     } catch (error) {
       console.error('🎥 Error accessing camera:', error);
+      console.error('🎥 Error details:', {
+        name: error.name,
+        message: error.message,
+        constraint: error.constraint
+      });
+      
       if (error.name === 'NotAllowedError') {
-        toast.error('Camera permission denied. Please allow camera access and try again.');
-      } else if (error.name === 'NotFoundError') {
-        toast.error('No camera found. Please connect a camera and try again.');
+        toast.error('Camera permission denied. Please click the camera icon in your browser address bar and allow camera access.');
+      } else if (error.name === 'NotFoundError' || error.message.includes('No camera devices found')) {
+        toast.error('No camera found. Please connect a camera, check if it\'s being used by another app, and refresh the page.');
+      } else if (error.name === 'NotReadableError') {
+        toast.error('Camera is being used by another application. Please close other apps and try again.');
+      } else if (error.name === 'OverconstrainedError') {
+        toast.error('Camera constraints not supported. Please try a different camera or check your camera settings.');
       } else {
-        toast.error('Failed to access camera. Please check permissions.');
+        toast.error('Failed to access camera. Please check your camera connection and permissions.');
       }
     }
   };
@@ -749,7 +871,13 @@ const StreamVideoCall = ({
         }
       } catch (error) {
         console.error('Error toggling camera:', error);
-        toast.error('Failed to toggle camera');
+        if (error.name === 'NotFoundError') {
+          toast.error('Camera device not found. Please check your camera connection.');
+        } else if (error.name === 'NotAllowedError') {
+          toast.error('Camera permission denied. Please allow camera access.');
+        } else {
+          toast.error('Failed to toggle camera. Please try again.');
+        }
       }
     } else {
       // If no call yet, try to start camera directly
@@ -795,9 +923,13 @@ const StreamVideoCall = ({
         } catch (error) {
           console.error('Error starting screen share:', error);
           if (error.name === 'NotAllowedError') {
-            toast.error('Screen sharing permission denied');
+            toast.error('Screen sharing permission denied. Please allow screen sharing in your browser.');
+          } else if (error.name === 'NotSupportedError') {
+            toast.error('Screen sharing is not supported in your browser. Please use Chrome, Firefox, or Edge.');
+          } else if (error.name === 'AbortError') {
+            toast.error('Screen sharing was cancelled. Please try again.');
           } else {
-            toast.error('Failed to start screen sharing');
+            toast.error('Failed to start screen sharing. Please check your browser settings.');
           }
         }
       }
@@ -1030,28 +1162,28 @@ const StreamVideoCall = ({
         <div className="h-full w-full flex flex-col">
           {/* Minimal Header */}
           <div className="bg-primary-800 text-white p-2 flex justify-between items-center">
-                <div className="flex items-center space-x-4">
-                  <h1 className="text-lg font-bold">Live Class</h1>
+                <div className="flex items-center space-x-2 sm:space-x-4">
+                  <h1 className="text-sm sm:text-lg font-bold">Live Class</h1>
                   <span className="text-xs text-primary-200">
                     {participants.length} participant{participants.length !== 1 ? 's' : ''}
                   </span>
                 </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               <button
                 onClick={() => setIsFullScreen(!isFullScreen)}
-                className="p-2 hover:bg-primary-700 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 hover:bg-primary-700 rounded-lg transition-colors"
                 title={isFullScreen ? "Switch to Grid View" : "Switch to Full Screen"}
               >
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
                 </svg>
               </button>
               <button
                 onClick={() => setShowParticipants(!showParticipants)}
-                className="p-2 hover:bg-primary-700 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 hover:bg-primary-700 rounded-lg transition-colors"
                 title="Show Participants"
               >
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H16c-.8 0-1.54.37-2.01.99L12 11l-1.99-2.01A2.5 2.5 0 0 0 8 8H5.46c-.8 0-1.54.37-2.01.99L1 15.5V22h2v-6h2.5l2.54-7.63A1.5 1.5 0 0 1 9.46 8H12c.8 0 1.54.37 2.01.99L16 11l1.99-2.01A2.5 2.5 0 0 1 20 8h2.54c.8 0 1.54.37 2.01.99L27 15.5V22h-7z"/>
                   <circle cx="9" cy="9" r="2"/>
                   <path d="M9 13c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
@@ -1074,18 +1206,21 @@ const StreamVideoCall = ({
             <div className="flex-1 relative bg-primary-900">
               
               {/* Professional Video Call Controls - Always visible at bottom */}
-              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center space-x-3 z-10 bg-black bg-opacity-50 backdrop-blur-sm rounded-full px-6 py-3">
+              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center space-x-3 z-10 bg-black bg-opacity-50 backdrop-blur-sm rounded-full px-6 py-3
+                sm:space-x-2 sm:px-4 sm:py-2
+                md:space-x-3 md:px-6 md:py-3
+                lg:space-x-4 lg:px-8 lg:py-4">
                 {/* Microphone Toggle */}
                 <button
                   onClick={toggleMute}
-                  className={`p-3 rounded-full transition-all duration-200 hover:scale-105 ${
+                  className={`p-2 sm:p-2 md:p-3 rounded-full transition-all duration-200 hover:scale-105 ${
                     isMuted 
                       ? 'bg-red-500 hover:bg-red-600 text-white' 
                       : 'bg-white hover:bg-gray-100 text-gray-700'
                   } shadow-lg`}
                   title={isMuted ? 'Unmute' : 'Mute'}
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
                     {isMuted ? (
                       <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
                     ) : (
@@ -1098,14 +1233,14 @@ const StreamVideoCall = ({
                 {/* Camera Toggle */}
                 <button
                   onClick={toggleVideo}
-                  className={`p-3 rounded-full transition-all duration-200 hover:scale-105 ${
+                  className={`p-2 sm:p-2 md:p-3 rounded-full transition-all duration-200 hover:scale-105 ${
                     isVideoOn 
                       ? 'bg-white hover:bg-gray-100 text-gray-700' 
                       : 'bg-red-500 hover:bg-red-600 text-white'
                   } shadow-lg`}
                   title={isVideoOn ? 'Turn off camera' : 'Turn on camera'}
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
                   </svg>
                 </button>
@@ -1113,14 +1248,14 @@ const StreamVideoCall = ({
                 {/* Chat Toggle */}
                 <button
                   onClick={() => setShowChat(!showChat)}
-                  className={`p-3 rounded-full transition-all duration-200 hover:scale-105 ${
+                  className={`p-2 sm:p-2 md:p-3 rounded-full transition-all duration-200 hover:scale-105 ${
                     showChat 
                       ? 'bg-blue-500 hover:bg-blue-600 text-white' 
                       : 'bg-white hover:bg-gray-100 text-gray-700'
                   } shadow-lg`}
                   title="Toggle Chat"
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
                   </svg>
                 </button>
@@ -1128,14 +1263,14 @@ const StreamVideoCall = ({
                 {/* Participants Toggle */}
                 <button
                   onClick={() => setShowParticipants(!showParticipants)}
-                  className={`p-3 rounded-full transition-all duration-200 hover:scale-105 ${
+                  className={`p-2 sm:p-2 md:p-3 rounded-full transition-all duration-200 hover:scale-105 ${
                     showParticipants 
                       ? 'bg-green-500 hover:bg-green-600 text-white' 
                       : 'bg-white hover:bg-gray-100 text-gray-700'
                   } shadow-lg`}
                   title="Show Participants"
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H16c-.8 0-1.54.37-2.01.99L12 11l-1.99-2.01A2.5 2.5 0 0 0 8 8H5.46c-.8 0-1.54.37-2.01.99L1 15.5V22h2v-6h2.5l2.54-7.63A1.5 1.5 0 0 1 9.46 8H12c.8 0 1.54.37 2.01.99L16 11l1.99-2.01A2.5 2.5 0 0 1 20 8h2.54c.8 0 1.54.37 2.01.99L27 15.5V22h-7z"/>
                     <circle cx="9" cy="9" r="2"/>
                     <path d="M9 13c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
@@ -1145,14 +1280,14 @@ const StreamVideoCall = ({
                 {/* Emoji Picker */}
                 <button
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className={`p-3 rounded-full transition-all duration-200 hover:scale-105 ${
+                  className={`p-2 sm:p-2 md:p-3 rounded-full transition-all duration-200 hover:scale-105 ${
                     showEmojiPicker 
                       ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
                       : 'bg-white hover:bg-gray-100 text-gray-700'
                   } shadow-lg`}
                   title="Emoji Reactions"
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                     <circle cx="8.5" cy="9.5" r="1.5"/>
                     <circle cx="15.5" cy="9.5" r="1.5"/>
@@ -1163,14 +1298,14 @@ const StreamVideoCall = ({
                 {/* Screen Share Toggle */}
                 <button
                   onClick={toggleScreenShare}
-                  className={`p-3 rounded-full transition-all duration-200 hover:scale-105 ${
+                  className={`p-2 sm:p-2 md:p-3 rounded-full transition-all duration-200 hover:scale-105 ${
                     isScreenSharing 
                       ? 'bg-purple-500 hover:bg-purple-600 text-white' 
                       : 'bg-white hover:bg-gray-100 text-gray-700'
                   } shadow-lg`}
                   title={isScreenSharing ? "Stop Screen Share" : "Start Screen Share"}
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2H0c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2h-4zM4 5h16v11H4V5zm8 14c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
                   </svg>
                 </button>
@@ -1178,14 +1313,14 @@ const StreamVideoCall = ({
                 {/* View Toggle */}
                 <button
                   onClick={() => setIsFullScreen(!isFullScreen)}
-                  className={`p-3 rounded-full transition-all duration-200 hover:scale-105 ${
+                  className={`p-2 sm:p-2 md:p-3 rounded-full transition-all duration-200 hover:scale-105 ${
                     isFullScreen 
                       ? 'bg-blue-500 hover:bg-blue-600 text-white' 
                       : 'bg-white hover:bg-gray-100 text-gray-700'
                   } shadow-lg`}
                   title={isFullScreen ? "Switch to Grid View" : "Switch to Full Screen"}
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
                   </svg>
                 </button>
@@ -1193,10 +1328,10 @@ const StreamVideoCall = ({
                 {/* End Call */}
                 <button
                   onClick={handleLeaveCall}
-                  className="p-3 rounded-full bg-red-500 hover:bg-red-600 text-white transition-all duration-200 hover:scale-105 shadow-lg"
+                  className="p-2 sm:p-2 md:p-3 rounded-full bg-red-500 hover:bg-red-600 text-white transition-all duration-200 hover:scale-105 shadow-lg"
                   title={isHost ? 'End call' : 'Leave call'}
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.7l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.1-.7-.28-.79-.73-1.68-1.36-2.66-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/>
                   </svg>
                 </button>
@@ -1204,16 +1339,36 @@ const StreamVideoCall = ({
               {/* Video Display */}
               <div className="h-full">
                 {!localStream ? (
-                  // No video streams - show waiting message
+                  // No video streams - show waiting message with camera start button
                   <div className="flex items-center justify-center h-full">
-                    <div className="text-center text-white">
-                      <div className="text-6xl mb-4">🎥</div>
-                      <h2 className="text-2xl font-bold mb-2">Waiting for participants...</h2>
-                      <p className="text-primary-200 mb-4">Call ID: {callId}</p>
-                      <p className="text-sm text-primary-300">
-                        {isHost ? 'You are the Host' : 'You are a Student'}
-                      </p>
-                    </div>
+                      <div className="text-center text-white px-4">
+                        <div className="text-4xl sm:text-6xl mb-2 sm:mb-4">🎥</div>
+                        <h2 className="text-lg sm:text-2xl font-bold mb-2">Waiting for participants...</h2>
+                        <p className="text-primary-200 text-sm sm:text-base mb-2 sm:mb-4">Call ID: {callId}</p>
+                        <p className="text-xs sm:text-sm text-primary-300 mb-4 sm:mb-6">
+                          {isHost ? 'You are the Host' : 'You are a Student'}
+                        </p>
+                        <div className="space-y-2 sm:space-y-3">
+                          <button
+                            onClick={startLocalCamera}
+                            className="bg-secondary-600 hover:bg-secondary-700 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors flex items-center mx-auto"
+                          >
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+                            </svg>
+                            Start Camera
+                          </button>
+                          <button
+                            onClick={() => window.location.reload()}
+                            className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm transition-colors flex items-center mx-auto"
+                          >
+                            <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                            </svg>
+                            Refresh Page
+                          </button>
+                        </div>
+                      </div>
                   </div>
                 ) : isScreenSharing && screenShareStream ? (
                   // Screen sharing view
@@ -1257,15 +1412,15 @@ const StreamVideoCall = ({
                           }
                         }}
                       />
-                      <div className="absolute bottom-4 left-4 text-white text-sm bg-primary-900 bg-opacity-80 px-3 py-2 rounded-lg backdrop-blur-sm">
+                      <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 text-white text-xs sm:text-sm bg-primary-900 bg-opacity-80 px-2 py-1 sm:px-3 sm:py-2 rounded-lg backdrop-blur-sm">
                         <div className="font-medium">You ({user.name})</div>
                         <div className="text-xs">
                           {isHost ? 'Host' : 'Student'} • {isMuted ? 'Muted' : 'Unmuted'} • {isVideoOn ? 'Video On' : 'Video Off'}
                         </div>
                       </div>
-                      <div className="absolute top-4 right-4 text-white text-sm bg-primary-900 bg-opacity-80 px-3 py-2 rounded-lg backdrop-blur-sm">
+                      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 text-white text-xs sm:text-sm bg-primary-900 bg-opacity-80 px-2 py-1 sm:px-3 sm:py-2 rounded-lg backdrop-blur-sm">
                         <div className="text-center">
-                          <div className="text-lg font-bold">Live Class</div>
+                          <div className="text-sm sm:text-lg font-bold">Live Class</div>
                           <div className="text-xs">Call ID: {callId}</div>
                         </div>
                       </div>
@@ -1286,15 +1441,15 @@ const StreamVideoCall = ({
                           }
                         }}
                       />
-                      <div className="absolute bottom-4 left-4 text-white text-sm bg-black bg-opacity-50 px-3 py-2 rounded-lg">
+                      <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 text-white text-xs sm:text-sm bg-black bg-opacity-50 px-2 py-1 sm:px-3 sm:py-2 rounded-lg">
                         <div className="font-medium">👑 Host ({user.name})</div>
                         <div className="text-xs">
                           {isHost ? 'Host' : 'Student'} • {isMuted ? 'Muted' : 'Unmuted'} • {isVideoOn ? 'Video On' : 'Video Off'}
                         </div>
                       </div>
-                      <div className="absolute top-4 right-4 text-white text-sm bg-black bg-opacity-50 px-3 py-2 rounded-lg">
+                      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 text-white text-xs sm:text-sm bg-black bg-opacity-50 px-2 py-1 sm:px-3 sm:py-2 rounded-lg">
                         <div className="text-center">
-                          <div className="text-lg font-bold">Live Class</div>
+                          <div className="text-sm sm:text-lg font-bold">Live Class</div>
                           <div className="text-xs">Call ID: {callId}</div>
                         </div>
                       </div>
@@ -1302,10 +1457,10 @@ const StreamVideoCall = ({
                   </div>
                 ) : (
                   // Grid layout when others join
-                  <div className="h-full w-full flex">
-                    {/* Host Video - Left Side */}
+                  <div className="h-full w-full flex flex-col sm:flex-row">
+                    {/* Host Video - Top on mobile, Left on desktop */}
                     {localStream && (
-                      <div className="w-1/2 h-full p-2">
+                      <div className="w-full sm:w-1/2 h-1/2 sm:h-full p-1 sm:p-2">
                         <div className="relative bg-primary-800 rounded-lg overflow-hidden border-2 border-primary-500 shadow-lg h-full">
                           <video
                             autoPlay
@@ -1318,16 +1473,16 @@ const StreamVideoCall = ({
                               }
                             }}
                           />
-                          <div className="absolute bottom-2 left-2 text-white text-xs bg-black bg-opacity-50 px-2 py-1 rounded">
+                          <div className="absolute bottom-1 left-1 sm:bottom-2 sm:left-2 text-white text-xs bg-black bg-opacity-50 px-1 py-0.5 sm:px-2 sm:py-1 rounded">
                             👑 Host ({user.name}) {isMuted ? '🔇' : '🎤'} {isVideoOn ? '📹' : '📷'}
                           </div>
                         </div>
                       </div>
                     )}
                     
-                    {/* Participants Grid - Right Side */}
-                    <div className="w-1/2 h-full p-2">
-                      <div className="grid grid-cols-1 gap-2 h-full">
+                    {/* Participants Grid - Bottom on mobile, Right on desktop */}
+                    <div className="w-full sm:w-1/2 h-1/2 sm:h-full p-1 sm:p-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-1 gap-1 sm:gap-2 h-full">
                         {/* Remote Participants with Video */}
                         {Array.from(remoteStreams.entries()).map(([userId, track]) => {
                           const participant = participants.find(p => (p.user?.id || p.user_id) === userId);
