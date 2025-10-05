@@ -22,30 +22,30 @@ router.use(protect);
 // @access  Private (Tutor)
 router.post('/', authorize('tutor'), createLiveClass);
 
-// @desc    Get all live classes for enrolled courses (learner)
+// @desc    Get all live classes for enrolled courses (all users)
 // @route   GET /api/live-classes
-// @access  Private (Learner)
-router.get('/', authorize('learner'), getLiveClasses);
+// @access  Private (All authenticated users)
+router.get('/', getLiveClasses);
 
 // @desc    Get live class details
 // @route   GET /api/live-classes/:id
 // @access  Private
 router.get('/:id', getLiveClass);
 
-// @desc    Start a live class
+// @desc    Start a live class - DISABLED - USE /join instead
 // @route   POST /api/live-classes/:id/start
 // @access  Private (Tutor)
-router.post('/:id/start', authorize('tutor'), startLiveClass);
+// router.post('/:id/start', authorize('tutor'), startLiveClass); // Disabled
 
-// @desc    Join a live class (for tutors)
+// @desc    Join a live class (for tutors) - DISABLED - USE /join instead  
 // @route   POST /api/live-classes/:id/join-tutor
 // @access  Private (Tutor)
-router.post('/:id/join-tutor', authorize('tutor'), joinLiveClassAsTutor);
+// router.post('/:id/join-tutor', authorize('tutor'), joinLiveClassAsTutor); // Disabled
 
 // @desc    Join a live class
 // @route   POST /api/live-classes/:id/join
-// @access  Private (Learner)
-router.post('/:id/join', authorize('learner'), joinLiveClass);
+// @access  Private (Learner or Tutor)
+router.post('/:id/join', authorize(['learner', 'tutor']), joinLiveClass);
 
 // @desc    End a live class
 // @route   POST /api/live-classes/:id/end

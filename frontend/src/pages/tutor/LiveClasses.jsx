@@ -49,12 +49,40 @@ const TutorLiveClasses = () => {
   const loadCourses = async () => {
     try {
       setIsLoading(true);
-      const response = await courseService.getTutorCourses();
-      setCourses(response.data);
       
-      // Extract all live classes from courses
-      const allLiveClasses = response.data.flatMap(course => course.liveClasses || []);
-      setLiveClasses(allLiveClasses);
+      // CRITICAL FIX: Load both tutor's courses AND all available live classes
+      console.log('🎯 Loading tutor courses and all live classes...');
+      
+      const [tutorCoursesResponse, allLiveClassesResponse] = await Promise.all([
+        courseService.getTutorCourses(),
+        liveClassService.getLiveClasses()
+      ]);
+      
+      setCourses(tutorCoursesResponse.data);
+      
+      // Extract tutor's own live classes from courses
+      const tutorLiveClasses = tutorCoursesResponse.data.flatMap(course => course.liveClasses || []);
+      
+      // Get ALL available live classes (including learners')
+      const allLiveClasses = allLiveClassesResponse.data || [];
+      
+      // Combine: tutor's classes + all other live classes
+      const combinedLiveClasses    = [...tutorLiveClasses, ...allLiveClasses];
+      
+      // Remove duplicates by live class ID
+      const uniqueLiveClasses = combinedLiveClasses.filter((liveClass, index, array) => 
+        array.findIndex(l => l._id === liveClass._id) === index
+      );
+      
+      setLiveClasses(uniqueLiveClasses);
+      
+      console.log('🎯 Live Classes Summary:', {
+        tutorCourses: tutorCoursesResponse.data.length,
+        tutorLiveClasses: tutorLiveClasses.length,
+        allLiveClasses: allLiveClasses.length,
+        combinedTotal: uniqueLiveClasses.length
+      });
+      
     } catch (error) {
       console.error('Error loading courses:', error);
       setError('Failed to load courses');
@@ -167,8 +195,8 @@ const TutorLiveClasses = () => {
   const handleStartLiveClass = async (liveClassId) => {
     try {
       console.log('🎯 Starting live class with ID:', liveClassId);
-      // Always use startLiveClass - the backend handles both cases (starting new or joining existing)
-      const response = await liveClassService.startLiveClass(liveClassId);
+      // Use universal joinLiveClass endpoint - backend determines role and handles all cases
+      const response = await liveClassService.joinLiveClass(liveClassId);
       console.log('🎯 API Response:', response);
       console.log('🎯 Response data:', response.data);
       
@@ -411,6 +439,106 @@ const TutorLiveClasses = () => {
           ))
         )}
       </div>
+
+      {/* CRITICAL FIX: Show ALL Available Live Classes (including learners') */}
+      {liveClasses.length > 0 && (
+        <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">All Available Live Classes</h2>
+              <p className="text-gray-600">Join any live class or manage your own</p>
+            </div>
+            <div className="text-sm text-gray-500">
+              {liveClasses.filter(lc => lc.status === 'live').length} active now
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {liveClasses.map((liveClass) => {
+              // Determine if this is MY live class or someone else's
+              const tutorLiveClasses = courses.flatMap(c => c.liveClasses || []);
+              const isMyLiveClass = tutorLiveClasses.some(lc => lc._id === liveClass._id);
+              
+              return (
+                <div key={liveClass._id} className="bg-gray-50 rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                  {/* Header with ownership indicator */}
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      liveClass.status === 'live' 
+                        ? 'bg-green-100 text-green-800' 
+                        : liveClass.status === 'ready'
+                        ? 'bg-blue-100 text-blue-800'
+                        : liveClass.status === 'ended'
+                        ? 'bg-gray-100 text-gray-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {liveClass.status.charAt(0).toUpperCase() + liveClass.status.slice(1)}
+                    </span>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      isMyLiveClass 
+                        ? 'bg-blue-100 text-blue-800' 
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {isMyLiveClass ? 'MY CLASS' : 'JOINABLE'}
+                    </span>
+                  </div>
+
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {liveClass.title}
+                  </h3>
+
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                    {liveClass.description}
+                  </p>
+
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center text-sm text-gray-500">
+                      <FaCalendarAlt className="mr-2" />
+                      {new Date(liveClass.scheduledDate).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </div>
+                    <div className="flex items-center text-sm text-gray-500">
+                      <FaClock className="mr-2" />
+                      {liveClass.duration || 60} minutes
+                    </div>
+                    <div className="flex items-center text-sm text-gray-500">
+                      <FaUsers className="mr-2" />
+                      {liveClass.attendees?.length || 0} participants
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleStartLiveClass(liveClass._id)}
+                      className={`flex-1 flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors ${
+                        liveClass.status === 'ready' || liveClass.status === 'scheduled'
+                          ? 'bg-green-600 text-white hover:bg-green-700'
+                          : liveClass.status === 'live'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-gray-400 text-white cursor-not-allowed'
+                      }`}
+                      disabled={liveClass.status === 'ended' || liveClass.status === 'cancelled'}
+                    >
+                      <FaPlay className="mr-2" />
+                      {liveClass.status === 'ready' || liveClass.status === 'scheduled' 
+                        ? 'Start Live Class' 
+                        : liveClass.status === 'live'
+                        ? 'Join Live Class'
+                        : 'Not Available'
+                      }
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Quick Stats */}
       {courses.length > 0 && (

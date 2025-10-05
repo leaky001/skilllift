@@ -101,31 +101,9 @@ const SharedLiveClassRoom = () => {
       console.log('🎯 Current isHost state:', isHost);
       console.log('🎯 User role:', user.role);
 
-      let response;
-      if (isHost) {
-        // Tutor joins as host - try join-tutor first, fallback to startLiveClass
-        try {
-          response = await liveClassService.joinLiveClassAsTutor(liveClassId);
-        } catch (tutorError) {
-          console.log('🎯 Tutor join failed, trying startLiveClass:', tutorError);
-          response = await liveClassService.startLiveClass(liveClassId);
-        }
-      } else {
-        // Learner joins as participant - try multiple methods
-        try {
-          response = await liveClassService.joinLiveClass(liveClassId);
-        } catch (joinError) {
-          console.log('🎯 Learner join failed, trying startLiveClass:', joinError);
-          // If regular join fails, try startLiveClass (might work for learners too)
-          try {
-            response = await liveClassService.startLiveClass(liveClassId);
-          } catch (startError) {
-            console.log('🎯 StartLiveClass failed, trying join-tutor:', startError);
-            // Last resort - try join-tutor (might work for learners too)
-            response = await liveClassService.joinLiveClassAsTutor(liveClassId);
-          }
-        }
-      }
+      // Use the single joinLiveClass method for all users
+      // The backend will determine the user's role and permissions
+      const response = await liveClassService.joinLiveClass(liveClassId);
 
       console.log('🎯 Join response:', response);
       
@@ -138,7 +116,22 @@ const SharedLiveClassRoom = () => {
 
     } catch (error) {
       console.error('Error joining live class:', error);
-      toast.error(error.response?.data?.message || 'Failed to join live class');
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
+      // Provide more specific error messages
+      if (error.response?.status === 403) {
+        toast.error('You are not enrolled in this course or do not have permission to join');
+      } else if (error.response?.status === 404) {
+        toast.error('Live class not found');
+      } else if (error.response?.status === 400) {
+        toast.error('Live class is not currently active');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to join live class');
+      }
     } finally {
       setIsJoining(false);
     }

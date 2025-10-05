@@ -30,10 +30,6 @@ import LearnerCertificates from '../pages/learner/Certificates';
 import LearnerLiveClasses from '../pages/learner/LiveClasses';
 import SharedLiveClassRoom from '../components/liveclass/SharedLiveClassRoom';
 import PaymentVerification from '../pages/PaymentVerification';
-import DashboardDebug from '../pages/DashboardDebug';
-import DashboardTest from '../pages/DashboardTest';
-import VideoChatTest from '../pages/VideoChatTest';
-import StreamConnectionTest from '../pages/StreamConnectionTest';
 
 // Tutor Pages
 import TutorDashboard from '../pages/tutor/Dashboard';
@@ -52,10 +48,7 @@ import TutorCertificates from '../pages/tutor/Certificates';
 import KYCSubmission from '../pages/tutor/KYCSubmission';
 
 // Live Class Components
-import TutorLiveClassManagement from '../components/liveclass/TutorLiveClassManagement';
-import LearnerLiveClassRoom from '../components/liveclass/LearnerLiveClassRoom';
 import TutorLiveClasses from '../pages/tutor/LiveClasses';
-import TutorLiveClassRoom from '../components/liveclass/TutorLiveClassRoom';
 
 // Tutor Creation Pages
 import CreateCourse from '../pages/tutor/CreateCourse';
@@ -98,13 +91,8 @@ const AppRoutes = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/test" element={<TestPage />} />
-      <Route path="/video-test" element={<VideoChatTest />} />
-      <Route path="/stream-test" element={<StreamConnectionTest />} />
 
-      {/* Test admin route for debugging */}
-      <Route path="/admin-test" element={<AdminDashboard />} />
-
-      {/* Live Class Routes - BYPASS LAYOUT FOR FULL SCREEN */}
+      {/* Live Class Routes - UNIFIED ENTRY POINT */}
       <Route
         path="/live-class/:liveClassId"
         element={
@@ -126,7 +114,6 @@ const AppRoutes = () => {
         <Route path="dashboard" element={<LearnerDashboard />} />
         <Route path="courses" element={<LearnerCourses />} />
         <Route path="courses/:courseId" element={<LearnerCourseDetail />} />
-        <Route path="courses/:courseId/live-class" element={<LearnerLiveClassRoom />} />
         <Route path="live-classes" element={<LearnerLiveClasses />} />
         <Route path="assignments" element={<LearnerAssignments />} />
         <Route path="assignments/:assignmentId" element={<AssignmentSubmission />} />
@@ -158,7 +145,6 @@ const AppRoutes = () => {
         <Route path="courses/create" element={<CreateCourse />} />
         <Route path="courses/:courseId" element={<ViewCourse />} />
         <Route path="courses/:courseId/edit" element={<EditCourse />} />
-        <Route path="courses/:courseId/live-class" element={<TutorLiveClassManagement />} />
         <Route path="kyc-submission" element={<KYCSubmission />} />
         <Route path="assignments" element={<TutorAssignments />} />
         <Route path="assignments/create" element={<CreateAssignment />} />
@@ -195,13 +181,6 @@ const AppRoutes = () => {
         <Route path="settings" element={<AdminSettings />} />
       </Route>
 
-      {/* Debug Route */}
-      <Route path="/debug" element={<DashboardDebug />} />
-      
-      {/* Dashboard Test Route */}
-      <Route path="/dashboard-test" element={<DashboardTest />} />
-      
-      
       {/* 404 Route */}
       <Route path="*" element={<NotFound />} />
     </Routes>
