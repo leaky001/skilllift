@@ -46,7 +46,6 @@ const RealTimeNotifications = () => {
 
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
-  const audioRef = useRef(null);
 
   // Initialize WebSocket connection
   useEffect(() => {
@@ -64,6 +63,21 @@ const RealTimeNotifications = () => {
   const initializeWebSocket = () => {
     console.log('⚠️ WebSocket connection disabled - WebSocket server not implemented in backend yet');
     console.log('📡 Notifications will work through regular API polling instead');
+    
+    // Set connected to false since WebSocket is disabled
+    setIsConnected(false);
+    
+    // Set up polling for notifications instead
+    const pollInterval = setInterval(() => {
+      fetchNotifications();
+    }, 30000); // Poll every 30 seconds
+    
+    // Store interval ID for cleanup
+    wsRef.current = { close: () => clearInterval(pollInterval) };
+    
+    // Initial fetch
+    fetchNotifications();
+    
     return;
     
     // TODO: Implement WebSocket server in backend
@@ -129,6 +143,13 @@ const RealTimeNotifications = () => {
   // Cleanup WebSocket (Currently disabled)
   const cleanupWebSocket = () => {
     console.log('⚠️ WebSocket cleanup disabled - WebSocket server not implemented');
+    
+    // Clean up polling interval if it exists
+    if (wsRef.current && wsRef.current.close) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    
     return;
     
     // TODO: Implement WebSocket server in backend
@@ -316,11 +337,25 @@ const RealTimeNotifications = () => {
 
   // Play notification sound
   const playNotificationSound = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(error => {
-        console.log('Could not play notification sound:', error);
-      });
+    try {
+      // Create a simple beep sound using Web Audio API instead of loading external files
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (error) {
+      console.log('Could not play notification sound:', error);
     }
   };
 
@@ -518,11 +553,6 @@ const RealTimeNotifications = () => {
 
   return (
     <>
-      {/* Hidden audio element for notification sounds */}
-      <audio ref={audioRef} preload="auto">
-        <source src="/notification-sound.mp3" type="audio/mpeg" />
-        <source src="/notification-sound.wav" type="audio/wav" />
-      </audio>
 
       {/* Notification Bell */}
       <div className="relative">

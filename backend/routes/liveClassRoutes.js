@@ -22,7 +22,7 @@ router.use(protect);
 // @access  Private (Tutor)
 router.post('/', authorize('tutor'), createLiveClass);
 
-// @desc    Get all live classes for enrolled courses (all users)
+// @desc    Get all live classes for enrolled courses (learner) or created by tutor
 // @route   GET /api/live-classes
 // @access  Private (All authenticated users)
 router.get('/', getLiveClasses);

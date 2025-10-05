@@ -641,36 +641,79 @@ const getChatMessages = async (req, res) => {
   }
 };
 
-// @desc    Get all live classes for enrolled courses (learner)
+// @desc    Get all live classes for enrolled courses (learner) or created by tutor
 // @route   GET /api/live-classes
-// @access  Private (Learner)
+// @access  Private (All authenticated users)
 const getLiveClasses = async (req, res) => {
   try {
-    const learnerId = req.user._id;
+    const userId = req.user._id;
+    const userRole = req.user.role;
 
-    // Get all enrollments for the learner
-    const enrollments = await Enrollment.find({
-      learner: learnerId,
-      status: 'active'
-    }).populate('course');
+    console.log('🎯 getLiveClasses request:', {
+      userId: userId.toString(),
+      userRole: userRole
+    });
 
-    if (enrollments.length === 0) {
+    let liveClasses = [];
+
+    if (userRole === 'tutor') {
+      // For tutors: Get all live classes they created
+      console.log('🎯 Fetching live classes for tutor:', userId);
+      liveClasses = await LiveClass.find({
+        tutorId: userId
+      })
+        .populate('courseId', 'title description thumbnail')
+        .populate('tutorId', 'name email')
+        .sort({ scheduledDate: -1 });
+
+      console.log('🎯 Tutor live classes found:', liveClasses.length);
+
+    } else if (userRole === 'learner') {
+      // For learners: Get live classes for enrolled courses
+      console.log('🎯 Fetching live classes for learner:', userId);
+      
+      // Get all enrollments for the learner
+      const enrollments = await Enrollment.find({
+        learner: userId,
+        status: 'active'
+      }).populate('course');
+
+      console.log('🎯 Learner enrollments found:', enrollments.length);
+
+      if (enrollments.length === 0) {
+        return res.status(200).json({
+          success: true,
+          data: []
+        });
+      }
+
+      // Get course IDs from enrollments
+      const courseIds = enrollments.map(enrollment => enrollment.course._id);
+
+      // Get live classes for enrolled courses
+      liveClasses = await LiveClass.find({
+        courseId: { $in: courseIds }
+      })
+        .populate('courseId', 'title description thumbnail')
+        .populate('tutorId', 'name email')
+        .sort({ scheduledDate: -1 });
+
+      console.log('🎯 Learner live classes found:', liveClasses.length);
+
+    } else {
+      // For other roles (admin, etc.): Return empty array
+      console.log('🎯 Unknown role, returning empty array:', userRole);
       return res.status(200).json({
         success: true,
         data: []
       });
     }
 
-    // Get course IDs from enrollments
-    const courseIds = enrollments.map(enrollment => enrollment.course._id);
-
-    // Get live classes for enrolled courses
-    const liveClasses = await LiveClass.find({
-      courseId: { $in: courseIds }
-    })
-      .populate('courseId', 'title description thumbnail')
-      .populate('tutorId', 'name email')
-      .sort({ scheduledDate: -1 });
+    console.log('🎯 Returning live classes:', {
+      count: liveClasses.length,
+      userRole: userRole,
+      userId: userId.toString()
+    });
 
     res.status(200).json({
       success: true,
