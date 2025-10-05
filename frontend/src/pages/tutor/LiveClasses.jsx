@@ -219,6 +219,9 @@ const TutorLiveClasses = () => {
   const handleStartLiveClass = async (liveClassId) => {
     try {
       console.log('🎯 Starting live class with ID:', liveClassId);
+      console.log('🎯 Current user:', user);
+      console.log('🎯 User role:', user?.role);
+      
       // Use universal joinLiveClass endpoint - backend determines role and handles all cases
       const response = await liveClassService.joinLiveClass(liveClassId);
       console.log('🎯 API Response:', response);
@@ -242,8 +245,17 @@ const TutorLiveClasses = () => {
       // Reload live classes to update the status
       loadCourses();
     } catch (error) {
-      console.error('Error starting live class:', error);
-      toast.error('Failed to start live class');
+      console.error('❌ Error starting live class:', error);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
+      
+      if (error.response?.status === 403) {
+        toast.error('Access denied. Please check your permissions.');
+      } else if (error.response?.status === 404) {
+        toast.error('Live class not found.');
+      } else {
+        toast.error(`Failed to start live class: ${error.response?.data?.message || error.message}`);
+      }
     }
   };
 

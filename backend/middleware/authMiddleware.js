@@ -52,7 +52,7 @@ exports.protect = async (req, res, next) => {
 };
 
 // Role-based authorization middleware
-// Usage: authorize('admin'), authorize('tutor', 'admin')
+// Usage: authorize('admin'), authorize('tutor', 'admin'), authorize(['learner', 'tutor'])
 exports.authorize = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {
@@ -62,16 +62,19 @@ exports.authorize = (...allowedRoles) => {
 
     const userRole = req.user.role;
     
-    // Handle both single role and array of roles
-    const isAuthorized = Array.isArray(allowedRoles[0]) 
-      ? allowedRoles[0].includes(userRole)  // Array format: ['learner', 'tutor']
-      : allowedRoles.includes(userRole);    // Single role format: 'learner'
+    // Flatten the allowedRoles array to handle both formats:
+    // authorize('tutor') -> ['tutor']
+    // authorize('tutor', 'admin') -> ['tutor', 'admin'] 
+    // authorize(['learner', 'tutor']) -> ['learner', 'tutor']
+    const flattenedRoles = allowedRoles.flat();
+    
+    const isAuthorized = flattenedRoles.includes(userRole);
 
     console.log('🔐 Authorization check:', {
       userId: req.user._id,
       userRole: userRole,
       allowedRoles: allowedRoles,
-      isArray: Array.isArray(allowedRoles[0]),
+      flattenedRoles: flattenedRoles,
       isAuthorized: isAuthorized,
       url: req.originalUrl
     });
@@ -80,14 +83,14 @@ exports.authorize = (...allowedRoles) => {
       console.log('❌ Access denied:', {
         userRole: userRole,
         allowedRoles: allowedRoles,
-        isArray: Array.isArray(allowedRoles[0]),
+        flattenedRoles: flattenedRoles,
         userId: req.user._id,
         url: req.originalUrl
       });
       return res.status(403).json({ 
         message: 'Access denied',
         userRole: userRole,
-        allowedRoles: allowedRoles
+        allowedRoles: flattenedRoles
       });
     }
 
