@@ -105,14 +105,68 @@ const StreamVideoCall = ({
           return;
         }
 
-        // Request permissions
+        // Request permissions with better error handling
         try {
-          await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          console.log('✅ Media permissions granted');
+          // First, try to get any available media devices
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          console.log('🎥 Available media devices:', devices);
+          
+          // Try to get user media with fallback options
+          let stream = null;
+          try {
+            // Try with video and audio first
+            stream = await navigator.mediaDevices.getUserMedia({ 
+              video: { width: 1280, height: 720 }, 
+              audio: true 
+            });
+            console.log('✅ Media permissions granted with video and audio');
+          } catch (videoError) {
+            console.warn('⚠️ Video+Audio failed, trying audio only:', videoError.message);
+            try {
+              // Try with audio only
+              stream = await navigator.mediaDevices.getUserMedia({ 
+                video: false, 
+                audio: true 
+              });
+              console.log('✅ Media permissions granted with audio only');
+            } catch (audioError) {
+              console.warn('⚠️ Audio only failed, trying video only:', audioError.message);
+              try {
+                // Try with video only
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                  video: { width: 1280, height: 720 }, 
+                  audio: false 
+                });
+                console.log('✅ Media permissions granted with video only');
+              } catch (videoOnlyError) {
+                console.error('❌ All media permission attempts failed:', videoOnlyError.message);
+                throw videoOnlyError;
+              }
+            }
+          }
+          
+          // Stop the test stream immediately
+          if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            console.log('✅ Test stream stopped');
+          }
+          
         } catch (permissionError) {
           console.error('❌ Media permission denied:', permissionError);
-          toast.error('Camera/microphone access denied. Please allow permissions.');
-          return;
+          
+          // Provide specific error messages based on error type
+          if (permissionError.name === 'NotReadableError') {
+            toast.error('Camera/microphone is being used by another application. Please close other apps and try again.');
+          } else if (permissionError.name === 'NotAllowedError') {
+            toast.error('Camera/microphone access denied. Please allow permissions and refresh the page.');
+          } else if (permissionError.name === 'NotFoundError') {
+            toast.error('No camera/microphone found. Please connect a device and try again.');
+          } else {
+            toast.error(`Media access failed: ${permissionError.message}`);
+          }
+          
+          // Don't return here, continue with Stream initialization
+          console.log('⚠️ Continuing without media permissions for now...');
         }
 
         // Join the call
@@ -138,25 +192,99 @@ const StreamVideoCall = ({
     initializeStream();
   }, [callId, streamToken, user, isHost]);
 
-  // Start local camera
+  // Start local camera with better error handling
   const startLocalCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 1280, height: 720 },
-        audio: true
-      });
+      console.log('🎥 Starting local camera...');
       
-      setLocalStream(stream);
-      console.log('✅ Local camera started');
-      
-      // Enable camera in Stream call
-      if (call) {
-        await call.camera.enable();
-        console.log('✅ Stream camera enabled');
+      // First, stop any existing streams
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        console.log('🔄 Stopped existing local stream');
       }
+      
+      // Wait a moment for device to be released
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Try to get media with fallback options
+      let stream = null;
+      try {
+        // Try with video and audio first
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            width: { ideal: 1280 }, 
+            height: { ideal: 720 },
+            facingMode: 'user'
+          },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true
+          }
+        });
+        console.log('✅ Camera started with video and audio');
+      } catch (videoError) {
+        console.warn('⚠️ Video+Audio failed, trying video only:', videoError.message);
+        try {
+          // Try with video only
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+              width: { ideal: 1280 }, 
+              height: { ideal: 720 },
+              facingMode: 'user'
+            },
+            audio: false
+          });
+          console.log('✅ Camera started with video only');
+        } catch (videoOnlyError) {
+          console.warn('⚠️ Video only failed, trying audio only:', videoOnlyError.message);
+          try {
+            // Try with audio only
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: false,
+              audio: {
+                echoCancellation: true,
+                noiseSuppression: true
+              }
+            });
+            console.log('✅ Camera started with audio only');
+          } catch (audioOnlyError) {
+            console.error('❌ All camera attempts failed:', audioOnlyError.message);
+            throw audioOnlyError;
+          }
+        }
+      }
+      
+      if (stream) {
+        setLocalStream(stream);
+        console.log('✅ Local camera started successfully');
+        
+        // Enable camera in Stream call
+        if (call) {
+          try {
+            await call.camera.enable();
+            console.log('✅ Stream camera enabled');
+          } catch (streamError) {
+            console.warn('⚠️ Could not enable Stream.io camera:', streamError);
+          }
+        }
+      }
+      
     } catch (error) {
       console.error('❌ Camera start failed:', error);
-      toast.error('Failed to start camera: ' + error.message);
+      
+      // Provide specific error messages
+      if (error.name === 'NotReadableError') {
+        toast.error('Camera/microphone is being used by another application. Please close other apps and try again.');
+      } else if (error.name === 'NotAllowedError') {
+        toast.error('Camera/microphone access denied. Please allow permissions and refresh the page.');
+      } else if (error.name === 'NotFoundError') {
+        toast.error('No camera/microphone found. Please connect a device and try again.');
+      } else {
+        toast.error(`Failed to start camera: ${error.message}`);
+      }
+      
+      // Don't throw error, continue without camera
+      console.log('⚠️ Continuing without camera...');
     }
   };
 
