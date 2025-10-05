@@ -49,25 +49,49 @@ const TutorLiveClasses = () => {
   const loadCourses = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       
-      // CRITICAL FIX: Load both tutor's courses AND all available live classes
-      console.log('🎯 Loading tutor courses and all live classes...');
+      console.log('🎯 Loading tutor courses and live classes...');
       
-      const [tutorCoursesResponse, allLiveClassesResponse] = await Promise.all([
-        courseService.getTutorCourses(),
-        liveClassService.getLiveClasses()
-      ]);
+      // Load tutor's courses first
+      let tutorCourses = [];
+      try {
+        const tutorCoursesResponse = await courseService.getTutorCourses();
+        if (tutorCoursesResponse.success) {
+          tutorCourses = tutorCoursesResponse.data || [];
+          setCourses(tutorCourses);
+          console.log('✅ Tutor courses loaded:', tutorCourses.length);
+        } else {
+          console.warn('⚠️ Tutor courses response not successful:', tutorCoursesResponse);
+          setCourses([]);
+        }
+      } catch (courseError) {
+        console.error('❌ Error loading tutor courses:', courseError);
+        setCourses([]);
+        // Don't fail completely, continue with live classes
+      }
       
-      setCourses(tutorCoursesResponse.data);
+      // Load live classes
+      let liveClasses = [];
+      try {
+        const liveClassesResponse = await liveClassService.getLiveClasses();
+        if (liveClassesResponse.success) {
+          liveClasses = liveClassesResponse.data || [];
+          console.log('✅ Live classes loaded:', liveClasses.length);
+        } else {
+          console.warn('⚠️ Live classes response not successful:', liveClassesResponse);
+          liveClasses = [];
+        }
+      } catch (liveClassError) {
+        console.error('❌ Error loading live classes:', liveClassError);
+        liveClasses = [];
+      }
       
       // Extract tutor's own live classes from courses
-      const tutorLiveClasses = tutorCoursesResponse.data.flatMap(course => course.liveClasses || []);
-      
-      // Get ALL available live classes (including learners')
-      const allLiveClasses = allLiveClassesResponse.data || [];
+      const tutorLiveClasses = tutorCourses.flatMap(course => course.liveClasses || []);
       
       // Combine: tutor's classes + all other live classes
-      const combinedLiveClasses    = [...tutorLiveClasses, ...allLiveClasses];
+      const combinedLiveClasses = [...tutorLiveClasses, ...liveClasses];
       
       // Remove duplicates by live class ID
       const uniqueLiveClasses = combinedLiveClasses.filter((liveClass, index, array) => 
@@ -77,16 +101,16 @@ const TutorLiveClasses = () => {
       setLiveClasses(uniqueLiveClasses);
       
       console.log('🎯 Live Classes Summary:', {
-        tutorCourses: tutorCoursesResponse.data.length,
+        tutorCourses: tutorCourses.length,
         tutorLiveClasses: tutorLiveClasses.length,
-        allLiveClasses: allLiveClasses.length,
+        allLiveClasses: liveClasses.length,
         combinedTotal: uniqueLiveClasses.length
       });
       
     } catch (error) {
-      console.error('Error loading courses:', error);
-      setError('Failed to load courses');
-      toast.error('Failed to load courses');
+      console.error('❌ Error loading courses:', error);
+      setError('Failed to load courses. Please refresh the page.');
+      toast.error('Failed to load courses. Please refresh the page.');
     } finally {
       setIsLoading(false);
     }

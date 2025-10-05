@@ -97,26 +97,35 @@ const TutorDashboard = () => {
       // Load dashboard data sequentially to avoid rate limiting
       console.log('🔄 Loading dashboard data sequentially...');
       
-      // Load stats first
+      // Load stats first with better error handling
       try {
         console.log('🔄 Loading tutor dashboard stats...');
         const statsResponse = await getTutorDashboardStats();
         console.log('📊 Stats response:', statsResponse);
-        console.log('📊 Stats response success:', statsResponse.success);
-        console.log('📊 Stats response data:', statsResponse.data);
-        console.log('📊 Stats response data length:', statsResponse.data?.length);
         
-        if (statsResponse.data.success) {
-          setStats(statsResponse.data.data || []);
-          console.log('✅ Stats loaded successfully:', statsResponse.data.data);
-          console.log('✅ Stats state updated, length:', statsResponse.data.data?.length);
+        if (statsResponse && statsResponse.success) {
+          const statsData = statsResponse.data || [];
+          setStats(statsData);
+          console.log('✅ Stats loaded successfully:', statsData.length, 'items');
         } else {
-          console.warn('⚠️ Stats response not successful:', statsResponse.data);
+          console.warn('⚠️ Stats response not successful, using fallback');
+          // Set fallback stats
+          setStats([
+            { title: 'Total Courses', value: 0, change: '+0%', changeType: 'positive' },
+            { title: 'Total Students', value: 0, change: '+0%', changeType: 'positive' },
+            { title: 'Total Revenue', value: '$0', change: '+0%', changeType: 'positive' },
+            { title: 'Average Rating', value: '0.0', change: '+0%', changeType: 'positive' }
+          ]);
         }
       } catch (error) {
         console.error('❌ Error loading stats:', error);
-        console.error('❌ Error details:', error.response?.data);
-        console.error('❌ Error status:', error.response?.status);
+        // Set fallback stats on error
+        setStats([
+          { title: 'Total Courses', value: 0, change: '+0%', changeType: 'positive' },
+          { title: 'Total Students', value: 0, change: '+0%', changeType: 'positive' },
+          { title: 'Total Revenue', value: '$0', change: '+0%', changeType: 'positive' },
+          { title: 'Average Rating', value: '0.0', change: '+0%', changeType: 'positive' }
+        ]);
       }
       
       // Load learners
