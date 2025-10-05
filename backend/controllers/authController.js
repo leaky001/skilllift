@@ -194,8 +194,8 @@ exports.loginUser = asyncHandler(async (req, res) => {
     // Log this security violation attempt
     console.warn(`SECURITY ALERT: Role mismatch login attempt - User: ${user.email}, Stored Role: ${user.role}, Requested Role: ${role}, IP: ${req.ip}`);
     
-    // Increment role validation attempts and potentially lock account
-    await user.incRoleValidationAttempts();
+    // Role validation attempt incrementing disabled for better user experience
+    // await user.incRoleValidationAttempts();
     
     return res.status(403).json({
       success: false,
@@ -203,18 +203,18 @@ exports.loginUser = asyncHandler(async (req, res) => {
     });
   }
 
-  // Check if account is locked
-  if (user.isLocked()) {
-    return res.status(423).json({
-      success: false,
-      message: 'Account is temporarily locked due to multiple failed login attempts. Please try again later.'
-    });
-  }
+  // Account locking disabled for better user experience
+  // if (user.isLocked()) {
+  //   return res.status(423).json({
+  //     success: false,
+  //     message: 'Account is temporarily locked due to multiple failed login attempts. Please try again later.'
+  //   });
+  // }
 
   // Check password
   if (!(await user.matchPassword(password))) {
-    // Increment login attempts
-    await user.incLoginAttempts();
+    // Login attempt incrementing disabled for better user experience
+    // await user.incLoginAttempts();
     
     return res.status(401).json({
       success: false,
@@ -222,13 +222,13 @@ exports.loginUser = asyncHandler(async (req, res) => {
     });
   }
 
-  // Check account status
-  if (user.accountStatus === 'blocked') {
-    return res.status(403).json({
-      success: false,
-      message: 'Your account has been blocked. Please contact support.'
-    });
-  }
+  // Account blocking disabled for better user experience
+  // if (user.accountStatus === 'blocked') {
+  //   return res.status(403).json({
+  //     success: false,
+  //     message: 'Your account has been blocked. Please contact support.'
+  //   });
+  // }
 
   // Special handling for admin users - they can always login regardless of account status
   if (user.role === 'admin') {

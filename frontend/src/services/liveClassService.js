@@ -13,35 +13,19 @@ export const liveClassService = {
     }
   },
 
-  // Start a live class
-  startLiveClass: async (liveClassId) => {
-    try {
-      const response = await apiService.post(`/live-classes/${liveClassId}/start`);
-      return response.data;
-    } catch (error) {
-      console.error('Error starting live class:', error);
-      throw error;
-    }
-  },
+  // Note: startLiveClass removed - use joinLiveClass for all users
 
-  // Join a live class (for tutors)
-  joinLiveClassAsTutor: async (liveClassId) => {
-    try {
-      const response = await apiService.post(`/live-classes/${liveClassId}/join-tutor`);
-      return response.data;
-    } catch (error) {
-      console.error('Error joining live class as tutor:', error);
-      throw error;
-    }
-  },
+  // Note: joinLiveClassAsTutor removed - all users now use joinLiveClass
 
-  // Join a live class
+  // Join a live class - NO BYPASS, FORCE REAL ENDPOINT
   joinLiveClass: async (liveClassId) => {
     try {
+      console.log('🎯 Attempting live class join for:', liveClassId);
       const response = await apiService.post(`/live-classes/${liveClassId}/join`);
+      console.log('✅ Live class join successful:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Error joining live class:', error);
+      console.error('❌ Live class join failed:', error);
       throw error;
     }
   },

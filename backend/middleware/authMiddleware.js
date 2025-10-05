@@ -61,18 +61,26 @@ exports.authorize = (...allowedRoles) => {
     }
 
     const userRole = req.user.role;
+    
+    // Handle both single role and array of roles
+    const isAuthorized = Array.isArray(allowedRoles[0]) 
+      ? allowedRoles[0].includes(userRole)  // Array format: ['learner', 'tutor']
+      : allowedRoles.includes(userRole);    // Single role format: 'learner'
+
     console.log('🔐 Authorization check:', {
       userId: req.user._id,
       userRole: userRole,
       allowedRoles: allowedRoles,
-      isAuthorized: allowedRoles.includes(userRole),
+      isArray: Array.isArray(allowedRoles[0]),
+      isAuthorized: isAuthorized,
       url: req.originalUrl
     });
 
-    if (!allowedRoles.includes(userRole)) {
+    if (!isAuthorized) {
       console.log('❌ Access denied:', {
         userRole: userRole,
         allowedRoles: allowedRoles,
+        isArray: Array.isArray(allowedRoles[0]),
         userId: req.user._id,
         url: req.originalUrl
       });

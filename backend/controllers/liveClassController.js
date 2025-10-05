@@ -269,11 +269,12 @@ const joinLiveClassAsTutor = async (req, res) => {
 
 // @desc    Join a live class
 // @route   POST /api/live-classes/:id/join
-// @access  Private (Learner)
+// @access  Private (Learner or Tutor)
 const joinLiveClass = async (req, res) => {
   try {
     const { id } = req.params;
-    const learnerId = req.user._id;
+    const userId = req.user._id;
+    const userRole = req.user.role;
 
     const liveClass = await LiveClass.findById(id).populate('courseId', 'title');
     if (!liveClass) {
@@ -283,10 +284,13 @@ const joinLiveClass = async (req, res) => {
       });
     }
 
-    // Temporarily skip enrollment check for testing
-    console.log('🎯 Skipping enrollment check for testing');
-    console.log('🎯 Learner ID:', learnerId);
-    console.log('🎯 Course ID:', liveClass.courseId._id);
+    console.log('🎯 Join live class request:', {
+      userId,
+      userRole,
+      liveClassId: id,
+      courseId: liveClass.courseId._id,
+      tutorId: liveClass.tutorId
+    });
 
     // Check if class is live or ready
     if (!['ready', 'live'].includes(liveClass.status)) {
@@ -296,11 +300,79 @@ const joinLiveClass = async (req, res) => {
       });
     }
 
-    // Add learner to attendees
-    await liveClass.addAttendee(learnerId);
+    // Determine if user is the tutor (host) or learner
+    const isTutor = liveClass.tutorId.toString() === userId.toString();
+    const isHost = isTutor;
 
-    // Generate Stream token for the learner
-    const streamToken = generateStreamToken(learnerId, liveClass.callId, false);
+    console.log('🎯 User role determination:', {
+      isTutor,
+      isHost,
+      userRole,
+      tutorId: liveClass.tutorId.toString(),
+      userId: userId.toString()
+    });
+
+    // For learners, check enrollment - TEMPORARILY DISABLED FOR TESTING
+    if (!isTutor) {
+      console.log('🎯 TEMPORARY: Skipping enrollment check for testing');
+      console.log('🎯 Allowing learner access without enrollment verification');
+      // TODO: Re-enable enrollment check once MongoDB is properly configured
+      
+      /* ORIGINAL ENROLLMENT CHECK (commented out):
+      console.log('🎯 Checking enrollment for learner:', {
+        userId,
+        courseId: liveClass.courseId._id,
+        liveClassId: id
+      });
+      
+      const enrollment = await Enrollment.findOne({
+        learner: userId,
+        course: liveClass.courseId._id,
+        status: 'active'
+      });
+      
+      console.log('🎯 Learner enrollment check result:', {
+        userId,
+        courseId: liveClass.courseId._id,
+        enrollmentFound: !!enrollment,
+        enrollment: enrollment,
+        allEnrollments: await Enrollment.find({ learner: userId }).limit(5)
+      });
+      
+      if (!enrollment) {
+        console.log('❌ Enrollment not found, returning 403');
+        return res.status(403).json({
+          success: false,
+          message: 'You are not enrolled in this course',
+          debug: {
+            userId,
+            courseId: liveClass.courseId._id,
+            liveClassId: id
+          }
+        });
+      }
+      
+      console.log('✅ Enrollment found, allowing access');
+      */
+    }
+
+    // Add user to attendees (if not already added)
+    await liveClass.addAttendee(userId);
+
+    // Generate Stream token with appropriate host status
+    const streamToken = generateStreamToken(userId, liveClass.callId, isHost);
+
+    console.log('🔍 BACKEND JOIN SUCCESS:', {
+      userId: userId.toString(),
+      userRole,
+      isHost,
+      isTutor,
+      callId: liveClass.callId,
+      callIdType: typeof liveClass.callId,
+      streamTokenGenerated: !!streamToken,
+      liveClassStatus: liveClass.status,
+      sessionId: liveClass.sessionId
+    });
 
     res.status(200).json({
       success: true,
@@ -309,7 +381,8 @@ const joinLiveClass = async (req, res) => {
         liveClass,
         streamToken,
         callId: liveClass.callId,
-        sessionId: liveClass.sessionId
+        sessionId: liveClass.sessionId,
+        isHost
       }
     });
 

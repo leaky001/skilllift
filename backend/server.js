@@ -148,6 +148,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 app.use('/api/stream', require('./routes/streamRoutes'));
 app.use('/api/live-classes', require('./routes/liveClassRoutes'));
+app.use('/', require('./routes/testRoutes'));
 app.use('/api/learner/replays', require('./routes/learnerReplayRoutes'));
 app.use('/api/tutor/replays', handleUploadError, cleanupUploads, require('./routes/tutorReplayRoutes'));
 app.use('/api/learner/dashboard', require('./routes/learnerDashboardRoutes'));
