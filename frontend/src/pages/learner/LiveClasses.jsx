@@ -25,19 +25,54 @@ const LearnerLiveClasses = () => {
   useEffect(() => {
     loadLiveClasses();
     
-    // Refresh live classes every 30 seconds to get updated status
+    // Refresh live classes every 5 seconds to catch status changes quickly
     const interval = setInterval(() => {
+      console.log('🔄 Auto-refreshing live classes for learner...');
       loadLiveClasses();
-    }, 30000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const loadLiveClasses = async () => {
+  const loadLiveClasses = async (forceRefresh = false) => {
     try {
-      setLoading(true);
+      if (forceRefresh) {
+        setLoading(true);
+        console.log('🔄 Force refreshing live classes...');
+      }
+      
       const response = await liveClassService.getLiveClasses();
-      setLiveClasses(response.data || []);
+      const updatedLiveClasses = response.data || [];
+      
+      // Check if any live class status has changed
+      const statusChanged = updatedLiveClasses.some((lc, index) => {
+        const oldStatus = liveClasses[index]?.status;
+        const newStatus = lc.status;
+        return oldStatus !== newStatus;
+      });
+      
+      if (statusChanged) {
+        console.log('🔄 Live class status changed, updating UI...');
+        console.log('Previous statuses:', liveClasses.map(lc => lc.status));
+        console.log('New statuses:', updatedLiveClasses.map(lc => lc.status));
+        
+        // Show toast notification for status change
+        const liveClass = updatedLiveClasses.find(lc => lc.status === 'live');
+        if (liveClass) {
+          toast.success(`Live class "${liveClass.title}" is now active! You can join now.`);
+        }
+      }
+      
+      setLiveClasses(updatedLiveClasses);
+      
+      // Expose function to window for manual testing
+      if (typeof window !== 'undefined') {
+        window.forceRefreshLiveClasses = () => {
+          console.log('🔄 Manual force refresh triggered');
+          loadLiveClasses(true);
+        };
+      }
+      
     } catch (error) {
       console.error('Error loading live classes:', error);
       setError('Failed to load live classes');
@@ -151,9 +186,9 @@ const LearnerLiveClasses = () => {
               <p className="text-text-secondary">Join live classes from your enrolled courses</p>
             </div>
             <button
-              onClick={loadLiveClasses}
+              onClick={() => loadLiveClasses(true)}
               className="bg-secondary-600 text-white px-4 py-2 rounded-lg hover:bg-secondary-700 flex items-center space-x-2 transition-colors"
-              title="Refresh live classes"
+              title="Force refresh live classes"
             >
               <FaSpinner className="text-sm" />
               <span>Refresh</span>

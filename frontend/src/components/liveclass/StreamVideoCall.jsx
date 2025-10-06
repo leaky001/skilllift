@@ -190,6 +190,20 @@ const StreamVideoCall = ({
     };
 
     initializeStream();
+    
+    // Cleanup function
+    return () => {
+      if (call) {
+        // Clear sync interval
+        if (call._syncInterval) {
+          clearInterval(call._syncInterval);
+          console.log('✅ Cleared sync interval');
+        }
+        
+        call.leave();
+        console.log('✅ Left call and cleaned up');
+      }
+    };
   }, [callId, streamToken, user, isHost]);
 
   // Start local camera with better error handling
@@ -263,6 +277,17 @@ const StreamVideoCall = ({
           try {
             await call.camera.enable();
             console.log('✅ Stream camera enabled');
+            
+            // Also try to publish video track explicitly
+            try {
+              const videoTrack = stream.getVideoTracks()[0];
+              if (videoTrack) {
+                await call.publishVideoTrack(videoTrack);
+                console.log('✅ Video track published explicitly');
+              }
+            } catch (publishError) {
+              console.warn('⚠️ Could not publish video track explicitly:', publishError);
+            }
           } catch (streamError) {
             console.warn('⚠️ Could not enable Stream.io camera:', streamError);
           }
@@ -290,35 +315,137 @@ const StreamVideoCall = ({
 
   // Set up event listeners
   const setupEventListeners = (streamCall) => {
-    // Video track events
-    streamCall.on('call.track_published', (event) => {
-      const participantId = event.participant.user?.id || event.participant.user_id;
-      if (participantId !== user._id.toString() && event.track.kind === 'video') {
-        setVideoTracks(prev => new Map(prev).set(participantId, event.track));
-        console.log('🎥 Video track published for:', participantId);
+    console.log('🎯 Setting up Stream event listeners...');
+    
+    // Participant join events - Enhanced for better reliability
+    streamCall.on('call.session_participant_joined', (event) => {
+      console.log('👥 Participant joined event:', event);
+      const participant = event.participant;
+      const participantId = participant.user?.id || participant.user_id;
+      
+      console.log('🔍 Processing participant join:', {
+        participantId,
+        participantName: participant.user?.name || participant.name,
+        currentUserId: user._id.toString(),
+        isNotCurrentUser: participantId && participantId.toString() !== user._id.toString()
+      });
+      
+      if (participantId && participantId.toString() !== user._id.toString()) {
+        const newParticipant = {
+          id: participantId,
+          name: participant.user?.name || participant.name || 'Unknown User',
+          user_id: participantId
+        };
+        
+        setParticipants(prev => {
+          const exists = prev.some(p => p.id === participantId);
+          if (!exists) {
+            console.log('✅ Adding new participant:', newParticipant);
+            console.log('✅ Updated participants list:', [...prev, newParticipant]);
+            return [...prev, newParticipant];
+          } else {
+            console.log('⚠️ Participant already exists:', participantId);
+            return prev;
+          }
+        });
+        
+        // Also trigger a manual sync after adding participant
+        setTimeout(() => {
+          console.log('🔄 Manual sync after participant join...');
+          const currentParticipants = streamCall.state.participants || [];
+          const otherParticipants = currentParticipants
+            .filter(p => {
+              const pId = p.user?.id || p.user_id;
+              return pId && pId.toString() !== user._id.toString();
+            })
+            .map(p => ({
+              id: p.user?.id || p.user_id,
+              name: p.user?.name || p.name || 'Unknown User',
+              user_id: p.user?.id || p.user_id
+            }));
+          console.log('✅ Manual sync result:', otherParticipants);
+          setParticipants(otherParticipants);
+        }, 1000);
       }
     });
 
-    streamCall.on('call.track_unpublished', (event) => {
+    // Participant leave events
+    streamCall.on('call.session_participant_left', (event) => {
+      console.log('👥 Participant left:', event);
       const participantId = event.participant.user?.id || event.participant.user_id;
-      if (participantId !== user._id.toString()) {
+      
+      if (participantId && participantId.toString() !== user._id.toString()) {
+        setParticipants(prev => {
+          const filtered = prev.filter(p => p.id !== participantId);
+          console.log('✅ Removed participant:', participantId);
+          return filtered;
+        });
+        
+        // Also remove video track
         setVideoTracks(prev => {
           const newMap = new Map(prev);
           newMap.delete(participantId);
           return newMap;
         });
-        console.log('🎥 Video track unpublished for:', participantId);
       }
     });
 
-    // Participant events
+    // Video track events - Enhanced handling
+    streamCall.on('call.track_published', (event) => {
+      console.log('🎥 Track published event:', event);
+      const participantId = event.participant.user?.id || event.participant.user_id || event.participant.userId;
+      
+      console.log('🔍 Processing track published:', {
+        participantId,
+        trackKind: event.track.kind,
+        currentUserId: user._id.toString(),
+        isNotCurrentUser: participantId && participantId.toString() !== user._id.toString(),
+        participantName: event.participant.user?.name || event.participant.name
+      });
+      
+      if (participantId && participantId.toString() !== user._id.toString() && event.track.kind === 'video') {
+        setVideoTracks(prev => {
+          const newMap = new Map(prev);
+          newMap.set(participantId, event.track);
+          console.log('✅ Video track stored for:', participantId);
+          console.log('✅ Updated video tracks map:', Array.from(newMap.keys()));
+          return newMap;
+        });
+        console.log('✅ Video track published for:', participantId);
+      }
+    });
+
+    streamCall.on('call.track_unpublished', (event) => {
+      console.log('🎥 Track unpublished:', event);
+      const participantId = event.participant.user?.id || event.participant.user_id;
+      
+      if (participantId && participantId.toString() !== user._id.toString()) {
+        setVideoTracks(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(participantId);
+          return newMap;
+        });
+        console.log('✅ Video track unpublished for:', participantId);
+      }
+    });
+
+    // Call state updates (fallback for participant management)
     streamCall.on('call.updated', (event) => {
+      console.log('🔄 Call updated:', event);
       if (event.call && event.call.state && event.call.state.participants) {
         const callParticipants = event.call.state.participants || [];
+        console.log('👥 All participants in call:', callParticipants);
+        
         const otherParticipants = callParticipants
           .filter(p => {
             const participantId = p.user?.id || p.user_id;
-            return participantId && participantId.toString() !== user._id.toString();
+            const isNotCurrentUser = participantId && participantId.toString() !== user._id.toString();
+            console.log('🔍 Checking participant:', {
+              participantId,
+              currentUserId: user._id.toString(),
+              isNotCurrentUser
+            });
+            return isNotCurrentUser;
           })
           .map(p => ({
             id: p.user?.id || p.user_id,
@@ -329,13 +456,14 @@ const StreamVideoCall = ({
             index === self.findIndex(participant => participant.id === p.id)
           );
         
+        console.log('✅ Processed participants:', otherParticipants);
         setParticipants(otherParticipants);
-        console.log('👥 Participants updated:', otherParticipants);
       }
     });
 
     // Chat events
     streamCall.on('call.session_message_received', (event) => {
+      console.log('💬 Chat message received:', event);
       setChatMessages(prev => [...prev, {
         id: event.message.id || Date.now(),
         text: event.message.text,
@@ -343,6 +471,74 @@ const StreamVideoCall = ({
         timestamp: event.message.created_at || new Date().toISOString()
       }]);
     });
+
+    // Initial participant sync - Enhanced detection
+    const syncParticipants = () => {
+      console.log('🔄 Syncing participants...');
+      
+      // Try multiple ways to get participants
+      let currentParticipants = [];
+      
+      // Method 1: From call state
+      if (streamCall.state && streamCall.state.participants) {
+        currentParticipants = streamCall.state.participants;
+        console.log('👥 Participants from call.state:', currentParticipants);
+      }
+      
+      // Method 2: From call object directly
+      if (streamCall.participants) {
+        currentParticipants = streamCall.participants;
+        console.log('👥 Participants from call.participants:', currentParticipants);
+      }
+      
+      // Method 3: From call state.participants (alternative)
+      if (streamCall.state && streamCall.state.participants) {
+        const stateParticipants = Object.values(streamCall.state.participants);
+        if (stateParticipants.length > 0) {
+          currentParticipants = stateParticipants;
+          console.log('👥 Participants from state.participants object:', currentParticipants);
+        }
+      }
+      
+      console.log('👥 Final participants array:', currentParticipants);
+      
+      const otherParticipants = currentParticipants
+        .filter(p => {
+          const participantId = p.user?.id || p.user_id || p.userId;
+          const isNotCurrentUser = participantId && participantId.toString() !== user._id.toString();
+          console.log('🔍 Checking participant for sync:', {
+            participantId,
+            currentUserId: user._id.toString(),
+            isNotCurrentUser,
+            participantName: p.user?.name || p.name,
+            participantObject: p
+          });
+          return isNotCurrentUser;
+        })
+        .map(p => ({
+          id: p.user?.id || p.user_id || p.userId,
+          name: p.user?.name || p.name || 'Unknown User',
+          user_id: p.user?.id || p.user_id || p.userId
+        }));
+      
+      console.log('✅ Participants synced:', otherParticipants);
+      setParticipants(otherParticipants);
+      
+      // Also log the call state for debugging
+      console.log('🔍 Full call state:', streamCall.state);
+      console.log('🔍 Call object keys:', Object.keys(streamCall));
+    };
+
+    // Multiple sync attempts to catch all participants
+    setTimeout(syncParticipants, 1000);  // First attempt
+    setTimeout(syncParticipants, 3000);  // Second attempt
+    setTimeout(syncParticipants, 5000);  // Third attempt
+    
+    // Periodic sync every 10 seconds to ensure participants stay in sync
+    const syncInterval = setInterval(syncParticipants, 10000);
+    
+    // Store interval for cleanup
+    streamCall._syncInterval = syncInterval;
   };
 
   // Video participant component
@@ -350,14 +546,46 @@ const StreamVideoCall = ({
     const videoRef = useRef(null);
 
     useEffect(() => {
-      if (videoRef.current && videoTrack && videoTrack.mediaStreamTrack) {
-        const stream = new MediaStream([videoTrack.mediaStreamTrack]);
-        videoRef.current.srcObject = stream;
+      console.log('🎥 VideoParticipant effect:', {
+        participantId: participant.id,
+        participantName: participant.name,
+        hasVideoTrack: !!videoTrack,
+        isLocal,
+        videoTrackType: videoTrack?.type || 'none'
+      });
+
+      if (videoRef.current && videoTrack) {
+        try {
+          let stream = null;
+          
+          if (videoTrack.mediaStreamTrack) {
+            // Direct MediaStreamTrack
+            stream = new MediaStream([videoTrack.mediaStreamTrack]);
+            console.log('✅ Using MediaStreamTrack for:', participant.name);
+          } else if (videoTrack.attach) {
+            // Stream.io track object
+            stream = videoTrack.attach();
+            console.log('✅ Using Stream.io track for:', participant.name);
+          } else if (videoTrack.getMediaStream) {
+            // Alternative method
+            stream = videoTrack.getMediaStream();
+            console.log('✅ Using getMediaStream for:', participant.name);
+          }
+          
+          if (stream) {
+            videoRef.current.srcObject = stream;
+            console.log('✅ Video stream attached for:', participant.name);
+          } else {
+            console.warn('⚠️ Could not create stream for:', participant.name);
+          }
+        } catch (error) {
+          console.error('❌ Error attaching video stream:', error);
+        }
       }
-    }, [videoTrack]);
+    }, [videoTrack, participant.id, participant.name, isLocal]);
 
     return (
-      <div className="relative bg-gray-800 rounded-lg overflow-hidden">
+      <div className="relative bg-gray-800 rounded-lg overflow-hidden min-h-[200px]">
         {videoTrack ? (
           <video
             ref={videoRef}
@@ -365,6 +593,8 @@ const StreamVideoCall = ({
             playsInline
             muted={isLocal}
             className="w-full h-full object-cover"
+            onLoadedData={() => console.log('✅ Video loaded for:', participant.name)}
+            onError={(e) => console.error('❌ Video error for:', participant.name, e)}
           />
         ) : (
           <div className="w-full h-full bg-gray-700 flex items-center justify-center">
@@ -375,12 +605,20 @@ const StreamVideoCall = ({
                 </span>
               </div>
               <p className="text-sm">{participant.name}</p>
+              <p className="text-xs text-gray-400 mt-1">
+                {isLocal ? 'Your video is off' : 'Video is off'}
+              </p>
             </div>
           </div>
         )}
         <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
           {participant.name} {isLocal ? '(You)' : ''}
         </div>
+        {videoTrack && (
+          <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
+            Live
+          </div>
+        )}
       </div>
     );
   };
@@ -481,39 +719,101 @@ const StreamVideoCall = ({
     ...participants
   ];
 
+  console.log('🎯 Rendering participants:', {
+    totalCount: allParticipants.length,
+    localUser: user.name,
+    otherParticipants: participants.map(p => ({ id: p.id, name: p.name })),
+    videoTracksCount: videoTracks.size,
+    videoTracksKeys: Array.from(videoTracks.keys())
+  });
+
+  // Dynamic grid layout based on participant count
+  const getGridLayout = (count) => {
+    if (count === 1) return 'grid-cols-1';
+    if (count === 2) return 'grid-cols-2';
+    if (count <= 4) return 'grid-cols-2';
+    if (count <= 6) return 'grid-cols-3';
+    if (count <= 9) return 'grid-cols-3';
+    return 'grid-cols-4';
+  };
+
   return (
     <div className="h-full w-full bg-gray-900 flex flex-col">
       {/* Video Area */}
       <div className="flex-1 p-4">
-        {allParticipants.length === 1 ? (
-          // Single participant (local only)
-          <div className="h-full w-full">
-            <VideoParticipant 
-              participant={{ id: user._id, name: user.name }}
-              videoTrack={localStream ? { mediaStreamTrack: localStream.getVideoTracks()[0] } : null}
-              isLocal={true}
+        <div className={`grid ${getGridLayout(allParticipants.length)} gap-4 h-full`}>
+          {allParticipants.map(participant => (
+            <VideoParticipant
+              key={participant.id}
+              participant={participant}
+              videoTrack={participant.isLocal 
+                ? (localStream ? { mediaStreamTrack: localStream.getVideoTracks()[0] } : null)
+                : videoTracks.get(participant.id)
+              }
+              isLocal={participant.isLocal}
             />
-          </div>
-        ) : (
-          // Multiple participants - grid layout
-          <div className="grid grid-cols-2 gap-4 h-full">
-            {allParticipants.map(participant => (
-              <VideoParticipant
-                key={participant.id}
-                participant={participant}
-                videoTrack={participant.isLocal 
-                  ? (localStream ? { mediaStreamTrack: localStream.getVideoTracks()[0] } : null)
-                  : videoTracks.get(participant.id)
-                }
-                isLocal={participant.isLocal}
-              />
-            ))}
-          </div>
-        )}
+          ))}
+        </div>
       </div>
 
       {/* Controls */}
       <div className="bg-gray-800 p-4 flex items-center justify-center space-x-4">
+        {/* Manual refresh participants button */}
+        <button
+          onClick={() => {
+            console.log('🔄 Manual participant refresh triggered');
+            if (call) {
+              // Try multiple ways to get participants
+              let currentParticipants = [];
+              
+              // Method 1: From call state
+              if (call.state && call.state.participants) {
+                currentParticipants = call.state.participants;
+                console.log('👥 Participants from call.state:', currentParticipants);
+              }
+              
+              // Method 2: From call object directly
+              if (call.participants) {
+                currentParticipants = call.participants;
+                console.log('👥 Participants from call.participants:', currentParticipants);
+              }
+              
+              // Method 3: From call state.participants (alternative)
+              if (call.state && call.state.participants) {
+                const stateParticipants = Object.values(call.state.participants);
+                if (stateParticipants.length > 0) {
+                  currentParticipants = stateParticipants;
+                  console.log('👥 Participants from state.participants object:', currentParticipants);
+                }
+              }
+              
+              console.log('👥 Final participants array for refresh:', currentParticipants);
+              
+              const otherParticipants = currentParticipants
+                .filter(p => {
+                  const participantId = p.user?.id || p.user_id || p.userId;
+                  return participantId && participantId.toString() !== user._id.toString();
+                })
+                .map(p => ({
+                  id: p.user?.id || p.user_id || p.userId,
+                  name: p.user?.name || p.name || 'Unknown User',
+                  user_id: p.user?.id || p.user_id || p.userId
+                }));
+              
+              console.log('✅ Manual refresh result:', otherParticipants);
+              setParticipants(otherParticipants);
+              toast.info(`Refreshed participants: ${otherParticipants.length} found`);
+              
+              // Also log call state for debugging
+              console.log('🔍 Full call state for debugging:', call.state);
+              console.log('🔍 Call object keys:', Object.keys(call));
+            }
+          }}
+          className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded text-sm"
+          title="Refresh participants list"
+        >
+          🔄 Refresh
+        </button>
         <button
           onClick={toggleMute}
           className={`px-4 py-2 rounded ${isMuted ? 'bg-red-500' : 'bg-gray-600'} text-white`}
@@ -557,6 +857,9 @@ const StreamVideoCall = ({
             <h3 className="text-white font-semibold">
               Participants ({participants.length + 1})
             </h3>
+            <p className="text-xs text-gray-400 mt-1">
+              Video Tracks: {videoTracks.size}
+            </p>
           </div>
           <div className="p-4 space-y-2">
             {/* Local user */}
@@ -565,14 +868,31 @@ const StreamVideoCall = ({
               <p className="text-xs text-gray-300">
                 {isHost ? 'Host' : 'Student'} • {isMuted ? 'Muted' : 'Unmuted'} • {isVideoOn ? 'Video On' : 'Video Off'}
               </p>
+              <p className="text-xs text-gray-400">
+                ID: {user._id}
+              </p>
             </div>
             {/* Other participants */}
             {participants.map((participant) => (
               <div key={participant.id} className="text-white text-sm bg-gray-700 p-2 rounded border-l-4 border-green-500">
                 <p className="font-medium">{participant.name}</p>
-                <p className="text-xs text-gray-300">Student</p>
+                <p className="text-xs text-gray-300">
+                  Student • {videoTracks.has(participant.id) ? 'Video On' : 'Video Off'}
+                </p>
+                <p className="text-xs text-gray-400">
+                  ID: {participant.id}
+                </p>
               </div>
             ))}
+            
+            {/* Debug info */}
+            <div className="mt-4 p-2 bg-gray-900 rounded text-xs text-gray-400">
+              <p className="font-semibold text-gray-300 mb-1">Debug Info:</p>
+              <p>Call ID: {callId}</p>
+              <p>Stream Token: {streamToken ? 'Present' : 'Missing'}</p>
+              <p>Call State: {call ? 'Connected' : 'Disconnected'}</p>
+              <p>Local Stream: {localStream ? 'Active' : 'Inactive'}</p>
+            </div>
           </div>
         </div>
       )}

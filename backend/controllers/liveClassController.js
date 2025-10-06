@@ -289,16 +289,9 @@ const joinLiveClass = async (req, res) => {
       userRole,
       liveClassId: id,
       courseId: liveClass.courseId._id,
-      tutorId: liveClass.tutorId
+      tutorId: liveClass.tutorId,
+      currentStatus: liveClass.status
     });
-
-    // Check if class is live or ready
-    if (!['ready', 'live'].includes(liveClass.status)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Live class is not currently active'
-      });
-    }
 
     // Determine if user is the tutor (host) or learner
     const isTutor = liveClass.tutorId.toString() === userId.toString();
@@ -311,6 +304,28 @@ const joinLiveClass = async (req, res) => {
       tutorId: liveClass.tutorId.toString(),
       userId: userId.toString()
     });
+
+    // Check if class is live or ready, or if tutor is joining their own scheduled class
+    if (!['ready', 'live'].includes(liveClass.status)) {
+      // If user is the tutor and class is scheduled, allow them to start it
+      if (isTutor && liveClass.status === 'scheduled') {
+        console.log('🎯 Tutor joining scheduled live class, setting status to live');
+        liveClass.status = 'live';
+        liveClass.startedAt = new Date();
+        await liveClass.save();
+        console.log('✅ Live class status updated to live');
+      } else {
+        console.log('❌ Live class not active and user is not tutor:', {
+          status: liveClass.status,
+          isTutor,
+          userRole
+        });
+        return res.status(400).json({
+          success: false,
+          message: 'Live class is not currently active'
+        });
+      }
+    }
 
     // For learners, check enrollment - TEMPORARILY DISABLED FOR TESTING
     if (!isTutor) {
@@ -362,6 +377,9 @@ const joinLiveClass = async (req, res) => {
     // Generate Stream token with appropriate host status
     const streamToken = generateStreamToken(userId, liveClass.callId, isHost);
 
+    // Populate the live class with course data for the response
+    await liveClass.populate('courseId', 'title description');
+
     console.log('🔍 BACKEND JOIN SUCCESS:', {
       userId: userId.toString(),
       userRole,
@@ -371,7 +389,8 @@ const joinLiveClass = async (req, res) => {
       callIdType: typeof liveClass.callId,
       streamTokenGenerated: !!streamToken,
       liveClassStatus: liveClass.status,
-      sessionId: liveClass.sessionId
+      sessionId: liveClass.sessionId,
+      liveClassPopulated: !!liveClass.courseId
     });
 
     res.status(200).json({
