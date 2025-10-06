@@ -80,8 +80,13 @@ const SharedLiveClassRoom = () => {
         liveClassTutorId: liveClassData.tutorId
       });
 
-      // If live class is active, join automatically
+      // If live class is active, join automatically for all users
+      // If ready, only auto-join for tutors (hosts)
       if (liveClassData.status === 'live') {
+        console.log('🎯 Live class is active, auto-joining...');
+        await joinLiveClass();
+      } else if (liveClassData.status === 'ready' && finalIsHost) {
+        console.log('🎯 Live class is ready, auto-joining as host...');
         await joinLiveClass();
       }
 
@@ -91,6 +96,19 @@ const SharedLiveClassRoom = () => {
       toast.error('Failed to load live class');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const refreshLiveClassData = async () => {
+    try {
+      console.log('🔄 Refreshing live class data...');
+      const response = await liveClassService.getLiveClass(liveClassId);
+      if (response.data) {
+        console.log('🔄 Updated live class data:', response.data);
+        setLiveClass(response.data);
+      }
+    } catch (error) {
+      console.error('Error refreshing live class data:', error);
     }
   };
 
@@ -110,6 +128,23 @@ const SharedLiveClassRoom = () => {
       setStreamToken(response.data.streamToken);
       setCurrentCallId(response.data.callId);
       setIsInCall(true);
+      
+      // Update the live class status if it was changed by the backend
+      if (response.data.liveClass && response.data.liveClass.status !== liveClass?.status) {
+        console.log('🔄 Updating live class status from', liveClass?.status, 'to', response.data.liveClass.status);
+        setLiveClass(prev => ({
+          ...prev,
+          status: response.data.liveClass.status
+        }));
+      } else if (response.data.liveClass) {
+        console.log('🔄 Live class status unchanged:', response.data.liveClass.status);
+        // Update the live class data even if status is the same
+        setLiveClass(response.data.liveClass);
+      } else {
+        console.log('⚠️ No liveClass data in response, refreshing data...');
+        // Refresh the live class data to get the updated status
+        await refreshLiveClassData();
+      }
       
       toast.success(`Successfully joined the live class as ${isHost ? 'host' : 'participant'}!`);
       console.log('🎯 Using call ID:', response.data.callId);
@@ -360,7 +395,7 @@ const SharedLiveClassRoom = () => {
 
             {/* Join Button */}
             <div className="flex justify-center">
-              {liveClass.status === 'live' ? (
+              {(liveClass.status === 'live') || (liveClass.status === 'ready' && isHost) ? (
                 <button
                   onClick={joinLiveClass}
                   disabled={isJoining}
@@ -374,7 +409,7 @@ const SharedLiveClassRoom = () => {
                   ) : (
                     <>
                       <FaPlay />
-                      <span>Join Live Class</span>
+                      <span>{liveClass.status === 'live' ? 'Join Live Class' : 'Start Live Class'}</span>
                     </>
                   )}
                 </button>
@@ -388,7 +423,10 @@ const SharedLiveClassRoom = () => {
                     <span>Live Class Not Active</span>
                   </button>
                   <p className="text-text-secondary text-sm mt-2">
-                    The live class is not currently active. Please wait for the tutor to start it.
+                    {isHost 
+                      ? 'The live class is not ready yet. Please wait for it to be prepared.'
+                      : 'The live class is not currently active. Please wait for the tutor to start it.'
+                    }
                   </p>
                 </div>
               )}
