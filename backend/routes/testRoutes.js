@@ -32,24 +32,20 @@ router.post('/test-live-bypass', (req, res) => {
       }
     };
 
-    // Generate Stream token using existing service
-    const { generateStreamToken } = require('../services/streamTokenService');
+    // Stream SDK removed - using Google Meet instead
     const isHost = mockLiveClass.tutorId.toString() === userId.toString();
     
-    console.log('🧪 TEST ENDPOINT: Generating token for:', { userId, isHost, callId: mockLiveClass.callId });
-    const streamToken = generateStreamToken(userId, mockLiveClass.callId, isHost);
-    
-    console.log('🧪 TEST ENDPOINT: Token generated successfully');
+    console.log('🧪 TEST ENDPOINT: Google Meet integration ready for:', { userId, isHost, callId: mockLiveClass.callId });
 
     res.json({
       success: true,
-      message: 'Test live class joined successfully - BYPASSED DB CHECKS',
+      message: 'Test live class ready - Google Meet integration',
       data: {
         liveClass: mockLiveClass,
-        streamToken: streamToken,
         callId: mockLiveClass.callId,
         sessionId: mockLiveClass.sessionId,
-        isHost: isHost
+        isHost: isHost,
+        meetLink: 'https://meet.google.com/test-room'
       }
     });
 

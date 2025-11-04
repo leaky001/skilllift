@@ -180,6 +180,50 @@ exports.sendChatMessage = asyncHandler(async (req, res) => {
 
     console.log('✅ Message sent:', message._id);
 
+    // Send notification to the receiver
+    try {
+      const NotificationService = require('../services/notificationService');
+      const User = require('../models/User');
+      
+      // Get receiver and sender user info
+      const receiverUser = await User.findById(receiverId);
+      const senderUser = await User.findById(senderId);
+      
+      if (receiverUser && senderUser) {
+        // Determine notification type based on sender role
+        let notificationType = 'chat_message';
+        let notificationTitle = 'New Message';
+        
+        if (senderUser.role === 'tutor') {
+          notificationType = 'tutor_message';
+          notificationTitle = 'New Message from Tutor';
+        } else if (senderUser.role === 'learner') {
+          notificationType = 'learner_message';
+          notificationTitle = 'New Message from Student';
+        }
+        
+        // Create notification
+        await NotificationService.emitNotification(receiverUser._id, {
+          type: notificationType,
+          title: notificationTitle,
+          message: `${senderUser.name}: ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`,
+          sender: senderId,
+          data: {
+            conversationId: conversationId,
+            messageId: message._id,
+            senderName: senderUser.name,
+            senderRole: senderUser.role,
+            content: content
+          }
+        });
+        
+        console.log(`🔔 Notification sent to ${receiverUser.name} for message from ${senderUser.name}`);
+      }
+    } catch (notificationError) {
+      console.error('Error sending message notification:', notificationError);
+      // Don't fail the message sending if notification fails
+    }
+
     // Broadcast message via Socket.IO if available
     if (io) {
       try {
@@ -220,7 +264,7 @@ exports.sendChatMessage = asyncHandler(async (req, res) => {
         });
         
         // Emit message to all participants in the conversation
-        io.to(roomName).emit('chat_message', broadcastData);
+        io.to(`conversation_${conversationId}`).emit('chat_message', broadcastData);
         
         console.log('✅ Message broadcasted successfully to conversation:', conversationId);
       } catch (error) {

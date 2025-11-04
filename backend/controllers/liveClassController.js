@@ -3,14 +3,13 @@ const Course = require('../models/Course');
 const User = require('../models/User');
 const Enrollment = require('../models/Enrollment');
 const Notification = require('../models/Notification');
-const { generateStreamToken } = require('../services/streamTokenService');
+// Stream SDK removed - using Google Meet instead
 
 // Ensure all models are registered
 require('../models/User');
 require('../models/Course');
 require('../models/Enrollment');
 require('../models/Notification');
-require('../models/LiveClass');
 
 // @desc    Create a new live class
 // @route   POST /api/live-classes
@@ -136,15 +135,13 @@ const startLiveClass = async (req, res) => {
 
     // Check if class is already live
     if (liveClass.status === 'live') {
-      // If already live, just generate token and return
-      const streamToken = generateStreamToken(tutorId, liveClass.callId, true);
+      // If already live, just return success
       
       res.status(200).json({
         success: true,
         message: 'Live class is already active',
         data: {
           liveClass,
-          streamToken,
           callId: liveClass.callId,
           sessionId: liveClass.sessionId
         }
@@ -155,8 +152,7 @@ const startLiveClass = async (req, res) => {
     // Start the session
     await liveClass.startSession();
 
-    // Generate Stream token for the tutor (host)
-    const streamToken = generateStreamToken(tutorId, liveClass.callId, true);
+    // Generate Google Meet link for the tutor (host)
 
     // Get enrolled learners for notifications
     const enrollments = await Enrollment.find({
@@ -195,7 +191,6 @@ const startLiveClass = async (req, res) => {
       message: 'Live class started successfully',
       data: {
         liveClass,
-        streamToken,
         callId: liveClass.callId,
         sessionId: liveClass.sessionId
       }
@@ -243,15 +238,13 @@ const joinLiveClassAsTutor = async (req, res) => {
       });
     }
 
-    // Generate Stream token for the tutor (host)
-    const streamToken = generateStreamToken(tutorId, liveClass.callId, true);
+    // Generate Google Meet link for the tutor (host)
 
     res.status(200).json({
       success: true,
       message: 'Joined live class successfully',
       data: {
         liveClass,
-        streamToken,
         callId: liveClass.callId,
         sessionId: liveClass.sessionId
       }
@@ -374,8 +367,7 @@ const joinLiveClass = async (req, res) => {
     // Add user to attendees (if not already added)
     await liveClass.addAttendee(userId);
 
-    // Generate Stream token with appropriate host status
-    const streamToken = generateStreamToken(userId, liveClass.callId, isHost);
+    // Generate Google Meet link with appropriate host status
 
     // Populate the live class with course data for the response
     await liveClass.populate('courseId', 'title description');
@@ -387,7 +379,7 @@ const joinLiveClass = async (req, res) => {
       isTutor,
       callId: liveClass.callId,
       callIdType: typeof liveClass.callId,
-      streamTokenGenerated: !!streamToken,
+      meetLinkGenerated: true,
       liveClassStatus: liveClass.status,
       sessionId: liveClass.sessionId,
       liveClassPopulated: !!liveClass.courseId
@@ -398,7 +390,6 @@ const joinLiveClass = async (req, res) => {
       message: 'Joined live class successfully',
       data: {
         liveClass,
-        streamToken,
         callId: liveClass.callId,
         sessionId: liveClass.sessionId,
         isHost
@@ -660,6 +651,63 @@ const getChatMessages = async (req, res) => {
   }
 };
 
+// @desc    Delete a live class
+// @route   DELETE /api/live-classes/:id
+// @access  Private (Tutor)
+const deleteLiveClass = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tutorId = req.user._id;
+
+    const liveClass = await LiveClass.findById(id);
+    if (!liveClass) {
+      return res.status(404).json({
+        success: false,
+        message: 'Live class not found'
+      });
+    }
+
+    // Verify the user is the tutor
+    if (liveClass.tutorId.toString() !== tutorId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only the tutor can delete this live class'
+      });
+    }
+
+    // Check if class is currently live
+    if (liveClass.status === 'live') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete a live class that is currently active. Please end the class first.'
+      });
+    }
+
+    // Remove the live class from the course's liveClasses array
+    await Course.findByIdAndUpdate(
+      liveClass.courseId,
+      { $pull: { liveClasses: liveClass._id } },
+      { new: true }
+    );
+
+    // Delete the live class
+    await LiveClass.findByIdAndDelete(id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Live class deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting live class:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete live class',
+      error: error.message
+    });
+  }
+};
+
 // @desc    Get all live classes for enrolled courses (learner) or created by tutor
 // @route   GET /api/live-classes
 // @access  Private (All authenticated users)
@@ -755,6 +803,7 @@ module.exports = {
   joinLiveClass,
   joinLiveClassAsTutor,
   endLiveClass,
+  deleteLiveClass,
   getLiveClass,
   getLiveClasses,
   getCourseLiveClasses,

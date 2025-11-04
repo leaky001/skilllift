@@ -43,6 +43,9 @@ const TutorStudentChat = ({
   const [isTyping, setIsTyping] = useState(false);
   const [typingUsers, setTypingUsers] = useState([]);
   const [isOnline, setIsOnline] = useState(false);
+  const [otherUserStatus, setOtherUserStatus] = useState('offline');
+  const [otherUserLastSeen, setOtherUserLastSeen] = useState(null);
+  const [onlineUsers, setOnlineUsers] = useState([]);
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef(null);
   const processedMessageIds = useRef(new Set());
@@ -84,12 +87,16 @@ const TutorStudentChat = ({
       
       // Handle different response structures
       let messages = [];
-      if (response.data.messages) {
+      if (response.data.success && response.data.data && response.data.data.messages) {
+        messages = response.data.data.messages;
+      } else if (response.data.messages) {
         messages = response.data.messages;
       } else if (response.data.data && response.data.data.messages) {
         messages = response.data.data.messages;
       } else if (Array.isArray(response.data)) {
         messages = response.data;
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        messages = response.data.data;
       }
         
       console.log('📨 Raw messages array:', messages);
@@ -128,6 +135,13 @@ const TutorStudentChat = ({
       setMessages(validMessages);
     } catch (error) {
       console.error('Error loading messages:', error);
+      console.error('Error details:', {
+        conversationId,
+        errorMessage: error.message,
+        errorResponse: error.response?.data,
+        errorStatus: error.response?.status
+      });
+      showError('Error loading messages. Please try again.');
     }
   };
 
@@ -209,14 +223,57 @@ const TutorStudentChat = ({
   };
 
   const handleUserOnline = (data) => {
+    console.log('👤 User came online:', data);
     if (data.userId === otherUser._id) {
       setIsOnline(true);
+      setOtherUserStatus(data.status || 'online');
+      setOtherUserLastSeen(data.lastSeen || new Date());
     }
   };
 
   const handleUserOffline = (data) => {
+    console.log('👤 User went offline:', data);
     if (data.userId === otherUser._id) {
       setIsOnline(false);
+      setOtherUserStatus('offline');
+      setOtherUserLastSeen(data.lastSeen || new Date());
+    }
+  };
+
+  // Handle online users list
+  const handleOnlineUsers = (users) => {
+    console.log('👥 Online users received:', users);
+    setOnlineUsers(users);
+    
+    // Check if the other user is online
+    const otherUserPresence = users.find(u => u.userId === otherUser._id);
+    if (otherUserPresence) {
+      setIsOnline(true);
+      setOtherUserStatus(otherUserPresence.status || 'online');
+      setOtherUserLastSeen(otherUserPresence.lastSeen);
+    } else {
+      setIsOnline(false);
+      setOtherUserStatus('offline');
+    }
+  };
+
+  // Handle conversation partners status
+  const handleConversationPartnersStatus = (partners) => {
+    console.log('👥 Conversation partners status:', partners);
+    const otherUserPresence = partners.find(p => p.userId === otherUser._id);
+    if (otherUserPresence) {
+      setIsOnline(otherUserPresence.isOnline);
+      setOtherUserStatus(otherUserPresence.status || 'offline');
+      setOtherUserLastSeen(otherUserPresence.lastSeen);
+    }
+  };
+
+  // Handle user presence updates
+  const handleUserPresenceUpdated = (data) => {
+    console.log('📱 User presence updated:', data);
+    if (data.userId === otherUser._id) {
+      setOtherUserStatus(data.status || 'online');
+      setOtherUserLastSeen(data.lastSeen || new Date());
     }
   };
 
@@ -227,8 +284,12 @@ const TutorStudentChat = ({
     websocketService.on('typing', handleTyping);
     websocketService.on('user_online', handleUserOnline);
     websocketService.on('user_offline', handleUserOffline);
+    websocketService.on('online_users', handleOnlineUsers);
+    websocketService.on('conversation_partners_status', handleConversationPartnersStatus);
+    websocketService.on('user_presence_updated', handleUserPresenceUpdated);
     
     // Join conversation room
+    console.log('🔗 Tutor attempting to join conversation room:', conversationId);
     websocketService.joinConversation(conversationId);
     
     // Load existing messages
@@ -266,6 +327,21 @@ const TutorStudentChat = ({
     };
   }, [conversationId]);
 
+  // Heartbeat to keep connection alive and update presence
+  useEffect(() => {
+    const heartbeatInterval = setInterval(() => {
+      if (websocketService.isConnected) {
+        websocketService.ping();
+        // Update presence to show user is active in chat
+        websocketService.updatePresence('online', 'in_chat');
+      }
+    }, 30000); // Ping every 30 seconds
+
+    return () => {
+      clearInterval(heartbeatInterval);
+    };
+  }, []);
+
   // Clear processed message IDs when conversation changes
   useEffect(() => {
     processedMessageIds.current.clear();
@@ -301,17 +377,46 @@ const TutorStudentChat = ({
       };
       
       // Send via WebSocket for real-time messaging
-      websocketService.sendMessage({
+      console.log('📤 Sending message via WebSocket:', {
         conversationId,
         content: messageContent,
-        receiverId: otherUser._id
+        receiverId: otherUser._id,
+        messageType: 'text',
+        websocketConnected: websocketService.isConnected
       });
       
-      console.log('✅ Message sent via WebSocket');
+      if (websocketService.isConnected) {
+        websocketService.sendMessage({
+          conversationId,
+          content: messageContent,
+          receiverId: otherUser._id,
+          messageType: 'text'
+        });
+        console.log('✅ Message sent via WebSocket');
+      } else {
+        console.log('⚠️ WebSocket not connected, sending via API fallback');
+        // Fallback to API if WebSocket is not connected
+        const response = await apiService.post('/chat/chat', {
+          conversationId,
+          content: messageContent,
+          receiverId: otherUser._id
+        });
+        console.log('✅ Message sent via API fallback:', response.data);
+        showSuccess('Message sent successfully!');
+      }
+      
       // Success message will be shown when we receive the message back
     } catch (error) {
       console.error('Error sending message:', error);
-      showError('Failed to send message');
+      console.error('Send message error details:', {
+        conversationId,
+        content: messageContent,
+        receiverId: otherUser._id,
+        errorMessage: error.message,
+        errorResponse: error.response?.data
+      });
+      showError('Failed to send message. Please try again.');
+      setIsSending(false);
     }
   };
 
@@ -320,7 +425,7 @@ const TutorStudentChat = ({
       console.log('⌨️ Starting to type...');
       if (!isTyping) {
         setIsTyping(true);
-        websocketService.sendTyping(conversationId, true);
+        websocketService.send('typing', { conversationId, isTyping: true });
       }
       
       // Clear any existing timeout
@@ -339,7 +444,7 @@ const TutorStudentChat = ({
     if (isTyping && websocketService.isConnected) {
       console.log('⌨️ Stopped typing...');
       setIsTyping(false);
-      websocketService.sendTyping(conversationId, false);
+      websocketService.send('typing', { conversationId, isTyping: false });
       
       // Clear timeout
       if (typingTimeoutRef.current) {
@@ -354,6 +459,48 @@ const TutorStudentChat = ({
       hour: '2-digit', 
       minute: '2-digit' 
     });
+  };
+
+  // Format last seen time
+  const formatLastSeen = (timestamp) => {
+    if (!timestamp) return 'Never';
+    
+    const now = new Date();
+    const lastSeen = new Date(timestamp);
+    const diffInMinutes = Math.floor((now - lastSeen) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    
+    return lastSeen.toLocaleDateString();
+  };
+
+  // Get status color
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'online': return 'text-green-500';
+      case 'away': return 'text-yellow-500';
+      case 'busy': return 'text-red-500';
+      case 'offline': return 'text-gray-500';
+      default: return 'text-gray-500';
+    }
+  };
+
+  // Get status text
+  const getStatusText = (status, isOnline) => {
+    if (!isOnline) return 'Offline';
+    switch (status) {
+      case 'online': return 'Online';
+      case 'away': return 'Away';
+      case 'busy': return 'Busy';
+      default: return 'Online';
+    }
   };
 
   const formatDate = (timestamp) => {
@@ -373,6 +520,42 @@ const TutorStudentChat = ({
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
+      {/* Header with Online Status */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="relative">
+            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
+              {otherUser?.name?.charAt(0)?.toUpperCase() || 'S'}
+            </div>
+            {/* Online indicator */}
+            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+              isOnline ? 'bg-green-500' : 'bg-gray-400'
+            }`}></div>
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">{otherUser?.name || 'Student'}</h3>
+            <div className="flex items-center space-x-2">
+              <span className={`text-xs ${getStatusColor(otherUserStatus)}`}>
+                {getStatusText(otherUserStatus, isOnline)}
+              </span>
+              {!isOnline && otherUserLastSeen && (
+                <span className="text-xs text-gray-500">
+                  • Last seen {formatLastSeen(otherUserLastSeen)}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (

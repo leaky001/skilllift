@@ -39,7 +39,7 @@ const LiveClassSchema = new mongoose.Schema({
     max: [480, 'Maximum duration is 8 hours']
   },
   
-  // Stream.io Integration
+  // Google Meet Integration
   callId: {
     type: String,
     unique: true,
@@ -54,7 +54,7 @@ const LiveClassSchema = new mongoose.Schema({
   // Status Management
   status: {
     type: String,
-    enum: ['scheduled', 'ready', 'live', 'ended', 'cancelled'],
+    enum: ['scheduled', 'ready', 'live', 'ended', 'completed', 'cancelled'],
     default: 'scheduled'
   },
   

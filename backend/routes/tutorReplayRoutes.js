@@ -12,73 +12,79 @@ const asyncHandler = require('express-async-handler');
 
 const router = express.Router();
 
+// -------------------------------------------------
+// Test endpoint: only verify auth + multer saving
+// Use this to isolate upload issues (disk, multer, auth)
+// POST /api/tutor/replays/test
+router.post('/test', protect, upload.single('replayFile'), asyncHandler(async (req, res) => {
+  console.log('🧪 Test upload hit - file:', req.file && {
+    originalname: req.file.originalname,
+    filename: req.file.filename,
+    path: req.file.path,
+    size: req.file.size,
+    mimetype: req.file.mimetype
+  });
+
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'No file uploaded in test' });
+  }
+
+  res.json({ success: true, message: 'Test upload saved', file: {
+    originalname: req.file.originalname,
+    filename: req.file.filename,
+    path: req.file.path.replace(/\\/g, '/'),
+    size: req.file.size,
+    mimetype: req.file.mimetype
+  }});
+}));
+// -------------------------------------------------
+
 // @desc    Upload replay video
 // @route   POST /api/tutor/replays/upload
 // @access  Private (Tutor only)
 router.post('/upload', protect, upload.single('replayFile'), asyncHandler(async (req, res) => {
-  try {
-    const { courseId, topic } = req.body;
-    const tutorId = req.user._id;
-    const replayFile = req.file;
+  console.log('🔍 Upload request details:', {
+    body: req.body,
+    file: req.file ? {
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+      path: req.file.path
+    } : 'No file',
+    user: req.user ? { id: req.user._id, role: req.user.role } : 'No user'
+  });
 
-    console.log('🎬 Replay upload request:', {
-      courseId,
-      topic,
-      tutorId,
-      fileName: replayFile?.originalname,
-      fileSize: replayFile?.size
-    });
+  const { courseId, topic } = req.body;
+  const tutorId = req.user._id;
 
-    // Validate required fields
-    if (!courseId || !topic || !replayFile) {
-      return res.status(400).json({
-        success: false,
-        message: 'Course ID, topic, and video file are required'
-      });
-    }
+  if (!courseId || !topic || !req.file) {
+    return res.status(400).json({ success: false, message: 'Course ID, topic, and video file are required' });
+  }
 
-    // Verify course exists and belongs to tutor
-    const course = await Course.findById(courseId);
-    if (!course) {
-      return res.status(404).json({
-        success: false,
-        message: 'Course not found'
-      });
-    }
+  // Verify course exists and belongs to tutor
+  const course = await Course.findOne({ _id: courseId, tutor: tutorId });
+  if (!course) {
+    return res.status(404).json({ success: false, message: 'Course not found or you do not own this course' });
+  }
 
-    if (course.tutor.toString() !== tutorId.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'You can only upload replays for your own courses'
-      });
-    }
+  // Create replay record
+  const replay = await Replay.create({
+    course: courseId,
+    tutor: tutorId,
+    title: topic,
+    fileName: req.file.originalname,
+    fileUrl: '/' + req.file.path.replace(/\\/g, '/'),
+    fileSize: req.file.size,
+    status: 'ready',
+    description: `Replay for course ${course.title}`
+  });
 
-    // Create replay record
-    const replay = await Replay.create({
-      courseId,
-      tutorId,
-      topic,
-      fileName: replayFile.filename,
-      originalName: replayFile.originalname,
-      fileUrl: replayFile.path.replace(/\\/g, '/'), // Normalize path
-      fileSize: replayFile.size,
-      uploadDate: new Date(),
-      status: 'ready'
-    });
+  console.log('✅ Replay created successfully:', { replayId: replay._id });
 
-    console.log('✅ Replay uploaded successfully:', {
-      replayId: replay._id,
-      courseId: replay.courseId,
-      topic: replay.topic,
-      fileName: replay.fileName
-    });
-
-    // Create notifications for enrolled students
+  // Create notifications for enrolled students (non-blocking)
+  (async () => {
     try {
-      const enrolledStudents = await User.find({
-        'learnerProfile.enrolledCourses': courseId
-      }).select('_id name email');
-
+      const enrolledStudents = await User.find({ 'learnerProfile.enrolledCourses': courseId }).select('_id name email');
       for (const student of enrolledStudents) {
         await Notification.create({
           recipient: student._id,
@@ -86,47 +92,16 @@ router.post('/upload', protect, upload.single('replayFile'), asyncHandler(async 
           type: 'replay_uploaded',
           title: 'New Class Replay Available',
           message: `A new replay for "${topic}" has been uploaded to your course "${course.title}".`,
-          data: {
-            courseId,
-            courseTitle: course.title,
-            replayId: replay._id,
-            topic: replay.topic
-          }
+          data: { courseId, courseTitle: course.title, replayId: replay._id, topic }
         });
       }
-
       console.log(`📢 Notified ${enrolledStudents.length} students about new replay`);
     } catch (notificationError) {
-      console.error('❌ Error creating notifications:', notificationError);
-      // Don't fail the upload if notifications fail
+      console.error('❌ Error creating notifications (non-blocking):', notificationError);
     }
+  })();
 
-    res.json({
-      success: true,
-      data: {
-        replay: {
-          _id: replay._id,
-          courseId: replay.courseId,
-          topic: replay.topic,
-          fileName: replay.fileName,
-          originalName: replay.originalName,
-          fileSize: replay.fileSize,
-          uploadDate: replay.uploadDate,
-          status: replay.status
-        },
-        studentsNotified: enrolledStudents?.length || 0
-      },
-      message: 'Replay uploaded successfully! Students have been notified.'
-    });
-
-  } catch (error) {
-    console.error('❌ Error uploading replay:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to upload replay',
-      error: error.message
-    });
-  }
+  return res.status(201).json({ success: true, data: replay, message: 'Replay uploaded successfully! Students will be notified.' });
 }));
 
 // @desc    Get tutor's replays

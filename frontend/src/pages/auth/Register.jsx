@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useFormik } from 'formik';
@@ -25,7 +25,7 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { register } = useAuth();
+  const { register, isAuthenticated, user } = useAuth();
   
   // Get role from URL params
   const urlRole = searchParams.get('role');
@@ -35,6 +35,47 @@ const Register = () => {
   const validRoles = ['learner', 'tutor'];
   const finalRole = validRoles.includes(role) ? role : 'learner';
   const isTutor = finalRole === 'tutor';
+
+  // Handle navigation after successful authentication
+  useEffect(() => {
+    console.log('Register useEffect triggered:', { isAuthenticated, user, role });
+    
+    if (isAuthenticated && user) {
+      console.log('User authenticated after registration, navigating to:', user.role);
+      
+      // Check for intended destination first
+      const intendedDestination = sessionStorage.getItem('intendedDestination');
+      if (intendedDestination) {
+        console.log('📍 Found intended destination:', intendedDestination);
+        // Verify the intended destination is valid for the user's role
+        const isAdminPath = intendedDestination.startsWith('/admin/');
+        const isTutorPath = intendedDestination.startsWith('/tutor/');
+        const isLearnerPath = intendedDestination.startsWith('/learner/');
+        
+        if ((user.role === 'admin' && isAdminPath) ||
+            (user.role === 'tutor' && isTutorPath) ||
+            (user.role === 'learner' && isLearnerPath)) {
+          console.log('✅ Intended destination is valid for user role, redirecting');
+          sessionStorage.removeItem('intendedDestination');
+          navigate(intendedDestination);
+          return;
+        } else {
+          console.log('❌ Intended destination is not valid for user role, clearing it');
+          sessionStorage.removeItem('intendedDestination');
+        }
+      }
+      
+      // Default navigation based on user role
+      console.log('No valid intended destination, redirecting to dashboard');
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (user.role === 'tutor') {
+        navigate('/tutor/dashboard');
+      } else {
+        navigate('/learner/dashboard');
+      }
+    }
+  }, [isAuthenticated, user, navigate, role]);
 
   const validationSchema = Yup.object({
     name: Yup.string()

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { liveClassService } from '../../services/liveClassService';
-import StreamVideoCall from './StreamVideoCall';
+import WebRTCVideoCall from './WebRTCVideoCall';
 import { toast } from 'react-toastify';
 import { 
   FaVideo, 
@@ -26,7 +26,7 @@ const SharedLiveClassRoom = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isJoining, setIsJoining] = useState(false);
-  const [streamToken, setStreamToken] = useState(null);
+  // Stream SDK removed - using Google Meet instead
   const [isInCall, setIsInCall] = useState(false);
   const [currentCallId, setCurrentCallId] = useState(null);
   const [isHost, setIsHost] = useState(false);
@@ -45,6 +45,13 @@ const SharedLiveClassRoom = () => {
     try {
       setIsLoading(true);
       console.log('🎯 Initializing shared live class:', liveClassId);
+
+      // Validate live class ID
+      if (!liveClassId) {
+        throw new Error('Live class ID is required');
+      }
+
+      console.log('🔍 Fetching live class details for ID:', liveClassId);
 
       // Get live class details
       const response = await liveClassService.getLiveClass(liveClassId);
@@ -92,8 +99,22 @@ const SharedLiveClassRoom = () => {
 
     } catch (error) {
       console.error('Error initializing live class:', error);
-      setError('Failed to load live class');
-      toast.error('Failed to load live class');
+      console.error('Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      
+      if (error.response?.status === 404) {
+        setError('Live class not found. It may have been deleted or the link is invalid.');
+        toast.error('Live class not found. Please check the link and try again.');
+      } else if (error.response?.status === 403) {
+        setError('You do not have permission to access this live class.');
+        toast.error('Access denied. You may not be enrolled in this course.');
+      } else {
+        setError('Failed to load live class. Please try again.');
+        toast.error('Failed to load live class');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -109,8 +130,42 @@ const SharedLiveClassRoom = () => {
       }
     } catch (error) {
       console.error('Error refreshing live class data:', error);
+      console.error('Refresh error details:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
     }
   };
+
+  // Debug function to check live class existence
+  const debugLiveClass = async () => {
+    try {
+      console.log('🔍 DEBUG: Checking live class existence...');
+      console.log('🔍 Live Class ID:', liveClassId);
+      console.log('🔍 User ID:', user._id);
+      console.log('🔍 User Role:', user.role);
+      
+      const response = await liveClassService.getLiveClass(liveClassId);
+      console.log('✅ Live class exists:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Live class does not exist or access denied:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      return null;
+    }
+  };
+
+  // Expose debug function to window for manual testing
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.debugLiveClass = debugLiveClass;
+    }
+  }, [liveClassId, user]);
 
   const joinLiveClass = async () => {
     try {
@@ -125,7 +180,7 @@ const SharedLiveClassRoom = () => {
 
       console.log('🎯 Join response:', response);
       
-      setStreamToken(response.data.streamToken);
+      // Stream SDK removed - using Google Meet instead
       setCurrentCallId(response.data.callId);
       setIsInCall(true);
       
@@ -209,7 +264,7 @@ const SharedLiveClassRoom = () => {
   };
 
   // If user is in a call, show the video component in FULL SCREEN
-  if (isInCall && currentCallId && streamToken) {
+  if (isInCall && currentCallId) {
     return (
       <div 
         className="fixed inset-0 z-[9999] bg-primary-950" 
@@ -260,12 +315,14 @@ const SharedLiveClassRoom = () => {
 
         {/* Full Screen Video Call */}
         <div style={{ height: 'calc(100vh - 60px)', width: '100%' }}>
-          <StreamVideoCall
+          <WebRTCVideoCall
             callId={currentCallId}
-            streamToken={streamToken}
+            user={user}
             isHost={isHost}
             onCallEnd={handleLeaveCall}
-            settings={liveClass?.settings || {}}
+            sessionId={liveClassId}
+            courseId={liveClass?.courseId?._id || liveClass?.courseId}
+            courseTitle={liveClass?.title}
           />
         </div>
       </div>

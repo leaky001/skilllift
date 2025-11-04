@@ -73,7 +73,8 @@ const LearnerCertificates = () => {
         setProjectNotifications(response.data.notifications || []);
       }
     } catch (error) {
-      console.error('Error loading project notifications:', error);
+      // Endpoint doesn't exist yet - silently fail
+      console.log('Project notifications endpoint not available');
       setProjectNotifications([]);
     }
   };
@@ -114,7 +115,7 @@ const LearnerCertificates = () => {
   const loadCourses = async () => {
     try {
       const response = await apiService.get('/courses/enrolled');
-      if (response.data.success) {
+      if (response.data.success && response.data.courses) {
         // Find courses that need project submission
         const coursesNeedingProjects = response.data.courses.filter(course => 
           course.isCompleted && !course.hasProjectSubmission

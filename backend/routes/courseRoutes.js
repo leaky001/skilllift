@@ -11,6 +11,9 @@ router.get('/', courseController.getCourses);
 // Authenticated routes
 router.use(protect);
 
+// Learner routes
+router.get('/enrolled', courseController.getEnrolledCourses);
+
 // Admin routes (must come before /:id routes)
 router.get('/all', authorize('admin'), courseController.getAllCourses);
 router.get('/admin/statistics', authorize('admin'), courseController.getCourseStatistics);

@@ -101,6 +101,26 @@ class WebSocketService {
       this.emit('user_offline', data);
     });
 
+    // Online users list
+    this.socket.on('online_users', (data) => {
+      this.emit('online_users', data);
+    });
+
+    // Conversation partners status
+    this.socket.on('conversation_partners_status', (data) => {
+      this.emit('conversation_partners_status', data);
+    });
+
+    // User presence updated
+    this.socket.on('user_presence_updated', (data) => {
+      this.emit('user_presence_updated', data);
+    });
+
+    // Pong response
+    this.socket.on('pong', () => {
+      this.emit('pong');
+    });
+
     this.socket.on('notification', (data) => {
       this.emit('notification', data);
     });
@@ -224,6 +244,11 @@ class WebSocketService {
   // Chat-specific methods
   joinConversation(conversationId) {
     console.log('🔗 WebsocketService: Joining conversation room:', conversationId);
+    console.log('🔗 WebsocketService: Connection status:', {
+      connected: this.isConnected,
+      socketId: this.socket?.id,
+      hasSocket: !!this.socket
+    });
     this.send('join_conversation', { conversationId });
   }
 
@@ -237,6 +262,19 @@ class WebSocketService {
 
   markMessageRead(messageId) {
     this.send('mark_message_read', { messageId });
+  }
+
+  // Presence management methods
+  updatePresence(status, currentActivity = null) {
+    console.log('📱 WebsocketService: Updating presence:', { status, currentActivity });
+    this.send('update_presence', { status, currentActivity });
+  }
+
+  // Send ping to keep connection alive
+  ping() {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('ping');
+    }
   }
 
   // Utility methods

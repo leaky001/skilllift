@@ -96,6 +96,17 @@ export const liveClassService = {
       console.error('Error fetching chat messages:', error);
       throw error;
     }
+  },
+
+  // Delete a live class
+  deleteLiveClass: async (liveClassId) => {
+    try {
+      const response = await apiService.delete(`/live-classes/${liveClassId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting live class:', error);
+      throw error;
+    }
   }
 };
 

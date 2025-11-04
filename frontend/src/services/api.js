@@ -31,10 +31,19 @@ api.interceptors.request.use(
   (config) => {
     // Get token from tab-specific sessionStorage
     const token = sessionStorage.getItem(getStorageKey('token'));
+    console.log('🔍 Token retrieval:', JSON.stringify({
+      tabId: getTabId(),
+      storageKey: getStorageKey('token'),
+      tokenFound: !!token,
+      tokenLength: token ? token.length : 0,
+      tokenPreview: token ? token.substring(0, 20) + '...' : 'null'
+    }));
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('✅ Token added to headers');
     } else {
+      console.log('❌ No token found, trying fallback...');
       // Fallback to user data
       const userData = sessionStorage.getItem(getStorageKey('user'));
       
@@ -43,12 +52,30 @@ api.interceptors.request.use(
           const user = JSON.parse(userData);
           if (user.token) {
             config.headers.Authorization = `Bearer ${user.token}`;
+            console.log('✅ Fallback token added to headers');
+          } else {
+            console.log('❌ No token in user data');
           }
         } catch (error) {
           console.error('Error parsing user data:', error);
         }
+      } else {
+        console.log('❌ No user data found');
       }
     }
+    
+    console.log('🔍 Final headers:', JSON.stringify({
+      hasAuth: !!config.headers.Authorization,
+      authHeader: config.headers.Authorization ? 'Bearer ***' : 'none'
+    }));
+    
+    console.log('🔍 API Request:', JSON.stringify({
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      baseURL: config.baseURL,
+      fullURL: `${config.baseURL}${config.url}`,
+      hasAuth: !!config.headers.Authorization
+    }));
     
     return config;
   },

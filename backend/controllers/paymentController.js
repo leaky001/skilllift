@@ -283,6 +283,14 @@ exports.verifyPayment = asyncHandler(async (req, res) => {
       }
     }
 
+    // Update tutor earnings and course enrollment
+    try {
+      await updateTutorEarningsAndCourseEnrollment(payment, enrollment);
+    } catch (updateError) {
+      console.error('❌ Error updating tutor earnings and course enrollment:', updateError);
+      // Don't fail the payment verification if update fails
+    }
+
     // Notify admin and tutor (always notify admin, even for guest payments)
     try {
       await notifyAdminOfPayment(payment, enrollment);
@@ -407,6 +415,14 @@ exports.verifyPaymentManual = asyncHandler(async (req, res) => {
       }
     }
 
+    // Update tutor earnings and course enrollment
+    try {
+      await updateTutorEarningsAndCourseEnrollment(payment, enrollment);
+    } catch (updateError) {
+      console.error('❌ Error updating tutor earnings and course enrollment (manual):', updateError);
+      // Don't fail the payment verification if update fails
+    }
+
     // Notify admin and tutor
     try {
       await notifyAdminOfPayment(payment, enrollment);
@@ -433,6 +449,65 @@ exports.verifyPaymentManual = asyncHandler(async (req, res) => {
     });
   }
 });
+
+// Update tutor earnings and course enrollment
+const updateTutorEarningsAndCourseEnrollment = async (payment, enrollment) => {
+  try {
+    console.log('💰 Updating tutor earnings and course enrollment...');
+    
+    // Get course and tutor details
+    const course = await Course.findById(payment.course);
+    const tutor = await User.findById(payment.tutor);
+    
+    if (!course || !tutor) {
+      console.log('❌ Course or tutor not found for earnings update');
+      return;
+    }
+    
+    // Update tutor earnings
+    if (!tutor.tutorProfile) {
+      tutor.tutorProfile = {};
+    }
+    
+    tutor.tutorProfile.totalEarnings = (tutor.tutorProfile.totalEarnings || 0) + payment.tutorAmount;
+    tutor.tutorProfile.totalStudents = (tutor.tutorProfile.totalStudents || 0) + 1;
+    
+    await tutor.save();
+    console.log('✅ Tutor earnings updated:', {
+      tutorName: tutor.name,
+      newTotalEarnings: tutor.tutorProfile.totalEarnings,
+      newTotalStudents: tutor.tutorProfile.totalStudents,
+      paymentAmount: payment.tutorAmount
+    });
+    
+    // Update course enrollment count and add student to enrolledStudents array
+    if (enrollment && enrollment.learner) {
+      // Check if student is already in enrolledStudents array
+      const isAlreadyEnrolled = course.enrolledStudents.includes(enrollment.learner);
+      
+      if (!isAlreadyEnrolled) {
+        course.enrolledStudents.push(enrollment.learner);
+        course.totalEnrollments = (course.totalEnrollments || 0) + 1;
+        
+        await course.save();
+        console.log('✅ Course enrollment updated:', {
+          courseTitle: course.title,
+          newTotalEnrollments: course.totalEnrollments,
+          enrolledStudentsCount: course.enrolledStudents.length,
+          studentId: enrollment.learner
+        });
+      } else {
+        console.log('✅ Student already enrolled in course');
+      }
+    }
+    
+    console.log('✅ Tutor earnings and course enrollment updated successfully');
+    
+  } catch (error) {
+    console.error('❌ Error updating tutor earnings and course enrollment:', error);
+    throw error;
+  }
+};
 
 // Notify admin and tutor
 const notifyAdminOfPayment = async (payment, enrollment) => {

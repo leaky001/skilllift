@@ -116,13 +116,19 @@ const LearnerReplays = () => {
         
         // Open the replay in a new window/tab
         if (replayData.fileUrl) {
-          // Construct proper URL for backend server
-          // Remove leading slash if present to avoid double slashes
-          const cleanFileUrl = replayData.fileUrl.startsWith('/') 
-            ? replayData.fileUrl.substring(1) 
-            : replayData.fileUrl;
-          const videoUrl = `http://localhost:3001/${cleanFileUrl}`;
-          console.log('🎥 Opening video URL:', videoUrl);
+          let videoUrl = replayData.fileUrl;
+          
+          // Handle different types of replays
+          if (replayData.type === 'google_meet') {
+            // For Google Meet recordings, use the Google Drive URL directly
+            videoUrl = replayData.fileUrl;
+            console.log('🎥 Opening Google Meet recording:', videoUrl);
+          } else {
+            // For automated bot recordings, use the fileUrl directly (already has /api/replays/stream/)
+            videoUrl = `http://localhost:5000${replayData.fileUrl}`;
+            console.log('🎥 Opening automated bot replay:', videoUrl);
+          }
+          
           window.open(videoUrl, '_blank');
           showSuccess(`Opening replay: ${replay.title}`);
         } else {
@@ -151,15 +157,22 @@ const LearnerReplays = () => {
         if (replayData.fileUrl) {
           // Create a temporary link to download the file
           const link = document.createElement('a');
-          // Construct proper URL for backend server using download endpoint
-          // Remove leading slash if present to avoid double slashes
-          const cleanFileUrl = replayData.fileUrl.startsWith('/') 
-            ? replayData.fileUrl.substring(1) 
-            : replayData.fileUrl;
-          const downloadUrl = `http://localhost:3001/download/${cleanFileUrl}`;
-          console.log('📥 Downloading from URL:', downloadUrl);
+          let downloadUrl = replayData.fileUrl;
+          
+          // Handle different types of replays
+          if (replayData.type === 'google_meet') {
+            // For Google Meet recordings, use the Google Drive URL directly
+            downloadUrl = replayData.fileUrl;
+            console.log('📥 Downloading Google Meet recording:', downloadUrl);
+          } else {
+            // For automated bot recordings, use the fileUrl directly
+            downloadUrl = `http://localhost:5000${replayData.fileUrl}`;
+            console.log('📥 Downloading automated bot replay:', downloadUrl);
+          }
+          
           link.href = downloadUrl;
           link.download = replayData.fileName || `${replay.title}.mp4`;
+          link.target = '_blank'; // Open in new tab for Google Drive links
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);

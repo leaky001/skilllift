@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Class Recording Status Checker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .status-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .status-processing {
+            border-left: 4px solid #ffc107;
+            background: #fff3cd;
+        }
+        .status-ready {
+            border-left: 4px solid #28a745;
+            background: #d4edda;
+        }
+        .status-error {
+            border-left: 4px solid #dc3545;
+            background: #f8d7da;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #155724;
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info {
+            color: #0c5460;
+            background: #d1ecf1;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎥 Live Class Recording Status Checker</h1>
+        
+        <div class="info">
+            <strong>📋 Instructions:</strong><br>
+            1. Make sure you're logged in to your account<br>
+            2. Click "Check Recording Status" to see your recent live classes<br>
+            3. Look for sessions that show "Processing..." or "Ready"
+        </div>
+
+        <div style="text-align: center;">
+            <button class="btn" onclick="checkRecordingStatus()">🔍 Check Recording Status</button>
+            <button class="btn" onclick="checkReplays()">📺 Check Available Replays</button>
+        </div>
+
+        <div id="status-container">
+            <!-- Status will be displayed here -->
+        </div>
+
+        <div id="error-container">
+            <!-- Errors will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        // Get auth token from localStorage (if available)
+        function getAuthToken() {
+            return localStorage.getItem('token') || sessionStorage.getItem('token');
+        }
+
+        // Show error message
+        function showError(message) {
+            const container = document.getElementById('error-container');
+            container.innerHTML = `<div class="error">❌ ${message}</div>`;
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const container = document.getElementById('error-container');
+            container.innerHTML = `<div class="success">✅ ${message}</div>`;
+        }
+
+        // Show info message
+        function showInfo(message) {
+            const container = document.getElementById('error-container');
+            container.innerHTML = `<div class="info">ℹ️ ${message}</div>`;
+        }
+
+        // Check recording status
+        async function checkRecordingStatus() {
+            const container = document.getElementById('status-container');
+            container.innerHTML = '<div class="loading">🔄 Checking recording status...</div>';
+
+            try {
+                const token = getAuthToken();
+                if (!token) {
+                    showError('Please log in to your account first to check recording status.');
+                    container.innerHTML = '';
+                    return;
+                }
+
+                // Try to get recent sessions (this would need to be implemented in your API)
+                const response = await fetch('http://localhost:5000/api/google-meet/live/sessions/recent', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                displaySessions(data.sessions || []);
+
+            } catch (error) {
+                console.error('Error checking recording status:', error);
+                
+                if (error.message.includes('401') || error.message.includes('403')) {
+                    showError('Authentication failed. Please log in again.');
+                } else if (error.message.includes('404')) {
+                    showInfo('No recent live class sessions found. Make sure you have ended a live class recently.');
+                } else {
+                    showError(`Failed to check recording status: ${error.message}`);
+                }
+                
+                container.innerHTML = '';
+            }
+        }
+
+        // Check available replays
+        async function checkReplays() {
+            const container = document.getElementById('status-container');
+            container.innerHTML = '<div class="loading">🔄 Checking available replays...</div>';
+
+            try {
+                const token = getAuthToken();
+                if (!token) {
+                    showError('Please log in to your account first to check replays.');
+                    container.innerHTML = '';
+                    return;
+                }
+
+                // Get user's courses first
+                const coursesResponse = await fetch('http://localhost:5000/api/learner/courses', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!coursesResponse.ok) {
+                    throw new Error(`HTTP ${coursesResponse.status}: ${coursesResponse.statusText}`);
+                }
+
+                const coursesData = await coursesResponse.json();
+                const courses = coursesData.data || [];
+
+                if (courses.length === 0) {
+                    showInfo('No enrolled courses found. Enroll in a course to see replays.');
+                    container.innerHTML = '';
+                    return;
+                }
+
+                // Check replays for each course
+                let allReplays = [];
+                for (const course of courses) {
+                    try {
+                        const replaysResponse = await fetch(`http://localhost:5000/api/google-meet/live/replays/${course._id}`, {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        if (replaysResponse.ok) {
+                            const replaysData = await replaysResponse.json();
+                            if (replaysData.success && replaysData.replays) {
+                                allReplays = allReplays.concat(replaysData.replays.map(replay => ({
+                                    ...replay,
+                                    courseTitle: course.title
+                                })));
+                            }
+                        }
+                    } catch (courseError) {
+                        console.warn(`Error getting replays for course ${course.title}:`, courseError);
+                    }
+                }
+
+                displayReplays(allReplays);
+
+            } catch (error) {
+                console.error('Error checking replays:', error);
+                showError(`Failed to check replays: ${error.message}`);
+                container.innerHTML = '';
+            }
+        }
+
+        // Display sessions
+        function displaySessions(sessions) {
+            const container = document.getElementById('status-container');
+            
+            if (sessions.length === 0) {
+                container.innerHTML = '<div class="info">No recent live class sessions found.</div>';
+                return;
+            }
+
+            let html = '<h3>📊 Recent Live Class Sessions</h3>';
+            
+            sessions.forEach((session, index) => {
+                const timeSinceEnd = session.endTime ? 
+                    Math.round((Date.now() - new Date(session.endTime).getTime()) / 1000) : 0;
+                
+                let statusClass = 'status-processing';
+                let statusText = '⏳ Processing...';
+                
+                if (session.recordingUrl) {
+                    statusClass = 'status-ready';
+                    statusText = '✅ Recording Ready';
+                } else if (timeSinceEnd > 120) {
+                    statusClass = 'status-error';
+                    statusText = '⚠️ Processing taking longer than expected';
+                }
+
+                html += `
+                    <div class="status-card ${statusClass}">
+                        <h4>Session ${index + 1}: ${session.courseTitle || 'Unknown Course'}</h4>
+                        <p><strong>Session ID:</strong> ${session.sessionId}</p>
+                        <p><strong>Status:</strong> ${statusText}</p>
+                        <p><strong>Start Time:</strong> ${new Date(session.startTime).toLocaleString()}</p>
+                        <p><strong>End Time:</strong> ${session.endTime ? new Date(session.endTime).toLocaleString() : 'Not ended'}</p>
+                        ${session.recordingUrl ? `<p><strong>Recording URL:</strong> <a href="${session.recordingUrl}" target="_blank">Watch Recording</a></p>` : ''}
+                        ${timeSinceEnd > 0 ? `<p><strong>Time since end:</strong> ${timeSinceEnd} seconds</p>` : ''}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Display replays
+        function displayReplays(replays) {
+            const container = document.getElementById('status-container');
+            
+            if (replays.length === 0) {
+                container.innerHTML = '<div class="info">No replays available yet.</div>';
+                return;
+            }
+
+            let html = '<h3>📺 Available Replays</h3>';
+            
+            replays.forEach((replay, index) => {
+                html += `
+                    <div class="status-card status-ready">
+                        <h4>Replay ${index + 1}: ${replay.courseTitle || 'Unknown Course'}</h4>
+                        <p><strong>Tutor:</strong> ${replay.tutorName || 'Unknown'}</p>
+                        <p><strong>Duration:</strong> ${replay.duration ? Math.round(replay.duration / 60000) + ' minutes' : 'Unknown'}</p>
+                        <p><strong>Start Time:</strong> ${new Date(replay.startTime).toLocaleString()}</p>
+                        <p><strong>End Time:</strong> ${new Date(replay.endTime).toLocaleString()}</p>
+                        <p><strong>Recording:</strong> <a href="${replay.recordingUrl}" target="_blank">🎥 Watch Recording</a></p>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Check if user is logged in
+        window.onload = function() {
+            const token = getAuthToken();
+            if (!token) {
+                showError('Please log in to your account first. Go to your main application and log in, then come back to this page.');
+            } else {
+                showInfo('Logged in successfully! You can now check your recording status.');
+            }
+        };
+    </script>
+</body>
+</html>

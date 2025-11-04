@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Live Classes Checker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .status-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .status-live {
+            border-left: 4px solid #28a745;
+            background: #d4edda;
+        }
+        .status-scheduled {
+            border-left: 4px solid #007bff;
+            background: #cce7ff;
+        }
+        .status-completed {
+            border-left: 4px solid #6c757d;
+            background: #e9ecef;
+        }
+        .status-ended {
+            border-left: 4px solid #dc3545;
+            background: #f8d7da;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #155724;
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info {
+            color: #0c5460;
+            background: #d1ecf1;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👨‍🏫 Tutor Live Classes Checker</h1>
+        
+        <div class="info">
+            <strong>📋 Instructions:</strong><br>
+            1. Make sure you're logged in as a tutor<br>
+            2. Click "Check My Live Classes" to see your live classes<br>
+            3. Click "Check All Live Classes" to see all live classes in the system
+        </div>
+
+        <div style="text-align: center;">
+            <button class="btn" onclick="checkMyLiveClasses()">📚 Check My Live Classes</button>
+            <button class="btn btn-success" onclick="checkAllLiveClasses()">🌐 Check All Live Classes</button>
+            <button class="btn" onclick="checkMyCourses()">📖 Check My Courses</button>
+        </div>
+
+        <div id="stats-container">
+            <!-- Statistics will be displayed here -->
+        </div>
+
+        <div id="content-container">
+            <!-- Content will be displayed here -->
+        </div>
+
+        <div id="error-container">
+            <!-- Errors will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        // Get auth token from localStorage (if available)
+        function getAuthToken() {
+            return localStorage.getItem('token') || sessionStorage.getItem('token');
+        }
+
+        // Show error message
+        function showError(message) {
+            const container = document.getElementById('error-container');
+            container.innerHTML = `<div class="error">❌ ${message}</div>`;
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const container = document.getElementById('error-container');
+            container.innerHTML = `<div class="success">✅ ${message}</div>`;
+        }
+
+        // Show info message
+        function showInfo(message) {
+            const container = document.getElementById('error-container');
+            container.innerHTML = `<div class="info">ℹ️ ${message}</div>`;
+        }
+
+        // Check my live classes
+        async function checkMyLiveClasses() {
+            const container = document.getElementById('content-container');
+            container.innerHTML = '<div class="loading">🔄 Loading your live classes...</div>';
+
+            try {
+                const token = getAuthToken();
+                if (!token) {
+                    showError('Please log in to your account first to check your live classes.');
+                    container.innerHTML = '';
+                    return;
+                }
+
+                // Get tutor's courses first
+                const coursesResponse = await fetch('http://localhost:5000/api/tutor/courses', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!coursesResponse.ok) {
+                    throw new Error(`HTTP ${coursesResponse.status}: ${coursesResponse.statusText}`);
+                }
+
+                const coursesData = await coursesResponse.json();
+                const courses = coursesData.data || [];
+
+                if (courses.length === 0) {
+                    showInfo('No courses found. Create a course first to add live classes.');
+                    container.innerHTML = '';
+                    return;
+                }
+
+                // Get live classes for each course
+                let allLiveClasses = [];
+                for (const course of courses) {
+                    try {
+                        const liveClassesResponse = await fetch(`http://localhost:5000/api/courses/${course._id}/live-classes`, {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        if (liveClassesResponse.ok) {
+                            const liveClassesData = await liveClassesResponse.json();
+                            if (liveClassesData.success && liveClassesData.data) {
+                                allLiveClasses = allLiveClasses.concat(liveClassesData.data.map(lc => ({
+                                    ...lc,
+                                    courseTitle: course.title
+                                })));
+                            }
+                        }
+                    } catch (courseError) {
+                        console.warn(`Error getting live classes for course ${course.title}:`, courseError);
+                    }
+                }
+
+                displayLiveClasses(allLiveClasses, 'Your Live Classes');
+
+            } catch (error) {
+                console.error('Error checking live classes:', error);
+                showError(`Failed to check live classes: ${error.message}`);
+                container.innerHTML = '';
+            }
+        }
+
+        // Check all live classes
+        async function checkAllLiveClasses() {
+            const container = document.getElementById('content-container');
+            container.innerHTML = '<div class="loading">🔄 Loading all live classes...</div>';
+
+            try {
+                const token = getAuthToken();
+                if (!token) {
+                    showError('Please log in to your account first to check live classes.');
+                    container.innerHTML = '';
+                    return;
+                }
+
+                const response = await fetch('http://localhost:5000/api/live-classes', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const liveClasses = data.data || [];
+
+                displayLiveClasses(liveClasses, 'All Live Classes');
+
+            } catch (error) {
+                console.error('Error checking all live classes:', error);
+                showError(`Failed to check live classes: ${error.message}`);
+                container.innerHTML = '';
+            }
+        }
+
+        // Check my courses
+        async function checkMyCourses() {
+            const container = document.getElementById('content-container');
+            container.innerHTML = '<div class="loading">🔄 Loading your courses...</div>';
+
+            try {
+                const token = getAuthToken();
+                if (!token) {
+                    showError('Please log in to your account first to check your courses.');
+                    container.innerHTML = '';
+                    return;
+                }
+
+                const response = await fetch('http://localhost:5000/api/tutor/courses', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const courses = data.data || [];
+
+                displayCourses(courses);
+
+            } catch (error) {
+                console.error('Error checking courses:', error);
+                showError(`Failed to check courses: ${error.message}`);
+                container.innerHTML = '';
+            }
+        }
+
+        // Display live classes
+        function displayLiveClasses(liveClasses, title) {
+            const container = document.getElementById('content-container');
+            
+            if (liveClasses.length === 0) {
+                container.innerHTML = `<div class="info">No live classes found.</div>`;
+                return;
+            }
+
+            // Calculate statistics
+            const stats = {
+                total: liveClasses.length,
+                live: liveClasses.filter(lc => lc.status === 'live').length,
+                scheduled: liveClasses.filter(lc => lc.status === 'scheduled').length,
+                completed: liveClasses.filter(lc => lc.status === 'completed').length,
+                ended: liveClasses.filter(lc => lc.status === 'ended').length
+            };
+
+            // Display statistics
+            const statsContainer = document.getElementById('stats-container');
+            statsContainer.innerHTML = `
+                <h3>📊 Statistics</h3>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.total}</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: #28a745;">${stats.live}</div>
+                        <div class="stat-label">Live</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: #007bff;">${stats.scheduled}</div>
+                        <div class="stat-label">Scheduled</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: #6c757d;">${stats.completed}</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" style="color: #dc3545;">${stats.ended}</div>
+                        <div class="stat-label">Ended</div>
+                    </div>
+                </div>
+            `;
+
+            let html = `<h3>${title}</h3>`;
+            
+            liveClasses.forEach((liveClass, index) => {
+                const statusClass = `status-${liveClass.status}`;
+                const statusIcon = liveClass.status === 'live' ? '🔴' : 
+                                 liveClass.status === 'scheduled' ? '⏰' : 
+                                 liveClass.status === 'completed' ? '✅' : 
+                                 liveClass.status === 'ended' ? '🔚' : '❓';
+                
+                html += `
+                    <div class="status-card ${statusClass}">
+                        <h4>${statusIcon} ${liveClass.title}</h4>
+                        <p><strong>Course:</strong> ${liveClass.courseTitle || 'Unknown Course'}</p>
+                        <p><strong>Status:</strong> ${liveClass.status}</p>
+                        <p><strong>Scheduled:</strong> ${new Date(liveClass.scheduledDate).toLocaleString()}</p>
+                        <p><strong>Duration:</strong> ${liveClass.duration} minutes</p>
+                        <p><strong>Created:</strong> ${new Date(liveClass.createdAt).toLocaleString()}</p>
+                        ${liveClass.startedAt ? `<p><strong>Started:</strong> ${new Date(liveClass.startedAt).toLocaleString()}</p>` : ''}
+                        ${liveClass.endedAt ? `<p><strong>Ended:</strong> ${new Date(liveClass.endedAt).toLocaleString()}</p>` : ''}
+                        ${liveClass.attendees ? `<p><strong>Attendees:</strong> ${liveClass.attendees.length}</p>` : ''}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Display courses
+        function displayCourses(courses) {
+            const container = document.getElementById('content-container');
+            
+            if (courses.length === 0) {
+                container.innerHTML = `<div class="info">No courses found.</div>`;
+                return;
+            }
+
+            let html = '<h3>📚 Your Courses</h3>';
+            
+            courses.forEach((course, index) => {
+                html += `
+                    <div class="status-card">
+                        <h4>📖 ${course.title}</h4>
+                        <p><strong>Description:</strong> ${course.description || 'No description'}</p>
+                        <p><strong>Price:</strong> $${course.price || 0}</p>
+                        <p><strong>Enrolled Students:</strong> ${course.enrolledStudents?.length || 0}</p>
+                        <p><strong>Live Classes:</strong> ${course.liveClasses?.length || 0}</p>
+                        <p><strong>Created:</strong> ${new Date(course.createdAt).toLocaleString()}</p>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Check if user is logged in
+        window.onload = function() {
+            const token = getAuthToken();
+            if (!token) {
+                showError('Please log in to your account first. Go to your main application and log in, then come back to this page.');
+            } else {
+                showInfo('Logged in successfully! You can now check your live classes.');
+            }
+        };
+    </script>
+</body>
+</html>

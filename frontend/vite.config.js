@@ -10,19 +10,35 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     define: {
       // Explicitly define environment variables
-      'import.meta.env.VITE_STREAM_API_KEY': JSON.stringify(env.VITE_STREAM_API_KEY),
-      'import.meta.env.VITE_STREAM_API_SECRET': JSON.stringify(env.VITE_STREAM_API_SECRET),
       'import.meta.env.VITE_API_URL': JSON.stringify(env.VITE_API_URL),
     },
     server: {
-      port: 5173,
+      port: 5172,
       host: true,
       hmr: {
-        port: 5174
+        port: 5173
       },
       watch: {
         usePolling: false,
         interval: 1000
+      },
+      proxy: {
+        '/api': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+          secure: false,
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.log('proxy error', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log('Sending Request to the Target:', req.method, req.url);
+            });
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+            });
+          }
+        }
       }
     },
     optimizeDeps: {

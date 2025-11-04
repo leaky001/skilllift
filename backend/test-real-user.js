@@ -1,0 +1,70 @@
+const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+const User = require('./models/User');
+require('dotenv').config();
+
+async function testWithRealUser() {
+  try {
+    console.log('🔍 Testing with real user from database...');
+    
+    // Connect to database
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('✅ Connected to MongoDB');
+    
+    // Find a tutor user
+    const tutor = await User.findOne({ role: 'tutor' });
+    if (!tutor) {
+      console.log('❌ No tutor found in database');
+      return;
+    }
+    
+    console.log('✅ Found tutor:', {
+      id: tutor._id,
+      name: tutor.name,
+      email: tutor.email,
+      role: tutor.role,
+      hasGoogleTokens: !!tutor.googleTokens
+    });
+    
+    // Create JWT token
+    const token = jwt.sign(
+      { id: tutor._id }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '1h' }
+    );
+    
+    console.log('✅ Generated JWT token for tutor');
+    
+    // Test the endpoint
+    const axios = require('axios');
+    try {
+      const response = await axios.post('http://localhost:5000/api/google-meet/live/start', {
+        courseId: '507f1f77bcf86cd799439012', // Mock course ID
+        customMeetLink: 'https://meet.google.com/test-link'
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+      console.log('✅ Live class start response:', response.data);
+    } catch (error) {
+      console.log('❌ Live class start failed:');
+      console.log('Status:', error.response?.status);
+      console.log('Data:', JSON.stringify(error.response?.data, null, 2));
+      
+      if (error.response?.data?.stack) {
+        console.log('Stack trace:', error.response.data.stack);
+      }
+    }
+    
+  } catch (error) {
+    console.error('❌ Test failed:', error.message);
+    console.error('Stack:', error.stack);
+  } finally {
+    await mongoose.disconnect();
+  }
+}
+
+testWithRealUser();

@@ -28,7 +28,6 @@ import LearnerSettings from '../pages/learner/Settings';
 import LearnerComplaints from '../pages/learner/Complaints';
 import LearnerCertificates from '../pages/learner/Certificates';
 import LearnerLiveClasses from '../pages/learner/LiveClasses';
-import SharedLiveClassRoom from '../components/liveclass/SharedLiveClassRoom';
 import PaymentVerification from '../pages/PaymentVerification';
 
 // Tutor Pages
@@ -49,6 +48,7 @@ import KYCSubmission from '../pages/tutor/KYCSubmission';
 
 // Live Class Components
 import TutorLiveClasses from '../pages/tutor/LiveClasses';
+import GoogleMeetLiveClass from '../components/liveclass/GoogleMeetLiveClass';
 
 // Tutor Creation Pages
 import CreateCourse from '../pages/tutor/CreateCourse';
@@ -92,12 +92,12 @@ const AppRoutes = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/test" element={<TestPage />} />
 
-      {/* Live Class Routes - UNIFIED ENTRY POINT */}
+      {/* Live Class Routes - GOOGLE MEET INTEGRATION */}
       <Route
-        path="/live-class/:liveClassId"
+        path="/live-class/:courseId"
         element={
           <ProtectedRoute allowedRoles={['learner', 'tutor']}>
-            <SharedLiveClassRoom />
+            <GoogleMeetLiveClass />
           </ProtectedRoute>
         }
       />

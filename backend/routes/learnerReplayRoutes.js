@@ -60,17 +60,28 @@ router.get('/', asyncHandler(async (req, res) => {
       ];
     }
 
-    // Get replays with pagination
-    const total = await Replay.countDocuments(query);
-    const replays = await Replay.find(query)
+    // Get manual replays with pagination
+    const totalManualReplays = await Replay.countDocuments(query);
+    const manualReplays = await Replay.find(query)
       .populate('course', 'title')
       .populate('tutor', 'name')
       .sort({ uploadDate: -1 })
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit));
 
-    // Format the response
-    const formattedReplays = replays.map(replay => ({
+    // Get Google Meet recordings for enrolled courses
+    const LiveClassSession = require('../models/LiveClassSession');
+    const googleMeetRecordings = await LiveClassSession.find({
+      courseId: { $in: enrolledCourseIds },
+      status: { $in: ['ended', 'completed'] }, // Check for both statuses
+      recordingUrl: { $exists: true, $ne: null }
+    })
+    .populate('courseId', 'title')
+    .populate('tutorId', 'name')
+    .sort({ endTime: -1 });
+
+    // Format manual replays
+    const formattedManualReplays = manualReplays.map(replay => ({
       _id: replay._id,
       title: replay.title,
       description: replay.description,
@@ -85,12 +96,54 @@ router.get('/', asyncHandler(async (req, res) => {
       views: replay.views || 0,
       uploadedAt: replay.uploadDate,
       sessionDate: replay.uploadDate,
-      deleteAt: replay.deleteAt
+      deleteAt: replay.deleteAt,
+      type: 'manual'
     }));
+
+    // Format Google Meet recordings
+    const formattedGoogleMeetRecordings = googleMeetRecordings.map(session => ({
+      _id: session._id,
+      sessionId: session.sessionId,
+      title: `Live Class - ${session.courseId.title}`,
+      description: `Recorded live session for ${session.courseId.title}`,
+      courseTitle: session.courseId.title,
+      tutorName: session.tutorId.name,
+      sessionTitle: `Live Class - ${session.courseId.title}`,
+      duration: session.endTime && session.startTime ? 
+        Math.round((session.endTime - session.startTime) / 60000) + ' minutes' : 'Unknown',
+      thumbnail: null,
+      fileUrl: session.recordingUrl,
+      fileName: `live-class-${session.sessionId}.mp4`,
+      fileSize: null,
+      views: 0,
+      uploadedAt: session.endTime,
+      sessionDate: session.endTime,
+      deleteAt: null,
+      type: 'google_meet',
+      recordingUrl: session.recordingUrl,
+      startTime: session.startTime,
+      endTime: session.endTime
+    }));
+
+    // Combine both types of replays
+    const allReplays = [...formattedManualReplays, ...formattedGoogleMeetRecordings];
+    
+    // Sort combined replays by upload date (most recent first)
+    allReplays.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+    
+    // Apply pagination to combined results
+    const total = allReplays.length;
+    const paginatedReplays = allReplays.slice(
+      (parseInt(page) - 1) * parseInt(limit),
+      parseInt(page) * parseInt(limit)
+    );
+
+    console.log(`📹 Found ${formattedManualReplays.length} manual replays and ${formattedGoogleMeetRecordings.length} Google Meet recordings`);
+    console.log(`📊 Total replays: ${total}, Returning: ${paginatedReplays.length}`);
 
     res.status(200).json({
       success: true,
-      data: formattedReplays,
+      data: paginatedReplays,
       pagination: {
         current: parseInt(page),
         pages: Math.ceil(total / parseInt(limit)),
@@ -168,10 +221,42 @@ router.get('/:id', asyncHandler(async (req, res) => {
 
     console.log('🔍 Getting replay details:', { userId, userRole, replayId });
 
-    // Get the replay from database
-    const replay = await Replay.findById(replayId)
+    // First try to get from Replay collection (manual replays)
+    let replay = await Replay.findById(replayId)
       .populate('course', 'title')
       .populate('tutor', 'name');
+
+    let replayType = 'manual';
+    let sessionData = null;
+
+    // If not found in Replay collection, check LiveClassSession collection (Google Meet recordings)
+    if (!replay) {
+      const LiveClassSession = require('../models/LiveClassSession');
+      const session = await LiveClassSession.findById(replayId)
+        .populate('courseId', 'title')
+        .populate('tutorId', 'name');
+
+      if (session && session.recordingUrl) {
+        // Convert LiveClassSession to replay format
+        replay = {
+          _id: session._id,
+          title: `Live Class - ${session.courseId.title}`,
+          description: `Recorded live session for ${session.courseId.title}`,
+          course: session.courseId,
+          tutor: session.tutorId,
+          fileUrl: session.recordingUrl,
+          fileName: `live-class-${session.sessionId}.mp4`,
+          fileSize: null,
+          views: 0,
+          uploadDate: session.endTime,
+          sessionId: session.sessionId,
+          startTime: session.startTime,
+          endTime: session.endTime
+        };
+        replayType = 'google_meet';
+        sessionData = session;
+      }
+    }
 
     if (!replay) {
       return res.status(404).json({
@@ -189,7 +274,8 @@ router.get('/:id', asyncHandler(async (req, res) => {
       console.log('👨‍🏫 Tutor access check:', { 
         replayTutorId: replay.tutor._id, 
         userId, 
-        hasAccess 
+        hasAccess,
+        replayType
       });
     } else if (userRole === 'learner') {
       // Learners can access replays from courses they're enrolled in
@@ -202,7 +288,8 @@ router.get('/:id', asyncHandler(async (req, res) => {
       console.log('👨‍🎓 Learner access check:', { 
         enrolledCourseIds, 
         replayCourseId: replay.course._id, 
-        hasAccess 
+        hasAccess,
+        replayType
       });
     }
     
@@ -215,8 +302,10 @@ router.get('/:id', asyncHandler(async (req, res) => {
       });
     }
 
-    // Increment view count
-    await replay.incrementView();
+    // Increment view count (only for manual replays)
+    if (replayType === 'manual') {
+      await replay.incrementView();
+    }
 
     res.status(200).json({
       success: true,
@@ -229,9 +318,17 @@ router.get('/:id', asyncHandler(async (req, res) => {
         fileUrl: replay.fileUrl,
         fileName: replay.fileName,
         fileSize: replay.fileSize,
-        viewCount: replay.viewCount,
+        viewCount: replay.views || 0,
+        type: replayType,
         uploadDate: replay.uploadDate,
-        deleteAt: replay.deleteAt
+        deleteAt: replay.deleteAt,
+        // Additional fields for Google Meet recordings
+        ...(replayType === 'google_meet' && {
+          sessionId: replay.sessionId,
+          startTime: replay.startTime,
+          endTime: replay.endTime,
+          recordingUrl: replay.fileUrl
+        })
       },
       message: 'Replay details retrieved successfully'
     });

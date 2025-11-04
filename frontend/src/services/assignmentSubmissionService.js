@@ -5,8 +5,8 @@ export const submitAssignment = async (assignmentData) => {
   try {
     const formData = new FormData();
     
-    // Add basic assignment data
-    formData.append('assignment', assignmentData.assignmentId);
+    // Add basic assignment data - ensure we use the correct field name
+    formData.append('assignment', assignmentData.assignmentId || assignmentData.assignment);
     formData.append('content', assignmentData.content || '');
     formData.append('submissionNotes', assignmentData.submissionNotes || '');
     
@@ -20,6 +20,11 @@ export const submitAssignment = async (assignmentData) => {
       assignmentData.files.forEach((file, index) => {
         formData.append('attachments', file);
       });
+    }
+    
+    console.log('📤 FormData contents:');
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
     }
     
     const response = await apiService.post('/assignment-submissions', formData, {

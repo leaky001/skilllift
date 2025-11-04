@@ -1097,6 +1097,42 @@ const getCourseLiveClasses = async (req, res) => {
   }
 };
 
+// @desc    Get enrolled courses for a learner
+// @route   GET /api/courses/enrolled
+// @access  Private (learner)
+exports.getEnrolledCourses = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    console.log('🔍 Getting enrolled courses for user:', userId);
+    
+    // Find courses where the user is in enrolledStudents array
+    const enrolledCourses = await Course.find({
+      enrolledStudents: userId,
+      status: 'published' // Only show published courses
+    })
+    .populate('tutor', 'name email profilePicture tutorProfile.bio')
+    .select('title description thumbnail category level price totalEnrollments enrolledStudents tutor startDate endDate')
+    .sort({ createdAt: -1 });
+    
+    console.log('✅ Found enrolled courses:', enrolledCourses.length);
+    
+    res.status(200).json({
+      success: true,
+      data: enrolledCourses,
+      count: enrolledCourses.length
+    });
+    
+  } catch (error) {
+    console.error('❌ Error getting enrolled courses:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get enrolled courses',
+      error: error.message
+    });
+  }
+});
+
 module.exports = {
   getCourses: exports.getCourses,
   getCourse: exports.getCourse,
@@ -1111,5 +1147,6 @@ module.exports = {
   publishCourse: exports.publishCourse,
   archiveCourse: exports.archiveCourse,
   restoreCourse: exports.restoreCourse,
-  getCourseLiveClasses
+  getCourseLiveClasses,
+  getEnrolledCourses: exports.getEnrolledCourses
 };

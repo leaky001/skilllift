@@ -6,6 +6,7 @@ import { PaymentProvider } from '../context/PaymentContext';
 import { EmailVerificationProvider } from '../context/EmailVerificationContext';
 import AppRoutes from '../routes/AppRoutes';
 import LiveClassNotification from './liveclass/LiveClassNotification';
+import RouteGuard from './RouteGuard';
 import 'react-toastify/dist/ReactToastify.css';
 
 const AppContent = () => {
@@ -14,6 +15,7 @@ const AppContent = () => {
       <NotificationProvider>
         <PaymentProvider>
           <EmailVerificationProvider>
+            <RouteGuard>
               <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
                 <AppRoutes />
                 <LiveClassNotification />
@@ -32,6 +34,7 @@ const AppContent = () => {
                   progressClassName="bg-green-500"
                 />
               </div>
+            </RouteGuard>
           </EmailVerificationProvider>
         </PaymentProvider>
       </NotificationProvider>

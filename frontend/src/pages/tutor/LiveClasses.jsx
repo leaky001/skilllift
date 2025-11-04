@@ -13,7 +13,8 @@ import {
   FaPlus,
   FaTimes,
   FaClock,
-  FaStop
+  FaStop,
+  FaSync
 } from 'react-icons/fa';
 
 const TutorLiveClasses = () => {
@@ -44,6 +45,16 @@ const TutorLiveClasses = () => {
 
   useEffect(() => {
     loadCourses();
+    
+    // Auto-refresh every 5 seconds to pick up status changes
+    const refreshInterval = setInterval(() => {
+      console.log('🔄 Auto-refreshing live classes...');
+      loadCourses();
+    }, 5000); // Refresh every 5 seconds
+    
+    return () => {
+      clearInterval(refreshInterval);
+    };
   }, []);
 
   const loadCourses = async () => {
@@ -204,8 +215,9 @@ const TutorLiveClasses = () => {
         }
       });
 
-      // Reload courses to show updated live class count
-      loadCourses();
+      // Reload courses immediately to show updated live class
+      console.log('🔄 Reloading courses after creating live class...');
+      await loadCourses();
       
     } catch (error) {
       console.error('Error creating live class:', error);
@@ -216,46 +228,46 @@ const TutorLiveClasses = () => {
   };
 
 
-  const handleStartLiveClass = async (liveClassId) => {
+  const handleStartLiveClass = async (liveClass, courseId = null) => {
     try {
-      console.log('🎯 Starting live class with ID:', liveClassId);
-      console.log('🎯 Current user:', user);
-      console.log('🎯 User role:', user?.role);
+      // Determine the course ID
+      let actualCourseId = courseId;
       
-      // Use universal joinLiveClass endpoint - backend determines role and handles all cases
-      const response = await liveClassService.joinLiveClass(liveClassId);
-      console.log('🎯 API Response:', response);
-      console.log('🎯 Response data:', response.data);
+      // If no courseId provided, try to find it from the courses
+      if (!actualCourseId) {
+        const courseWithLiveClass = courses.find(course => 
+          course.liveClasses && course.liveClasses.some(lc => lc._id === liveClass._id)
+        );
+        actualCourseId = courseWithLiveClass?._id;
+      }
       
-      // Navigate to full screen live class
-      navigate(`/live-class/${liveClassId}`, {
-        state: {
-          liveClass: {
-            ...response.data.liveClass,
-            callId: response.data.callId,
-            streamToken: response.data.streamToken
-          },
-          streamToken: response.data.streamToken,
-          callId: response.data.callId,
-          sessionId: response.data.sessionId
+      // If still no courseId, try to use liveClass.courseId
+      if (!actualCourseId) {
+        // Check if courseId is populated (object) or just an ID (string)
+        if (liveClass.courseId) {
+          actualCourseId = typeof liveClass.courseId === 'string' 
+            ? liveClass.courseId 
+            : liveClass.courseId._id || liveClass.courseId.id;
         }
-      });
+      }
       
-      toast.success('Live class started! Learners will be notified.');
+      if (!actualCourseId) {
+        console.error('❌ No course ID found for live class:', liveClass);
+        toast.error('Unable to determine course for this live class');
+        return;
+      }
+      
+      console.log('🎯 Starting Google Meet live class for course:', actualCourseId);
+      
+      // Navigate to Google Meet live class using course ID
+      navigate(`/live-class/${actualCourseId}`);
+      
+      toast.success('Redirecting to Google Meet live class!');
       // Reload live classes to update the status
       loadCourses();
     } catch (error) {
       console.error('❌ Error starting live class:', error);
-      console.error('❌ Error response:', error.response?.data);
-      console.error('❌ Error status:', error.response?.status);
-      
-      if (error.response?.status === 403) {
-        toast.error('Access denied. Please check your permissions.');
-      } else if (error.response?.status === 404) {
-        toast.error('Live class not found.');
-      } else {
-        toast.error(`Failed to start live class: ${error.response?.data?.message || error.message}`);
-      }
+      toast.error(`Failed to start live class: ${error.message}`);
     }
   };
 
@@ -267,7 +279,8 @@ const TutorLiveClasses = () => {
     try {
       await liveClassService.deleteLiveClass(liveClassId);
       toast.success('Live class deleted successfully!');
-      loadCourses(); // Reload to update the list
+      console.log('🔄 Reloading courses after deleting live class...');
+      await loadCourses(); // Reload to update the list
     } catch (error) {
       console.error('Error deleting live class:', error);
       toast.error('Failed to delete live class');
@@ -305,15 +318,28 @@ const TutorLiveClasses = () => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Live Classes</h1>
-          <p className="text-gray-600">Manage live classes for your courses</p>
+          <p className="text-gray-600">Manage live classes for your courses • Auto-refreshing every 5s</p>
         </div>
-        <button
-          onClick={handleCreateCourse}
-          className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 flex items-center space-x-2"
-        >
-          <FaPlus />
-          <span>Create Course</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => {
+              console.log('🔄 Manual refresh triggered');
+              loadCourses();
+            }}
+            className="bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 flex items-center space-x-2"
+            title="Refresh live classes"
+          >
+            <FaSync />
+            <span>Refresh</span>
+          </button>
+          <button
+            onClick={handleCreateCourse}
+            className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 flex items-center space-x-2"
+          >
+            <FaPlus />
+            <span>Create Course</span>
+          </button>
+        </div>
       </div>
 
       {/* Courses List */}
@@ -403,11 +429,11 @@ const TutorLiveClasses = () => {
                                 ? 'bg-green-100 text-green-800' 
                                 : liveClass.status === 'ready'
                                 ? 'bg-blue-100 text-blue-800'
-                                : liveClass.status === 'ended'
+                                : liveClass.status === 'ended' || liveClass.status === 'completed'
                                 ? 'bg-gray-100 text-gray-800'
                                 : 'bg-yellow-100 text-yellow-800'
                             }`}>
-                              {liveClass.status.charAt(0).toUpperCase() + liveClass.status.slice(1)}
+                              {liveClass.status === 'completed' ? 'Completed' : liveClass.status.charAt(0).toUpperCase() + liveClass.status.slice(1)}
                             </span>
                             <span className="text-sm text-gray-500">
                               {liveClass.attendees?.length || 0} participants
@@ -442,7 +468,7 @@ const TutorLiveClasses = () => {
 
                           <div className="flex space-x-2">
                             <button
-                              onClick={() => handleStartLiveClass(liveClass._id)}
+                              onClick={() => handleStartLiveClass(liveClass, course._id)}
                               className={`flex-1 flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors ${
                                 liveClass.status === 'ready' || liveClass.status === 'scheduled'
                                   ? 'bg-green-600 text-white hover:bg-green-700'
@@ -450,11 +476,12 @@ const TutorLiveClasses = () => {
                                   ? 'bg-blue-600 text-white hover:bg-blue-700'
                                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                               }`}
-                              disabled={liveClass.status === 'ended' || liveClass.status === 'cancelled'}
+                              disabled={liveClass.status === 'ended' || liveClass.status === 'cancelled' || liveClass.status === 'completed'}
                             >
                               <FaPlay className="mr-2" />
                               {liveClass.status === 'ready' || liveClass.status === 'scheduled' ? 'Start Live Class' : 
-                               liveClass.status === 'live' ? 'Join Live Class' : 'Not Available'}
+                               liveClass.status === 'live' ? 'Join Live Class' : 
+                               liveClass.status === 'completed' ? 'Live Class Ended' : 'Not Available'}
                             </button>
                             
                             <button
@@ -504,11 +531,11 @@ const TutorLiveClasses = () => {
                         ? 'bg-green-100 text-green-800' 
                         : liveClass.status === 'ready'
                         ? 'bg-blue-100 text-blue-800'
-                        : liveClass.status === 'ended'
+                        : liveClass.status === 'ended' || liveClass.status === 'completed'
                         ? 'bg-gray-100 text-gray-800'
                         : 'bg-yellow-100 text-yellow-800'
                     }`}>
-                      {liveClass.status.charAt(0).toUpperCase() + liveClass.status.slice(1)}
+                      {liveClass.status === 'completed' ? 'Completed' : liveClass.status.charAt(0).toUpperCase() + liveClass.status.slice(1)}
                     </span>
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                       isMyLiveClass 
@@ -550,7 +577,7 @@ const TutorLiveClasses = () => {
 
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => handleStartLiveClass(liveClass._id)}
+                      onClick={() => handleStartLiveClass(liveClass)}
                       className={`flex-1 flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors ${
                         liveClass.status === 'ready' || liveClass.status === 'scheduled'
                           ? 'bg-green-600 text-white hover:bg-green-700'
@@ -558,13 +585,15 @@ const TutorLiveClasses = () => {
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
                           : 'bg-gray-400 text-white cursor-not-allowed'
                       }`}
-                      disabled={liveClass.status === 'ended' || liveClass.status === 'cancelled'}
+                      disabled={liveClass.status === 'ended' || liveClass.status === 'cancelled' || liveClass.status === 'completed'}
                     >
                       <FaPlay className="mr-2" />
                       {liveClass.status === 'ready' || liveClass.status === 'scheduled' 
                         ? 'Start Live Class' 
                         : liveClass.status === 'live'
                         ? 'Join Live Class'
+                        : liveClass.status === 'completed'
+                        ? 'Live Class Ended'
                         : 'Not Available'
                       }
                     </button>

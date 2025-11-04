@@ -61,13 +61,21 @@ exports.getDashboardStats = asyncHandler(async (req, res, next) => {
     {
       $group: {
         _id: null,
-        total: { $sum: '$amount' }
+        total: { $sum: '$tutorAmount' } // Use tutorAmount instead of amount
       }
     }
   ]);
   
   console.log('📊 Monthly earnings aggregation result:', monthlyEarnings);
   console.log('💰 Monthly earnings total:', monthlyEarnings.length > 0 ? monthlyEarnings[0].total : 0);
+
+  // Get tutor's total earnings from profile
+  const tutor = await User.findById(tutorId);
+  const totalEarnings = tutor?.tutorProfile?.totalEarnings || 0;
+  const totalStudents = tutor?.tutorProfile?.totalStudents || 0;
+  
+  console.log('💰 Tutor profile earnings:', totalEarnings);
+  console.log('👥 Tutor profile students:', totalStudents);
 
   const stats = [
     {
@@ -92,8 +100,8 @@ exports.getDashboardStats = asyncHandler(async (req, res, next) => {
     },
     {
       title: 'Total Learners',
-      value: totalLearners.length.toString(),
-      change: '+18 this week',
+      value: totalStudents.toString(), // Use profile data instead of enrollment count
+      change: `+${totalLearners.length - totalStudents} from enrollments`,
       icon: 'FaUsers',
       color: 'text-blue-600',
       bgColor: 'bg-gradient-to-br from-blue-50 to-blue-100',
@@ -103,7 +111,7 @@ exports.getDashboardStats = asyncHandler(async (req, res, next) => {
     {
       title: 'Monthly Earnings',
       value: `₦${(monthlyEarnings[0]?.total || 0).toLocaleString()}`,
-      change: '+12% vs last month',
+      change: `Total: ₦${totalEarnings.toLocaleString()}`,
       icon: 'FaDollarSign',
       color: 'text-blue-600',
       bgColor: 'bg-gradient-to-br from-blue-50 to-blue-100',

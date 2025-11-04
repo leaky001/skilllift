@@ -224,7 +224,7 @@ courseSchema.methods.calculateLearnerProgress = async function(learnerId) {
 courseSchema.methods.getCourseStatistics = async function() {
   const Enrollment = mongoose.model('Enrollment');
   const LessonProgress = mongoose.model('LessonProgress');
-  const LiveClassSession = mongoose.model('LiveClassSession');
+  const LiveClassSession = require('./LiveClassSession');
   
   const enrollments = await Enrollment.find({ course: this._id });
   const lessonProgress = await LessonProgress.find({ course: this._id });

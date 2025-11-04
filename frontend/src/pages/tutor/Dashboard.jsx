@@ -103,35 +103,35 @@ const TutorDashboard = () => {
         const statsResponse = await getTutorDashboardStats();
         console.log('📊 Stats response:', statsResponse);
         
-        if (statsResponse && statsResponse.success) {
-          const statsData = statsResponse.data || [];
+        if (statsResponse && statsResponse.data && statsResponse.data.success) {
+          const statsData = statsResponse.data.data || [];
           setStats(statsData);
           console.log('✅ Stats loaded successfully:', statsData.length, 'items');
         } else {
           console.warn('⚠️ Stats response not successful, using fallback');
           // Set fallback stats
           setStats([
-            { title: 'Total Courses', value: 0, change: '+0%', changeType: 'positive' },
-            { title: 'Total Students', value: 0, change: '+0%', changeType: 'positive' },
-            { title: 'Total Revenue', value: '$0', change: '+0%', changeType: 'positive' },
-            { title: 'Average Rating', value: '0.0', change: '+0%', changeType: 'positive' }
+            { title: 'Total Courses', value: '0', change: 'No data', icon: 'FaBookOpen', color: 'text-gray-600', bgColor: 'bg-gray-50', borderColor: 'border-gray-200', gradient: 'from-gray-500 to-gray-600' },
+            { title: 'Upcoming Sessions', value: '0', change: 'No data', icon: 'FaVideo', color: 'text-gray-600', bgColor: 'bg-gray-50', borderColor: 'border-gray-200', gradient: 'from-gray-500 to-gray-600' },
+            { title: 'Total Learners', value: '0', change: 'No data', icon: 'FaUsers', color: 'text-gray-600', bgColor: 'bg-gray-50', borderColor: 'border-gray-200', gradient: 'from-gray-500 to-gray-600' },
+            { title: 'Monthly Earnings', value: '₦0', change: 'No data', icon: 'FaDollarSign', color: 'text-gray-600', bgColor: 'bg-gray-50', borderColor: 'border-gray-200', gradient: 'from-gray-500 to-gray-600' }
           ]);
         }
       } catch (error) {
         console.error('❌ Error loading stats:', error);
         // Set fallback stats on error
         setStats([
-          { title: 'Total Courses', value: 0, change: '+0%', changeType: 'positive' },
-          { title: 'Total Students', value: 0, change: '+0%', changeType: 'positive' },
-          { title: 'Total Revenue', value: '$0', change: '+0%', changeType: 'positive' },
-          { title: 'Average Rating', value: '0.0', change: '+0%', changeType: 'positive' }
+          { title: 'Total Courses', value: '0', change: 'Error loading', icon: 'FaBookOpen', color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200', gradient: 'from-red-500 to-red-600' },
+          { title: 'Upcoming Sessions', value: '0', change: 'Error loading', icon: 'FaVideo', color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200', gradient: 'from-red-500 to-red-600' },
+          { title: 'Total Learners', value: '0', change: 'Error loading', icon: 'FaUsers', color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200', gradient: 'from-red-500 to-red-600' },
+          { title: 'Monthly Earnings', value: '₦0', change: 'Error loading', icon: 'FaDollarSign', color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200', gradient: 'from-red-500 to-red-600' }
         ]);
       }
       
       // Load learners
       try {
         const learnersResponse = await getTutorRecentLearners(5);
-        if (learnersResponse.data.success) {
+        if (learnersResponse.data && learnersResponse.data.success) {
           setRecentLearners(learnersResponse.data.data || []);
         }
       } catch (error) {
@@ -141,7 +141,7 @@ const TutorDashboard = () => {
       // Load sessions
       try {
         const sessionsResponse = await getTutorUpcomingSessions();
-        if (sessionsResponse.data.success) {
+        if (sessionsResponse.data && sessionsResponse.data.success) {
           setUpcomingSessions(sessionsResponse.data.data || []);
         }
       } catch (error) {
@@ -151,7 +151,7 @@ const TutorDashboard = () => {
       // Load notifications
       try {
         const notificationsResponse = await getTutorRecentNotifications(5);
-        if (notificationsResponse.data.success) {
+        if (notificationsResponse.data && notificationsResponse.data.success) {
           setRecentNotifications(notificationsResponse.data.data || []);
         }
       } catch (error) {
@@ -161,7 +161,7 @@ const TutorDashboard = () => {
       // Load performance
       try {
         const performanceResponse = await getTutorCoursePerformance('month');
-        if (performanceResponse.data.success) {
+        if (performanceResponse.data && performanceResponse.data.success) {
           setCoursePerformance(performanceResponse.data.data || []);
         }
       } catch (error) {
@@ -171,7 +171,7 @@ const TutorDashboard = () => {
       // Load earnings
       try {
         const earningsResponse = await getTutorEarnings('month');
-        if (earningsResponse.data.success) {
+        if (earningsResponse.data && earningsResponse.data.success) {
           setEarnings(earningsResponse.data.data || {});
         }
       } catch (error) {
@@ -199,48 +199,48 @@ const TutorDashboard = () => {
   const defaultStats = [
     { 
       title: 'Total Courses', 
-      value: '42', 
+      value: '0', 
       icon: FaBookOpen, 
       color: 'text-blue-600', 
       bgColor: 'bg-gradient-to-br from-blue-50 to-blue-100',
       borderColor: 'border-blue-200',
       gradient: 'from-blue-500 to-blue-600',
-      change: '+2 this month'
+      change: 'Loading...'
     },
     { 
-      title: 'Upcoming', 
-      value: '5', 
+      title: 'Upcoming Sessions', 
+      value: '0', 
       icon: FaVideo, 
       color: 'text-blue-600', 
       bgColor: 'bg-gradient-to-br from-blue-50 to-blue-100',
       borderColor: 'border-blue-200',
       gradient: 'from-blue-500 to-blue-600',
-      change: 'Next in 2 hours'
+      change: 'Loading...'
     },
     { 
       title: 'Total Learners', 
-      value: '234', 
+      value: '0', 
       icon: FaUsers, 
       color: 'text-blue-600', 
       bgColor: 'bg-gradient-to-br from-blue-50 to-blue-100',
       borderColor: 'border-blue-200',
       gradient: 'from-blue-500 to-blue-600',
-      change: '+18 this week'
+      change: 'Loading...'
     },
     { 
-      title: 'Monthly', 
-      value: '₦245,000', 
+      title: 'Monthly Earnings', 
+      value: '₦0', 
       icon: FaDollarSign, 
       color: 'text-blue-600', 
       bgColor: 'bg-gradient-to-br from-blue-50 to-blue-100',
       borderColor: 'border-blue-200',
       gradient: 'from-blue-500 to-blue-600',
-      change: '+12% vs last month'
+      change: 'Loading...'
     }
   ];
 
     // Use real data or default structure
-  const displayStats = loading ? [] : stats;
+  const displayStats = loading ? defaultStats : (stats.length > 0 ? stats : defaultStats);
   const displayLearners = loading ? [] : recentLearners;
   const displaySessions = loading ? [] : upcomingSessions;
   const displayNotifications = loading ? [] : recentNotifications;

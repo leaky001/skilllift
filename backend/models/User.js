@@ -72,6 +72,12 @@ const userSchema = new mongoose.Schema({
   roleValidationAttempts: { type: Number, default: 0 },
   lockUntil: Date,
   
+  // Google OAuth tokens
+  googleTokens: {
+    accessToken: String,
+    refreshToken: String,
+    expiryDate: Date
+  }
 
 }, { 
   timestamps: true 

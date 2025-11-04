@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Meet Recording Setup Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+        }
+        
+        .test-section h2 .icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 5px;
+            font-size: 0.9em;
+        }
+        
+        .status-pending {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .status-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-error {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .status-warning {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .result-box {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .result-box pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #333;
+            font-size: 0.9em;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .warning-box {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .error-box {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .success-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .checklist li {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .checklist li::before {
+            content: '⬜';
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+        
+        .checklist li.checked::before {
+            content: '✅';
+        }
+        
+        .checklist li.failed::before {
+            content: '❌';
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎥 Google Meet Recording Tester</h1>
+        <p class="subtitle">Complete setup verification for your SkillLift recording system</p>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width: 0%">0%</div>
+        </div>
+        
+        <!-- Test 1: Authentication -->
+        <div class="test-section">
+            <h2><span class="icon">🔐</span> Test 1: Authentication Status</h2>
+            <p>Check if you're logged in and have a valid authentication token.</p>
+            <button class="btn" onclick="testAuth()">Check Authentication</button>
+            <div id="auth-result"></div>
+        </div>
+        
+        <!-- Test 2: Backend Connection -->
+        <div class="test-section">
+            <h2><span class="icon">🔌</span> Test 2: Backend Connection</h2>
+            <p>Verify that the backend server is running and accessible.</p>
+            <button class="btn" onclick="testBackend()">Test Backend</button>
+            <div id="backend-result"></div>
+        </div>
+        
+        <!-- Test 3: Google OAuth -->
+        <div class="test-section">
+            <h2><span class="icon">🔗</span> Test 3: Google OAuth Configuration</h2>
+            <p>Check if Google OAuth is properly configured.</p>
+            <button class="btn" onclick="testGoogleOAuth()">Test Google OAuth</button>
+            <button class="btn btn-secondary" onclick="connectGoogle()">Connect Google Account</button>
+            <div id="oauth-result"></div>
+        </div>
+        
+        <!-- Test 4: Google Account Connection -->
+        <div class="test-section">
+            <h2><span class="icon">👤</span> Test 4: Your Google Account Status</h2>
+            <p>Check if your Google account is connected and has valid tokens.</p>
+            <button class="btn" onclick="testGoogleConnection()">Check Google Connection</button>
+            <div id="google-connection-result"></div>
+        </div>
+        
+        <!-- Test 5: Recording Permissions -->
+        <div class="test-section">
+            <h2><span class="icon">⚙️</span> Test 5: Recording Permissions</h2>
+            <div class="info-box">
+                <strong>Manual Check Required:</strong> You need to verify this in Google Meet directly.
+            </div>
+            <button class="btn btn-success" onclick="openGoogleMeet()">Open Google Meet to Test</button>
+            <div class="checklist" style="margin-top: 15px;">
+                <li>Go to Google Meet and start a test meeting</li>
+                <li>Click the 3 dots menu (⋮) at the bottom</li>
+                <li>Look for "Record meeting" option</li>
+                <li>If you see it, recording is enabled ✅</li>
+                <li>If not, you need Google Workspace or Google One Premium</li>
+            </div>
+        </div>
+        
+        <!-- Test 6: Recent Sessions -->
+        <div class="test-section">
+            <h2><span class="icon">📊</span> Test 6: Recent Live Class Sessions</h2>
+            <p>Check your recent live class sessions and their recording status.</p>
+            <button class="btn" onclick="testRecentSessions()">Check Recent Sessions</button>
+            <div id="sessions-result"></div>
+        </div>
+        
+        <!-- Test 7: Available Replays -->
+        <div class="test-section">
+            <h2><span class="icon">📺</span> Test 7: Available Replays</h2>
+            <p>Check if you have any recorded class replays available.</p>
+            <button class="btn" onclick="testReplays()">Check Replays</button>
+            <div id="replays-result"></div>
+        </div>
+        
+        <!-- Summary -->
+        <div class="test-section" style="border-left-color: #28a745;">
+            <h2><span class="icon">📋</span> Test Summary</h2>
+            <div id="summary">
+                <p>Run all tests to see a summary of your setup status.</p>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="btn" onclick="runAllTests()" style="font-size: 1.2em; padding: 15px 40px;">
+                🚀 Run All Tests
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let testResults = {
+            auth: null,
+            backend: null,
+            oauth: null,
+            googleConnection: null,
+            sessions: null,
+            replays: null
+        };
+
+        function getAuthToken() {
+            return localStorage.getItem('token') || sessionStorage.getItem('token');
+        }
+
+        function updateProgress() {
+            const total = Object.keys(testResults).length;
+            const completed = Object.values(testResults).filter(r => r !== null).length;
+            const percentage = Math.round((completed / total) * 100);
+            
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = percentage + '%';
+        }
+
+        async function testAuth() {
+            const resultDiv = document.getElementById('auth-result');
+            resultDiv.innerHTML = '<div class="loading"></div> Checking authentication...';
+            
+            try {
+                const token = getAuthToken();
+                
+                if (!token) {
+                    testResults.auth = false;
+                    resultDiv.innerHTML = `
+                        <div class="error-box">
+                            <strong>❌ Not Authenticated</strong>
+                            <p>No authentication token found. Please log in to your SkillLift account.</p>
+                        </div>
+                    `;
+                    updateProgress();
+                    return;
+                }
+                
+                // Try to decode JWT to get user info
+                const tokenParts = token.split('.');
+                if (tokenParts.length === 3) {
+                    const payload = JSON.parse(atob(tokenParts[1]));
+                    testResults.auth = true;
+                    resultDiv.innerHTML = `
+                        <div class="success-box">
+                            <strong>✅ Authenticated Successfully</strong>
+                            <p><strong>User ID:</strong> ${payload.userId || payload.id || 'Unknown'}</p>
+                            <p><strong>Role:</strong> ${payload.role || 'Unknown'}</p>
+                            <p><strong>Token expires:</strong> ${payload.exp ? new Date(payload.exp * 1000).toLocaleString() : 'Unknown'}</p>
+                        </div>
+                    `;
+                } else {
+                    testResults.auth = true;
+                    resultDiv.innerHTML = `
+                        <div class="success-box">
+                            <strong>✅ Token Found</strong>
+                            <p>Authentication token is present.</p>
+                        </div>
+                    `;
+                }
+                updateProgress();
+            } catch (error) {
+                testResults.auth = false;
+                resultDiv.innerHTML = `
+                    <div class="error-box">
+                        <strong>❌ Authentication Error</strong>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                updateProgress();
+            }
+        }
+
+        async function testBackend() {
+            const resultDiv = document.getElementById('backend-result');
+            resultDiv.innerHTML = '<div class="loading"></div> Testing backend connection...';
+            
+            try {
+                // Try multiple endpoints to verify backend
+                const healthCheck = await fetch(`${API_BASE}/health`).catch(() => null);
+                const rootCheck = await fetch('http://localhost:5000/').catch(() => null);
+                
+                if (healthCheck && healthCheck.ok) {
+                    const data = await healthCheck.json();
+                    testResults.backend = true;
+                    resultDiv.innerHTML = `
+                        <div class="success-box">
+                            <strong>✅ Backend Connected</strong>
+                            <p><strong>Status:</strong> ${data.status || 'OK'}</p>
+                            <p><strong>URL:</strong> http://localhost:5000</p>
+                        </div>
+                    `;
+                } else if (rootCheck && rootCheck.ok) {
+                    testResults.backend = true;
+                    resultDiv.innerHTML = `
+                        <div class="success-box">
+                            <strong>✅ Backend Connected</strong>
+                            <p>Server is running on http://localhost:5000</p>
+                        </div>
+                    `;
+                } else {
+                    throw new Error('Backend server not responding');
+                }
+                updateProgress();
+            } catch (error) {
+                testResults.backend = false;
+                resultDiv.innerHTML = `
+                    <div class="error-box">
+                        <strong>❌ Backend Not Connected</strong>
+                        <p>Cannot connect to backend server at http://localhost:5000</p>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p><strong>Solution:</strong> Make sure your backend server is running:</p>
+                        <pre>cd backend && npm start</pre>
+                    </div>
+                `;
+                updateProgress();
+            }
+        }
+
+        async function testGoogleOAuth() {
+            const resultDiv = document.getElementById('oauth-result');
+            resultDiv.innerHTML = '<div class="loading"></div> Testing Google OAuth configuration...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/google-meet/auth/google/url`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    testResults.oauth = true;
+                    resultDiv.innerHTML = `
+                        <div class="success-box">
+                            <strong>✅ Google OAuth Configured</strong>
+                            <p>Google OAuth is properly set up in the backend.</p>
+                            <p><strong>Auth URL:</strong> Available</p>
+                        </div>
+                    `;
+                } else if (response.status === 404) {
+                    testResults.oauth = false;
+                    resultDiv.innerHTML = `
+                        <div class="error-box">
+                            <strong>❌ OAuth Route Not Found</strong>
+                            <p>Google OAuth endpoint is not configured.</p>
+                            <p><strong>Solution:</strong> Check that Google Meet routes are loaded in backend.</p>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                updateProgress();
+            } catch (error) {
+                testResults.oauth = false;
+                resultDiv.innerHTML = `
+                    <div class="error-box">
+                        <strong>❌ OAuth Configuration Error</strong>
+                        <p>${error.message}</p>
+                        <p><strong>Check:</strong> GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env file</p>
+                    </div>
+                `;
+                updateProgress();
+            }
+        }
+
+        async function connectGoogle() {
+            try {
+                const response = await fetch(`${API_BASE}/google-meet/auth/google/url`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.authUrl || data.url) {
+                        window.location.href = data.authUrl || data.url;
+                    } else {
+                        alert('Could not get Google OAuth URL');
+                    }
+                } else {
+                    alert('Failed to get Google OAuth URL. Make sure backend is running.');
+                }
+            } catch (error) {
+                alert('Error connecting to Google: ' + error.message);
+            }
+        }
+
+        async function testGoogleConnection() {
+            const resultDiv = document.getElementById('google-connection-result');
+            resultDiv.innerHTML = '<div class="loading"></div> Checking Google account connection...';
+            
+            try {
+                const token = getAuthToken();
+                if (!token) {
+                    throw new Error('Please log in first');
+                }
+                
+                // Try to get user profile to check Google tokens
+                const response = await fetch(`${API_BASE}/auth/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const hasGoogleTokens = data.user?.googleTokens || data.googleTokens;
+                    
+                    if (hasGoogleTokens) {
+                        testResults.googleConnection = true;
+                        resultDiv.innerHTML = `
+                            <div class="success-box">
+                                <strong>✅ Google Account Connected</strong>
+                                <p>Your Google account is connected and tokens are available.</p>
+                                <p><strong>Access Token:</strong> Valid</p>
+                            </div>
+                        `;
+                    } else {
+                        testResults.googleConnection = false;
+                        resultDiv.innerHTML = `
+                            <div class="warning-box">
+                                <strong>⚠️ Google Account Not Connected</strong>
+                                <p>You need to connect your Google account to use recording features.</p>
+                                <button class="btn btn-secondary" onclick="connectGoogle()">Connect Now</button>
+                            </div>
+                        `;
+                    }
+                } else {
+                    throw new Error('Could not fetch user profile');
+                }
+                updateProgress();
+            } catch (error) {
+                testResults.googleConnection = false;
+                resultDiv.innerHTML = `
+                    <div class="error-box">
+                        <strong>❌ Connection Check Failed</strong>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                updateProgress();
+            }
+        }
+
+        async function testRecentSessions() {
+            const resultDiv = document.getElementById('sessions-result');
+            resultDiv.innerHTML = '<div class="loading"></div> Loading recent sessions...';
+            
+            try {
+                const token = getAuthToken();
+                if (!token) {
+                    throw new Error('Please log in first');
+                }
+                
+                // Try to get recent sessions
+                const response = await fetch(`${API_BASE}/google-meet/live/sessions/recent`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const sessions = data.sessions || [];
+                    
+                    testResults.sessions = true;
+                    
+                    if (sessions.length === 0) {
+                        resultDiv.innerHTML = `
+                            <div class="info-box">
+                                <strong>ℹ️ No Recent Sessions</strong>
+                                <p>No recent live class sessions found. Start a live class to test recording.</p>
+                            </div>
+                        `;
+                    } else {
+                        let html = '<div class="success-box"><strong>✅ Sessions Found</strong></div>';
+                        html += '<div class="result-box">';
+                        
+                        sessions.forEach((session, index) => {
+                            const hasRecording = session.recordingUrl ? '✅' : '⏳';
+                            html += `
+                                <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px;">
+                                    <strong>${hasRecording} Session ${index + 1}</strong><br>
+                                    <strong>Course:</strong> ${session.courseTitle || 'Unknown'}<br>
+                                    <strong>Status:</strong> ${session.status}<br>
+                                    <strong>Started:</strong> ${new Date(session.startTime).toLocaleString()}<br>
+                                    ${session.endTime ? `<strong>Ended:</strong> ${new Date(session.endTime).toLocaleString()}<br>` : ''}
+                                    ${session.recordingUrl ? `<strong>Recording:</strong> <a href="${session.recordingUrl}" target="_blank">View</a>` : '<strong>Recording:</strong> Processing...'}
+                                </div>
+                            `;
+                        });
+                        
+                        html += '</div>';
+                        resultDiv.innerHTML = html;
+                    }
+                } else if (response.status === 404) {
+                    testResults.sessions = false;
+                    resultDiv.innerHTML = `
+                        <div class="warning-box">
+                            <strong>⚠️ Endpoint Not Available</strong>
+                            <p>Recent sessions endpoint not found. This feature may not be implemented yet.</p>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                updateProgress();
+            } catch (error) {
+                testResults.sessions = false;
+                resultDiv.innerHTML = `
+                    <div class="error-box">
+                        <strong>❌ Sessions Check Failed</strong>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                updateProgress();
+            }
+        }
+
+        async function testReplays() {
+            const resultDiv = document.getElementById('replays-result');
+            resultDiv.innerHTML = '<div class="loading"></div> Loading replays...';
+            
+            try {
+                const token = getAuthToken();
+                if (!token) {
+                    throw new Error('Please log in first');
+                }
+                
+                // Get user's courses first
+                const coursesResponse = await fetch(`${API_BASE}/learner/courses`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!coursesResponse.ok) {
+                    throw new Error('Could not fetch courses');
+                }
+                
+                const coursesData = await coursesResponse.json();
+                const courses = coursesData.data || coursesData.courses || [];
+                
+                if (courses.length === 0) {
+                    testResults.replays = false;
+                    resultDiv.innerHTML = `
+                        <div class="info-box">
+                            <strong>ℹ️ No Courses Found</strong>
+                            <p>You need to be enrolled in a course to view replays.</p>
+                        </div>
+                    `;
+                    updateProgress();
+                    return;
+                }
+                
+                // Check replays for first course
+                const firstCourse = courses[0];
+                const replaysResponse = await fetch(`${API_BASE}/google-meet/live/replays/${firstCourse._id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (replaysResponse.ok) {
+                    const replaysData = await replaysResponse.json();
+                    const replays = replaysData.replays || [];
+                    
+                    testResults.replays = true;
+                    
+                    if (replays.length === 0) {
+                        resultDiv.innerHTML = `
+                            <div class="info-box">
+                                <strong>ℹ️ No Replays Yet</strong>
+                                <p>No recorded replays available for your courses.</p>
+                                <p>Recordings will appear here after live classes are recorded and processed.</p>
+                            </div>
+                        `;
+                    } else {
+                        let html = '<div class="success-box"><strong>✅ Replays Available</strong></div>';
+                        html += '<div class="result-box">';
+                        
+                        replays.forEach((replay, index) => {
+                            html += `
+                                <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px;">
+                                    <strong>📺 Replay ${index + 1}</strong><br>
+                                    <strong>Course:</strong> ${replay.courseTitle || firstCourse.title}<br>
+                                    <strong>Date:</strong> ${new Date(replay.startTime).toLocaleString()}<br>
+                                    <strong>Recording:</strong> <a href="${replay.recordingUrl}" target="_blank">Watch Now</a>
+                                </div>
+                            `;
+                        });
+                        
+                        html += '</div>';
+                        resultDiv.innerHTML = html;
+                    }
+                } else {
+                    throw new Error(`HTTP ${replaysResponse.status}: ${replaysResponse.statusText}`);
+                }
+                updateProgress();
+            } catch (error) {
+                testResults.replays = false;
+                resultDiv.innerHTML = `
+                    <div class="error-box">
+                        <strong>❌ Replays Check Failed</strong>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                updateProgress();
+            }
+        }
+
+        function openGoogleMeet() {
+            window.open('https://meet.google.com/', '_blank');
+        }
+
+        async function runAllTests() {
+            await testAuth();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testBackend();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testGoogleOAuth();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testGoogleConnection();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testRecentSessions();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testReplays();
+            
+            // Generate summary
+            generateSummary();
+        }
+
+        function generateSummary() {
+            const summaryDiv = document.getElementById('summary');
+            const passed = Object.values(testResults).filter(r => r === true).length;
+            const failed = Object.values(testResults).filter(r => r === false).length;
+            const total = Object.values(testResults).filter(r => r !== null).length;
+            
+            let statusClass = 'success-box';
+            let statusIcon = '✅';
+            let statusText = 'All Tests Passed!';
+            
+            if (failed > 0) {
+                statusClass = 'warning-box';
+                statusIcon = '⚠️';
+                statusText = 'Some Tests Failed';
+            }
+            
+            if (failed > passed) {
+                statusClass = 'error-box';
+                statusIcon = '❌';
+                statusText = 'Multiple Issues Found';
+            }
+            
+            summaryDiv.innerHTML = `
+                <div class="${statusClass}">
+                    <h3>${statusIcon} ${statusText}</h3>
+                    <p><strong>Passed:</strong> ${passed}/${total}</p>
+                    <p><strong>Failed:</strong> ${failed}/${total}</p>
+                    ${failed > 0 ? '<p><strong>Action:</strong> Review failed tests above and follow the provided solutions.</p>' : ''}
+                    ${passed === total && total > 0 ? '<p>Your Google Meet recording system is properly configured! 🎉</p>' : ''}
+                </div>
+            `;
+        }
+
+        // Initialize
+        window.onload = function() {
+            const token = getAuthToken();
+            if (!token) {
+                document.getElementById('auth-result').innerHTML = `
+                    <div class="warning-box">
+                        <strong>⚠️ Not Logged In</strong>
+                        <p>Please log in to your SkillLift account to run tests.</p>
+                    </div>
+                `;
+            }
+        };
+    </script>
+</body>
+</html>
+

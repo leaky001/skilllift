@@ -500,11 +500,28 @@ const getLearnerCertificates = async (req, res) => {
   try {
     const learnerId = req.user._id;
 
-    const certificates = await Certificate.find({ learnerId })
+    console.log('🔍 Fetching certificates for learner:', learnerId);
+    console.log('🔍 User name:', req.user.name);
+    console.log('🔍 Learner ID type:', typeof learnerId);
+
+    // Convert learnerId to ObjectId if it's a string
+    const { Certificate } = require('../models/Project');
+    
+    // Use both ObjectId and string comparison to handle both cases
+    // Also search by learnerName as a fallback
+    const certificates = await Certificate.find({
+      $or: [
+        { learnerId: learnerId },
+        { learnerId: learnerId.toString() },
+        { learnerName: req.user.name.trim() }
+      ]
+    })
       .populate('courseId', 'title')
       .populate('projectId', 'title')
       .populate('tutorId', 'name')
       .sort({ createdAt: -1 });
+
+    console.log('🔍 Found certificates:', certificates.length);
 
     const formattedCertificates = certificates.map(certificate => ({
       id: certificate._id,
@@ -518,12 +535,14 @@ const getLearnerCertificates = async (req, res) => {
       createdAt: certificate.createdAt
     }));
 
+    console.log('🔍 Formatted certificates:', formattedCertificates);
+
     res.json({
       success: true,
       certificates: formattedCertificates
     });
   } catch (error) {
-    console.error('Error fetching learner certificates:', error);
+    console.error('❌ Error fetching learner certificates:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching certificates'

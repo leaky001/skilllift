@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaUpload, FaVideo, FaPlay, FaSpinner, FaTrash } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import { getTutorCourses } from '../../services/tutorService';
+import apiService from '../../services/api';
 
 const TutorReplays = () => {
   const { user, token } = useAuth();
@@ -58,15 +59,7 @@ const TutorReplays = () => {
     try {
       setReplaysLoading(true);
       console.log('🔄 Loading tutor replays...');
-      
-      const response = await fetch('http://localhost:3001/api/tutor/replays', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      const result = await response.json();
-      
+      const { data: result } = await apiService.get('/tutor/replays');
       if (result.success) {
         setReplays(result.data || []);
         console.log('✅ Replays loaded successfully:', result.data?.length || 0, 'replays');
@@ -84,15 +77,7 @@ const TutorReplays = () => {
 
   const handleDeleteReplay = async (replayId) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/tutor/replays/${replayId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      const result = await response.json();
-      
+      const { data: result } = await apiService.delete(`/tutor/replays/${replayId}`);
       if (result.success) {
         alert('Replay deleted successfully!');
         loadReplays(); // Reload the replays list
@@ -135,32 +120,9 @@ const TutorReplays = () => {
       console.log('🔑 Token preview:', token ? token.substring(0, 20) + '...' : 'None');
       console.log('🔑 Full Authorization header:', `Bearer ${token}`);
       
-      const response = await fetch('http://localhost:3001/api/tutor/replays/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: uploadData
-      });
-
-      console.log('📡 Response status:', response.status);
-      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
-
-      const result = await response.json();
-      console.log('📡 Response body:', result);
-      
-      if (!response.ok) {
-        console.error('❌ Server error response:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: result
-        });
-        throw new Error(result.message || `Server error: ${response.status}`);
-      }
-      
-      if (!result.success) {
-        throw new Error(result.message || 'Upload failed');
-      }
+      const { data: result } = await apiService.post('/tutor/replays/upload', uploadData);
+      console.log('📡 Upload result:', result);
+      if (!result?.success) throw new Error(result?.message || 'Upload failed');
       
       console.log('✅ Replay uploaded successfully');
       alert('Replay uploaded successfully! Students will be notified.');

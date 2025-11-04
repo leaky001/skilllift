@@ -1,0 +1,25 @@
+MongoDB Connection Fix Instructions:
+
+1. IMMEDIATE FIX - Add IP to MongoDB Atlas:
+   - Go to: https://cloud.mongodb.com/
+   - Login to your MongoDB Atlas account
+   - Navigate to: Network Access → Add IP Address
+   - Add IP: 129.222.206.70
+   - Click "Confirm"
+
+2. ALTERNATIVE CONNECTION STRING (if DNS issues persist):
+   Replace your MONGO_URI in .env with:
+   
+   MONGO_URI=mongodb://lakybass19:abass200@cluster0-shard-00-00.7qtal7v.mongodb.net:27017,cluster0-shard-00-01.7qtal7v.mongodb.net:27017,cluster0-shard-00-02.7qtal7v.mongodb.net:27017/skilllift?ssl=true&replicaSet=atlas-12345678-shard-0&authSource=admin&retryWrites=true&w=majority
+
+3. DNS FIX (if needed):
+   - Run PowerShell as Administrator
+   - Execute: netsh interface ip set dns "Wi-Fi" static 8.8.8.8
+   - Execute: netsh interface ip add dns "Wi-Fi" 1.1.1.1 index=2
+   - Restart your computer
+
+4. TEST CONNECTION:
+   After making changes, run: node test-mongo-connection.js
+
+Your current IP: 129.222.206.70
+

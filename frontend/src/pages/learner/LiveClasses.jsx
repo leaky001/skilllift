@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { liveClassService } from '../../services/liveClassService';
+import apiService from '../../services/api';
 import { toast } from 'react-toastify';
 import { 
   FaVideo, 
@@ -12,7 +13,8 @@ import {
   FaPlay,
   FaArrowRight,
   FaSpinner,
-  FaStop
+  FaStop,
+  FaTimes
 } from 'react-icons/fa';
 
 const LearnerLiveClasses = () => {
@@ -41,11 +43,77 @@ const LearnerLiveClasses = () => {
         console.log('🔄 Force refreshing live classes...');
       }
       
-      const response = await liveClassService.getLiveClasses();
-      const updatedLiveClasses = response.data || [];
+      // Use the Google Meet system for active sessions
+      let liveClassesWithSessions = [];
+      try {
+        // First, get active sessions from Google Meet system
+        const activeSessionsResponse = await apiService.get('/google-meet/live/learner/active');
+        if (activeSessionsResponse.data.success) {
+          const activeSessions = activeSessionsResponse.data.data || [];
+          console.log('🔍 Active Google Meet sessions:', activeSessions.length);
+          
+          // Convert Google Meet sessions to live class format
+          liveClassesWithSessions = activeSessions.map(session => ({
+            _id: session.sessionId,
+            courseId: session.courseId,
+            title: `${session.courseTitle} - Live Session`,
+            description: `Live class for ${session.courseTitle}`,
+            status: 'live',
+            startTime: session.startTime,
+            duration: 60, // Default duration
+            tutorName: session.tutorName,
+            meetLink: session.meetLink,
+            participants: 0 // Will be updated if needed
+          }));
+        }
+      } catch (error) {
+        console.error('❌ Error fetching active Google Meet sessions:', error);
+      }
+      
+      // Fallback: Also check the original live classes endpoint
+      try {
+        const response = await liveClassService.getLiveClasses();
+        if (response.success) {
+          const originalLiveClasses = (response.data || []).map(lc => ({
+            _id: lc._id,
+            courseId: lc.courseId._id,
+            title: lc.title,
+            description: lc.description,
+            status: lc.status || 'scheduled',
+            startTime: lc.scheduledDate,
+            duration: lc.duration,
+            tutorName: lc.tutorId?.name,
+            meetLink: lc.meetLink,
+            participants: lc.participants?.length || 0
+          }));
+          
+          // Merge with Google Meet sessions, prioritizing Google Meet data
+          const mergedClasses = [...liveClassesWithSessions];
+          originalLiveClasses.forEach(originalClass => {
+            const existsInGoogleMeet = liveClassesWithSessions.some(
+              gmClass => gmClass.courseId === originalClass.courseId
+            );
+            if (!existsInGoogleMeet) {
+              mergedClasses.push(originalClass);
+            }
+          });
+          
+          liveClassesWithSessions = mergedClasses;
+        }
+      } catch (error) {
+        console.error('❌ Error fetching original live classes:', error);
+      }
+      
+      console.log('🎯 Live classes found:', liveClassesWithSessions.length);
+      console.log('🔍 Live classes details:', liveClassesWithSessions.map(lc => ({
+        title: lc.title,
+        status: lc.status,
+        courseId: lc.courseId,
+        meetLink: lc.meetLink ? 'Present' : 'Missing'
+      })));
       
       // Check if any live class status has changed
-      const statusChanged = updatedLiveClasses.some((lc, index) => {
+      const statusChanged = liveClassesWithSessions.some((lc, index) => {
         const oldStatus = liveClasses[index]?.status;
         const newStatus = lc.status;
         return oldStatus !== newStatus;
@@ -54,16 +122,16 @@ const LearnerLiveClasses = () => {
       if (statusChanged) {
         console.log('🔄 Live class status changed, updating UI...');
         console.log('Previous statuses:', liveClasses.map(lc => lc.status));
-        console.log('New statuses:', updatedLiveClasses.map(lc => lc.status));
+        console.log('New statuses:', liveClassesWithSessions.map(lc => lc.status));
         
         // Show toast notification for status change
-        const liveClass = updatedLiveClasses.find(lc => lc.status === 'live');
+        const liveClass = liveClassesWithSessions.find(lc => lc.status === 'live');
         if (liveClass) {
           toast.success(`Live class "${liveClass.title}" is now active! You can join now.`);
         }
       }
       
-      setLiveClasses(updatedLiveClasses);
+      setLiveClasses(liveClassesWithSessions);
       
       // Expose function to window for manual testing
       if (typeof window !== 'undefined') {
@@ -85,25 +153,16 @@ const LearnerLiveClasses = () => {
   const handleJoinLiveClass = async (liveClass) => {
     if (liveClass.status === 'live') {
       try {
-        console.log('🎯 Learner joining live class:', liveClass._id);
-        const response = await liveClassService.joinLiveClass(liveClass._id);
-        console.log('🎯 Join response:', response);
+        console.log('🎯 Learner joining Google Meet live class:', liveClass.title);
         
-        // Navigate to full screen live class
-        navigate(`/live-class/${liveClass._id}`, {
-          state: {
-            liveClass: {
-              ...liveClass,
-              callId: response.data.callId,
-              streamToken: response.data.streamToken
-            },
-            streamToken: response.data.streamToken,
-            callId: response.data.callId,
-            sessionId: response.data.sessionId
-          }
-        });
-        
-        toast.success('Successfully joined the live class!');
+        // Open Google Meet link directly
+        if (liveClass.meetLink) {
+          window.open(liveClass.meetLink, '_blank');
+          toast.success('Opening Google Meet live class!');
+        } else {
+          console.warn('⚠️ No meet link found in liveClass:', liveClass);
+          toast.error('Unable to join live class - no meeting link available');
+        }
       } catch (error) {
         console.error('Error joining live class:', error);
         toast.error(error.response?.data?.message || 'Failed to join live class');
@@ -250,13 +309,33 @@ const LearnerLiveClasses = () => {
                     className={`w-full flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors ${
                       liveClass.status === 'live'
                         ? 'bg-secondary-600 text-white hover:bg-secondary-700'
+                        : liveClass.status === 'ended' || liveClass.status === 'completed'
+                        ? 'bg-gray-500 text-white cursor-not-allowed'
                         : 'bg-primary-300 text-primary-500 cursor-not-allowed'
                     }`}
                   >
-                    <FaPlay className="mr-2" />
-                    {liveClass.status === 'live' ? 'Join Live Class' : 
-                     liveClass.status === 'ready' || liveClass.status === 'scheduled' ? 'Waiting for Tutor to Start' : 'Not Available'}
-                    <FaArrowRight className="ml-2" />
+                    {liveClass.status === 'live' ? (
+                      <>
+                        <FaPlay className="mr-2" />
+                        Join Live Class
+                        <FaArrowRight className="ml-2" />
+                      </>
+                    ) : liveClass.status === 'ended' || liveClass.status === 'completed' ? (
+                      <>
+                        <FaStop className="mr-2" />
+                        Live Class Ended
+                      </>
+                    ) : liveClass.status === 'ready' || liveClass.status === 'scheduled' ? (
+                      <>
+                        <FaClock className="mr-2" />
+                        Waiting for Tutor to Start
+                      </>
+                    ) : (
+                      <>
+                        <FaTimes className="mr-2" />
+                        Not Available
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

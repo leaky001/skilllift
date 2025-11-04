@@ -259,6 +259,13 @@ export const getNotificationIcon = (type) => {
     dispute_reported: '🚨',
     dispute_resolved: '✅',
     
+    // Message related
+    message_received: '💬',
+    message_sent: '📤',
+    tutor_message: '👨‍🏫',
+    learner_message: '👨‍🎓',
+    chat_message: '💬',
+    
     // General
     general: '📢'
   };
@@ -317,6 +324,14 @@ export const getNotificationColor = (type) => {
     system_update: 'indigo',
     support_ticket: 'indigo',
     support_response: 'indigo',
+    
+    // Message related
+    message_received: 'blue',
+    message_sent: 'blue',
+    tutor_message: 'blue',
+    learner_message: 'blue',
+    chat_message: 'blue',
+    
     general: 'indigo'
   };
   
@@ -406,6 +421,13 @@ export const getTypeLabel = (type) => {
     dispute_reported: 'Dispute Reported',
     dispute_resolved: 'Dispute Resolved',
     
+    // Message related
+    message_received: 'Message Received',
+    message_sent: 'Message Sent',
+    tutor_message: 'Message from Tutor',
+    learner_message: 'Message from Student',
+    chat_message: 'Chat Message',
+    
     // General
     general: 'General'
   };
@@ -435,7 +457,11 @@ export const isActionable = (type) => {
     'support_ticket',
     'support_response',
     'dispute_reported',
-    'dispute_resolved'
+    'dispute_resolved',
+    'message_received',
+    'tutor_message',
+    'learner_message',
+    'chat_message'
   ];
   
   return actionableTypes.includes(type);
@@ -463,7 +489,11 @@ export const getActionText = (type) => {
     support_ticket: 'Respond',
     support_response: 'View Response',
     dispute_reported: 'Investigate',
-    dispute_resolved: 'View Details'
+    dispute_resolved: 'View Details',
+    message_received: 'View Message',
+    tutor_message: 'Reply to Tutor',
+    learner_message: 'Reply to Student',
+    chat_message: 'Open Chat'
   };
   
   return actionMap[type] || 'View Details';

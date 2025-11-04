@@ -8,6 +8,8 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const connectDB = require('./config/db');
 const initializeSocketIO = require('./socketio');
 const { handleUploadError, cleanupUploads } = require('./middleware/uploadMiddleware');
+const googleMeetAutoEndService = require('./services/googleMeetAutoEndService');
+const simpleAutoEndService = require('./services/simpleAutoEndService');
 const {
   securityHeaders,
   requestSizeLimit,
@@ -136,6 +138,11 @@ app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/complaints', require('./routes/complaintRoutes'));
 app.use('/api/search', require('./routes/searchRoutes'));
 app.use('/api/settings', require('./routes/settingsRoutes'));
+app.use('/api/google-meet', require('./routes/googleMeetRoutes'));
+console.log('✅ Google Meet routes loaded');
+app.use('/api/recordings', require('./routes/recordingRoutes'));
+app.use('/api/replay', require('./routes/replayRoutes'));
+console.log('✅ Recording routes loaded');
 // Apply rate limiting conditionally based on environment
 if (process.env.NODE_ENV === 'development') {
   // No rate limiting in development
@@ -146,7 +153,7 @@ if (process.env.NODE_ENV === 'development') {
   app.use('/api/lessons', uploadLimiter, handleUploadError, cleanupUploads, require('./routes/lessonRoutes'));
   app.use('/api/tutor', dashboardLimiter, uploadLimiter, handleUploadError, cleanupUploads, require('./routes/tutorRoutes'));
 }
-app.use('/api/stream', require('./routes/streamRoutes'));
+// Stream SDK routes removed - using Google Meet instead
 app.use('/api/live-classes', require('./routes/liveClassRoutes'));
 app.use('/', require('./routes/testRoutes'));
 app.use('/api/learner/replays', require('./routes/learnerReplayRoutes'));
@@ -156,6 +163,14 @@ app.use('/api/streaks', require('./routes/streakRoutes'));
 app.use('/api/kyc', require('./routes/kycRoutes'));
 app.use('/api/project-submissions', require('./routes/projectRoutes'));
 app.use('/api/certificates', require('./routes/certificateRoutes'));
+
+// Stub endpoint for project notifications (until properly implemented)
+app.get('/api/project-notifications/learner', (req, res) => {
+  res.json({
+    success: true,
+    notifications: []
+  });
+});
 
 app.get('/', (req, res) => {
     res.json('SkillLift Backend  API is running');
@@ -238,34 +253,73 @@ app.use('*', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 5000; // Use port 5000
+const BASE_PORT = Number(process.env.PORT || 5000);
 
-const server = app.listen(PORT, () => {
-  console.log(`🚀 SkillLift Backend API running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔐 Auth API: http://localhost:${PORT}/api/auth`);
-  console.log(`👥 Users API: http://localhost:${PORT}/api/users`);
-  console.log(`📝 Assignments API: http://localhost:${PORT}/api/assignments`);
-  console.log(`📚 Courses API: http://localhost:${PORT}/api/courses`);
-  console.log(`🎓 Enrollments API: http://localhost:${PORT}/api/enrollments`);
-  console.log(`🤝 Mentorship API: http://localhost:${PORT}/api/mentorship`);
-  console.log(`🔔 Notifications API: http://localhost:${PORT}/api/notifications`);
-  console.log(`💬 Messages API: http://localhost:${PORT}/api/messages`);
-  console.log(`⭐ Ratings API: http://localhost:${PORT}/api/ratings`);
-  console.log(`💰 Transactions API: http://localhost:${PORT}/api/transactions`);
-  console.log(`🏫 Classes API: http://localhost:${PORT}/api/classes`);
-  console.log(`👨‍💼 Admin API: http://localhost:${PORT}/api/admin`);
-  console.log(`💳 Payments API: http://localhost:${PORT}/api/payments`);
-  console.log(`📚 Simple Lessons API: http://localhost:${PORT}/api/simple-lessons`);
-});
+function startServerWithPort(port, attempt = 0) {
+  const server = app.listen(port, () => {
+    console.log(`🚀 SkillLift Backend API running on port ${port}`);
+    console.log(`📊 Health check: http://localhost:${port}/health`);
+    console.log(`🔐 Auth API: http://localhost:${port}/api/auth`);
+    console.log(`👥 Users API: http://localhost:${port}/api/users`);
+    console.log(`📝 Assignments API: http://localhost:${port}/api/assignments`);
+    console.log(`📚 Courses API: http://localhost:${port}/api/courses`);
+    console.log(`🎓 Enrollments API: http://localhost:${port}/api/enrollments`);
+    console.log(`🤝 Mentorship API: http://localhost:${port}/api/mentorship`);
+    console.log(`🔔 Notifications API: http://localhost:${port}/api/notifications`);
+    console.log(`💬 Messages API: http://localhost:${port}/api/messages`);
+    console.log(`⭐ Ratings API: http://localhost:${port}/api/ratings`);
+    console.log(`💰 Transactions API: http://localhost:${port}/api/transactions`);
+    console.log(`🏫 Classes API: http://localhost:${port}/api/classes`);
+    console.log(`👨‍💼 Admin API: http://localhost:${port}/api/admin`);
+    console.log(`💳 Payments API: http://localhost:${port}/api/payments`);
+    console.log(`📚 Simple Lessons API: http://localhost:${port}/api/simple-lessons`);
 
-// Initialize WebSocket server
-const io = initializeSocketIO(server);
-console.log(`🔌 WebSocket server initialized`);
+    // Initialize WebSocket server
+    const io = initializeSocketIO(server);
+    console.log(`🔌 WebSocket server initialized`);
 
+    // Pass Socket.IO instance to services
+    const { setSocketIO: setChatSocketIO } = require('./controllers/chatController');
+    setChatSocketIO(io);
 
-// Pass Socket.IO instance to chat controller
-const { setSocketIO: setChatSocketIO } = require('./controllers/chatController');
-setChatSocketIO(io);
+    // Pass Socket.IO instance to NotificationService
+    const NotificationService = require('./services/notificationService');
+    NotificationService.setSocketIO(io);
+    console.log(`🔔 NotificationService initialized with Socket.IO`);
+
+    // Start background services only after Mongo is connected
+    const startServices = () => {
+      if (mongoose.connection.readyState === 1) {
+        if (!global.__AUTO_END_STARTED__) {
+          googleMeetAutoEndService.start();
+          simpleAutoEndService.start();
+          global.__AUTO_END_STARTED__ = true;
+          console.log(`🎥 Auto-End Services started`);
+        }
+      } else {
+        console.log('⏳ Waiting for MongoDB connection before starting services...');
+        setTimeout(startServices, 2000);
+      }
+    };
+    startServices();
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE' && attempt < 5) {
+      const nextPort = port + 1;
+      console.warn(`⚠️ Port ${port} is in use. Retrying on ${nextPort}...`);
+      startServerWithPort(nextPort, attempt + 1);
+    } else {
+      console.error('❌ Failed to start server:', err);
+      process.exit(1);
+    }
+  });
+
+  return server;
+}
+
+const server = startServerWithPort(BASE_PORT);
+
+// (SocketIO + services initialization moved into startServerWithPort)
 
 module.exports = app;

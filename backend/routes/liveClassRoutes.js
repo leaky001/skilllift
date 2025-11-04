@@ -7,6 +7,7 @@ const {
   joinLiveClass,
   joinLiveClassAsTutor,
   endLiveClass,
+  deleteLiveClass,
   getLiveClass,
   getLiveClasses,
   getCourseLiveClasses,
@@ -51,6 +52,11 @@ router.post('/:id/join', authorize(['learner', 'tutor']), joinLiveClass);
 // @route   POST /api/live-classes/:id/end
 // @access  Private (Tutor)
 router.post('/:id/end', authorize('tutor'), endLiveClass);
+
+// @desc    Delete a live class
+// @route   DELETE /api/live-classes/:id
+// @access  Private (Tutor)
+router.delete('/:id', authorize('tutor'), deleteLiveClass);
 
 // @desc    Send chat message
 // @route   POST /api/live-classes/:id/chat

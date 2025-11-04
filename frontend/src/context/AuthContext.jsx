@@ -10,7 +10,7 @@ export { AuthContext };
 const initialState = {
   user: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true, // Start with loading true to prevent redirects during initialization
   error: null,
   isInitialized: false,
   isAuthenticating: false,
@@ -151,6 +151,7 @@ export const AuthProvider = ({ children }) => {
               // Token invalid, clear storage
               sessionStorage.removeItem(getStorageKey('user'));
               sessionStorage.removeItem(getStorageKey('token'));
+              dispatch({ type: 'SET_LOADING', payload: false });
             }
           } catch (error) {
             console.log('❌ Token verification error:', error);
@@ -159,12 +160,15 @@ export const AuthProvider = ({ children }) => {
             // Token invalid, clear storage
             sessionStorage.removeItem(getStorageKey('user'));
             sessionStorage.removeItem(getStorageKey('token'));
+            dispatch({ type: 'SET_LOADING', payload: false });
           }
         } else {
           console.log('❌ No stored user or token found');
+          dispatch({ type: 'SET_LOADING', payload: false });
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
+        dispatch({ type: 'SET_LOADING', payload: false });
       } finally {
         dispatch({ type: 'SET_INITIALIZED', payload: true });
       }

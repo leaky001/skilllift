@@ -1,0 +1,31 @@
+MongoDB Atlas Connection Fix Instructions:
+
+1. GO TO MONGODB ATLAS:
+   - Visit: https://cloud.mongodb.com/
+   - Login with your account
+   - Select your cluster: cluster0
+
+2. GET THE CORRECT CONNECTION STRING:
+   - Click "Connect" on your cluster
+   - Choose "Connect your application"
+   - Select "Node.js" and version "4.1 or later"
+   - Copy the connection string
+
+3. UPDATE YOUR .env FILE:
+   Replace the MONGO_URI line with the correct connection string from Atlas
+
+4. ADD YOUR IP TO WHITELIST:
+   - Go to "Network Access" in Atlas
+   - Click "Add IP Address"
+   - Add: 129.222.206.70 (your current IP)
+   - Or temporarily add: 0.0.0.0/0 (allow all IPs - less secure)
+
+5. RESTART YOUR SERVER:
+   - Stop the current server (Ctrl+C)
+   - Run: npm run dev
+
+The issue is that the replica set name in the connection string is incorrect.
+You need to get the exact connection string from MongoDB Atlas.
+
+Your current IP: 129.222.206.70
+

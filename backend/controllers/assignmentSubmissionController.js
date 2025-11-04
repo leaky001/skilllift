@@ -57,13 +57,15 @@ exports.submitAssignment = asyncHandler(async (req, res) => {
     console.log('🔍 Debug - Request body:', req.body);
     console.log('🔍 Debug - Request files:', req.files);
     console.log('🔍 Debug - Assignment ID:', assignmentId);
+    console.log('🔍 Debug - Learner ID:', learnerId);
 
     // Validate required fields
     if (!assignmentId) {
       console.log('❌ Missing assignment ID');
       return res.status(400).json({ 
         success: false, 
-        message: 'Assignment ID is required' 
+        message: 'Assignment ID is required',
+        errors: ['Assignment ID is required']
       });
     }
 
@@ -72,7 +74,8 @@ exports.submitAssignment = asyncHandler(async (req, res) => {
       console.log('❌ Invalid assignment ID format:', assignmentId);
       return res.status(400).json({ 
         success: false, 
-        message: 'Invalid assignment ID format' 
+        message: 'Invalid assignment ID format',
+        errors: ['Invalid assignment ID format']
       });
     }
 
@@ -106,7 +109,8 @@ exports.submitAssignment = asyncHandler(async (req, res) => {
       console.log('❌ Assignment missing course field');
       return res.status(400).json({ 
         success: false, 
-        message: 'Assignment is missing course information' 
+        message: 'Assignment is missing course information',
+        errors: ['Assignment is missing course information']
       });
     }
 
@@ -114,7 +118,8 @@ exports.submitAssignment = asyncHandler(async (req, res) => {
       console.log('❌ Assignment missing tutor field');
       return res.status(400).json({ 
         success: false, 
-        message: 'Assignment is missing tutor information' 
+        message: 'Assignment is missing tutor information',
+        errors: ['Assignment is missing tutor information']
       });
     }
 
@@ -133,14 +138,16 @@ exports.submitAssignment = asyncHandler(async (req, res) => {
       console.log('❌ Missing course or tutor ID');
       return res.status(400).json({ 
         success: false, 
-        message: 'Assignment is missing course or tutor ID' 
+        message: 'Assignment is missing course or tutor ID',
+        errors: ['Assignment is missing course or tutor ID']
       });
     }
 
     if (assignment.status !== 'published') {
       return res.status(400).json({ 
         success: false, 
-        message: 'Assignment is not available for submission. Please contact your tutor.' 
+        message: 'Assignment is not available for submission. Please contact your tutor.',
+        errors: ['Assignment is not available for submission']
       });
     }
 
@@ -254,16 +261,16 @@ exports.submitAssignment = asyncHandler(async (req, res) => {
     console.log('🔍 Debug - Videos data:', JSON.stringify(videos, null, 2));
     console.log('🔍 Debug - Combined attachments:', JSON.stringify([...attachments, ...videos], null, 2));
     
-    // Temporary fix: Create submission without attachments first
+    // Create submission data
     const submissionData = {
       assignment: assignmentId,
       learner: learnerId,
       course: courseId,
       tutor: tutorId,
-      content,
-      attachments: [], // Temporarily empty to test
-      links: parsedLinks,
-      submissionNotes,
+      content: content || '',
+      attachments: [], // Will be populated after saving
+      links: parsedLinks || [],
+      submissionNotes: submissionNotes || '',
       isLate,
       lateBy,
       maxScore: assignment.points,
