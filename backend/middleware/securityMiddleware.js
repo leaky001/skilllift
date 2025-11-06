@@ -91,38 +91,49 @@ const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
       // Local development
+      'http://localhost:5172',
       'http://localhost:5173',
       'http://localhost:3000',
+      'http://127.0.0.1:5172',
       'http://127.0.0.1:5173',
-      // Production Vercel domain
+      // Production Vercel domains
       'https://skilllift-lyart.vercel.app',
-      // Production Render backend domain
-      
-      // Environment variable
-      process.env.FRONTEND_URL
+      'https://skilllift.vercel.app',
+      // Production custom domain (if any)
+      'https://skilllift.app',
+      'https://www.skilllift.app',
+      // Environment variable (allows setting via env)
+      process.env.FRONTEND_URL,
+      process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null
     ].filter(Boolean);
     
     // In development, be more permissive
     if (process.env.NODE_ENV === 'development') {
+      console.log('🔓 CORS: Development mode - allowing all origins');
       return callback(null, true);
     }
     
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (like mobile apps, Postman, or curl requests)
     if (!origin) {
+      console.log('🔓 CORS: No origin - allowing request (mobile/Postman/curl)');
       return callback(null, true);
     }
     
-    // Allow any Vercel domain
-    if (origin && origin.includes('.vercel.app')) {
+    // Allow any Vercel domain (covers all Vercel deployments)
+    if (origin && (origin.includes('.vercel.app') || origin.includes('vercel.app'))) {
+      console.log('✅ CORS: Vercel domain allowed:', origin);
       return callback(null, true);
     }
     
+    // Check if origin is in allowed list
     if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log('✅ CORS: Origin allowed:', origin);
       callback(null, true);
     } else {
-      console.log('❌ CORS blocked origin:', origin);
+      console.error('❌ CORS blocked origin:', origin);
       console.log('✅ Allowed origins:', allowedOrigins);
-      callback(new Error('Not allowed by CORS'));
+      console.log('🔧 Add this origin to CORS configuration or set FRONTEND_URL environment variable');
+      callback(new Error(`Not allowed by CORS. Origin: ${origin}`));
     }
   },
   credentials: true,
@@ -131,9 +142,13 @@ const corsOptions = {
     'Content-Type', 
     'Authorization', 
     'x-auth-token',
-    'x-requested-with'
+    'x-requested-with',
+    'Accept',
+    'Origin',
+    'X-Requested-With'
   ],
-  exposedHeaders: ['x-auth-token']
+  exposedHeaders: ['x-auth-token'],
+  maxAge: 86400 // 24 hours
 };
 
 // Request logging middleware

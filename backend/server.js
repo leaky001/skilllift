@@ -50,8 +50,11 @@ app.use(securityHeaders);
 app.use(requestSizeLimit);
 app.use(requestLogger);
 
-// CORS configuration
+// CORS configuration - MUST be before routes
 app.use(cors(corsOptions));
+
+// Handle preflight OPTIONS requests explicitly
+app.options('*', cors(corsOptions));
 
 // Apply rate limiting middleware (disabled in development for easier testing)
 if (process.env.NODE_ENV !== 'development') {
