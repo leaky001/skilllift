@@ -87,39 +87,6 @@ exports.registerUser = asyncHandler(async (req, res) => {
     const verificationCode = user.getEmailVerificationCode();
     await user.save();
 
-    // Send email verification (don't let email failure crash registration)
-    try {
-      await sendEmailVerification(user, verificationCode);
-    } catch (error) {
-      console.error('Email verification sending failed:', error.message);
-      // Don't crash the registration - just log the error
-    }
-
-    // Create notification for admin about new tutor registration (not learners)
-    if (role === 'tutor') {
-      try {
-        const adminUserId = await getAdminUserId();
-        if (adminUserId) {
-          await Notification.create({
-            recipient: adminUserId,
-            type: 'new_tutor_registration',
-            title: 'New Tutor Registration',
-            message: `${name} (${email}) has registered as a tutor. They need to complete KYC verification.`,
-            data: {
-              userId: user._id,
-              userName: name,
-              userEmail: email,
-              userRole: role,
-              userPhone: phone
-            }
-          });
-        }
-      } catch (notificationError) {
-        console.error('Admin notification creation failed:', notificationError.message);
-        // Don't crash the registration - just log the error
-      }
-    }
-
     // Generate appropriate response message based on role
     let message = 'Registration successful! Please check your email for the verification code.';
     let requiresAccountApproval = false;
@@ -131,7 +98,8 @@ exports.registerUser = asyncHandler(async (req, res) => {
       requiresAccountApproval = true;
     }
 
-    res.status(201).json({
+    // Send response immediately after user creation (use 200 instead of 201 for better compatibility)
+    const responseData = {
       success: true,
       data: {
         _id: user._id,
@@ -146,6 +114,48 @@ exports.registerUser = asyncHandler(async (req, res) => {
       message: message,
       requiresEmailVerification: true,
       requiresAccountApproval: requiresAccountApproval
+    };
+
+    // Send response first to ensure client receives it
+    res.status(200).json(responseData);
+
+    // Run async operations AFTER sending response (fire and forget)
+    // This prevents any delays or errors from affecting the registration response
+    setImmediate(async () => {
+      // Send email verification (don't let email failure crash registration)
+      try {
+        await sendEmailVerification(user, verificationCode);
+        console.log('✅ Email verification sent successfully to:', user.email);
+      } catch (error) {
+        console.error('❌ Email verification sending failed:', error.message);
+        // Don't crash the registration - just log the error
+      }
+
+      // Create notification for admin about new tutor registration (not learners)
+      if (role === 'tutor') {
+        try {
+          const adminUserId = await getAdminUserId();
+          if (adminUserId) {
+            await Notification.create({
+              recipient: adminUserId,
+              type: 'new_tutor_registration',
+              title: 'New Tutor Registration',
+              message: `${name} (${email}) has registered as a tutor. They need to complete KYC verification.`,
+              data: {
+                userId: user._id,
+                userName: name,
+                userEmail: email,
+                userRole: role,
+                userPhone: phone
+              }
+            });
+            console.log('✅ Admin notification created for new tutor:', user.email);
+          }
+        } catch (notificationError) {
+          console.error('❌ Admin notification creation failed:', notificationError.message);
+          // Don't crash the registration - just log the error
+        }
+      }
     });
   } else {
     res.status(400);

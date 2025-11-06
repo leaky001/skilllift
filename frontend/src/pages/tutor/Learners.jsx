@@ -146,11 +146,11 @@ const TutorLearners = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'active':
-        return 'bg-success-100 text-success-800';
+        return 'bg-green-100 text-green-800 border-green-200';
       case 'inactive':
-        return 'bg-neutral-100 text-neutral-800';
+        return 'bg-slate-100 text-slate-800 border-slate-200';
       default:
-        return 'bg-neutral-100 text-neutral-800';
+        return 'bg-slate-100 text-slate-800 border-slate-200';
     }
   };
 
@@ -246,78 +246,79 @@ const TutorLearners = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-neutral-900">My Learners</h1>
-          <p className="text-neutral-600 mt-2">Manage and track your students' progress</p>
+          <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-2">My Learners</h1>
+          <p className="text-slate-600 text-lg">Manage and track your students' progress</p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <div className="flex items-center space-x-3">
-            <div className="bg-secondary-100 rounded-lg p-3">
-              <FaUserGraduate className="text-secondary-600 text-xl" />
+          <div className="flex items-center space-x-3 bg-white rounded-xl shadow-md border border-slate-100 p-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center">
+              <FaUserGraduate className="text-primary-600 text-xl" />
             </div>
             <div>
-              <p className="text-sm text-neutral-500">Total Learners</p>
-              <p className="text-2xl font-bold text-secondary-600">{learners.length}</p>
+              <p className="text-sm text-slate-600 font-medium">Total Learners</p>
+              <p className="text-3xl font-bold text-primary-600">{learners.length}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-neutral-200">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white rounded-xl p-6 shadow-md border border-slate-100 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center">
-            <div className="bg-primary-100 rounded-lg p-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center flex-shrink-0">
               <FaGraduationCap className="text-primary-600 text-xl" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm text-neutral-500">Active Learners</p>
-              <p className="text-2xl font-bold text-primary-600">
+            <div className="ml-4 flex-1 min-w-0">
+              <p className="text-sm text-slate-600 font-medium">Active Learners</p>
+              <p className="text-3xl font-bold text-slate-900">
                 {learners.filter(l => l.status === 'active').length}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-neutral-200">
+        <div className="bg-white rounded-xl p-6 shadow-md border border-slate-100 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center">
-            <div className="bg-secondary-100 rounded-lg p-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-secondary-100 to-secondary-200 rounded-xl flex items-center justify-center flex-shrink-0">
               <FaChartLine className="text-secondary-600 text-xl" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm text-neutral-500">Avg Progress</p>
-              <p className="text-2xl font-bold text-secondary-600">
+            <div className="ml-4 flex-1 min-w-0">
+              <p className="text-sm text-slate-600 font-medium">Avg Progress</p>
+              <p className="text-3xl font-bold text-slate-900">
                 {Math.round(learners.reduce((acc, l) => acc + l.progress, 0) / learners.length)}%
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-neutral-200">
+        <div className="bg-white rounded-xl p-6 shadow-md border border-slate-100 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center">
-            <div className="bg-accent-100 rounded-lg p-3">
-              <FaStar className="text-accent-600 text-xl" />
+            <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl flex items-center justify-center flex-shrink-0">
+              <FaStar className="text-amber-600 text-xl" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm text-neutral-500">Avg Rating</p>
-              <p className="text-2xl font-bold text-accent-600">
+            <div className="ml-4 flex-1 min-w-0">
+              <p className="text-sm text-slate-600 font-medium">Avg Rating</p>
+              <p className="text-3xl font-bold text-slate-900">
                 {Math.round(learners.reduce((acc, l) => acc + l.rating, 0) / learners.length * 10) / 10}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-neutral-200">
+        <div className="bg-white rounded-xl p-6 shadow-md border border-slate-100 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center">
-            <div className="bg-success-100 rounded-lg p-3">
-              <FaClock className="text-success-600 text-xl" />
+            <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center flex-shrink-0">
+              <FaClock className="text-emerald-600 text-xl" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm text-neutral-500">Recent Activity</p>
-              <p className="text-2xl font-bold text-success-600">
+            <div className="ml-4 flex-1 min-w-0">
+              <p className="text-sm text-slate-600 font-medium">Recent Activity</p>
+              <p className="text-3xl font-bold text-slate-900">
                 {learners.filter(l => l.lastActive.includes('hour') || l.lastActive.includes('minute')).length}
               </p>
             </div>
@@ -326,26 +327,26 @@ const TutorLearners = () => {
       </div>
 
       {/* Search and Filter */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-neutral-200">
+      <div className="bg-white rounded-xl p-6 shadow-md border border-slate-100">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search learners by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-secondary-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
               />
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <FaFilter className="text-neutral-500" />
+            <FaFilter className="text-slate-500" />
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-secondary-500 focus:border-transparent"
+              className="border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -356,90 +357,90 @@ const TutorLearners = () => {
       </div>
 
       {/* Learners List */}
-      <div className="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-md border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-neutral-200">
-            <thead className="bg-neutral-50">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
                   Learner
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
                   Progress
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
                   Last Active
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
                   Rating
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                  Actions
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-neutral-200">
+            <tbody className="bg-white divide-y divide-slate-200">
               {filteredLearners.map((learner) => (
-                <tr key={learner.id} className="hover:bg-neutral-50">
+                <tr key={learner.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md">
                         {learner.avatar}
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-neutral-900">{learner.name}</div>
-                        <div className="text-sm text-neutral-500">{learner.email}</div>
-                        <div className="text-xs text-neutral-400">{learner.coursesEnrolled} courses</div>
+                        <div className="text-sm font-bold text-slate-900">{learner.name}</div>
+                        <div className="text-sm text-slate-600">{learner.email}</div>
+                        <div className="text-xs text-slate-500">{learner.coursesEnrolled} courses</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(learner.status)}`}>
+                    <span className={`inline-flex px-3 py-1.5 text-xs font-bold rounded-full border ${getStatusColor(learner.status)}`}>
                       {learner.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-20 bg-neutral-200 rounded-full h-2 mr-3">
+                      <div className="w-20 bg-slate-200 rounded-full h-2 mr-3">
                         <div 
                           className={`h-2 rounded-full ${getProgressColor(learner.progress)}`}
                           style={{ width: `${learner.progress}%` }}
                         ></div>
                       </div>
-                      <span className="text-sm text-neutral-900">{learner.progress}%</span>
+                      <span className="text-sm font-semibold text-slate-900">{learner.progress}%</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                     {learner.lastActive}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <FaStar className="text-accent-500 text-sm mr-1" />
-                      <span className="text-sm text-neutral-900">{learner.rating}</span>
+                      <FaStar className="text-amber-500 text-sm mr-1" />
+                      <span className="text-sm font-semibold text-slate-900">{learner.rating}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => setSelectedLearner(learner)}
-                        className="text-primary-600 hover:text-primary-900 p-2 rounded-lg hover:bg-primary-50 transition-colors"
+                        className="text-primary-600 hover:text-primary-700 p-2 rounded-xl hover:bg-primary-50 transition-all duration-200"
                         title="View Details"
                       >
                         <FaEye className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => openMessageModal(learner)}
-                        className="text-secondary-600 hover:text-secondary-900 p-2 rounded-lg hover:bg-secondary-50 transition-colors"
+                        className="text-primary-600 hover:text-primary-700 p-2 rounded-xl hover:bg-primary-50 transition-all duration-200"
                         title="Send Message"
                       >
                         <FaEnvelope className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleStartCall(learner)}
-                        className="text-accent-600 hover:text-accent-900 p-2 rounded-lg hover:bg-accent-50 transition-colors"
+                        className="text-primary-600 hover:text-primary-700 p-2 rounded-xl hover:bg-primary-50 transition-all duration-200"
                         title="Start Video Call"
                       >
                         <FaVideo className="h-4 w-4" />
@@ -451,6 +452,7 @@ const TutorLearners = () => {
             </tbody>
           </table>
         </div>
+      </div>
       </div>
 
       {/* Enhanced Learner Details Modal */}

@@ -107,84 +107,92 @@ const TutorLearnerMessaging = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 p-6">
       <div className="max-w-6xl mx-auto">
         {/* Simple Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-md border border-slate-100 p-6 mb-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <FaComments className="text-blue-600 text-2xl" />
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center shadow-md">
+                <FaComments className="text-primary-600 text-2xl" />
+              </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Student Chat</h1>
-                <p className="text-gray-600">Communicate with your students about courses and assignments</p>
+                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Student Chat</h1>
+                <p className="text-slate-600 text-lg">Communicate with your students about courses and assignments</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Students List */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-              <FaGraduationCap className="mr-2 text-blue-600" />
+        <div className="bg-white rounded-xl shadow-md border border-slate-100">
+          <div className="p-6 border-b border-slate-200">
+            <h2 className="text-xl font-bold text-slate-900 flex items-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-secondary-100 to-secondary-200 rounded-xl flex items-center justify-center mr-3 shadow-md">
+                <FaGraduationCap className="text-secondary-600" />
+              </div>
               Your Students ({learners.length})
             </h2>
           </div>
 
           {loading ? (
-            <div className="p-6 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading students...</p>
+            <div className="p-12 text-center bg-slate-50 rounded-xl border border-slate-200 m-6">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+              <p className="mt-3 text-slate-600 font-medium">Loading students...</p>
             </div>
           ) : learners.length === 0 ? (
-            <div className="p-6 text-center text-gray-500">
-              <FaUserTie className="text-4xl mx-auto mb-3 text-gray-300" />
-              <p>No students enrolled in your courses yet</p>
-              <p className="text-sm mt-2">Students will appear here once they enroll in your courses</p>
+            <div className="p-12 text-center bg-slate-50 rounded-xl border border-slate-200 m-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
+                <FaUserTie className="text-4xl text-primary-600" />
+              </div>
+              <p className="text-slate-900 font-bold text-lg mb-2">No students enrolled in your courses yet</p>
+              <p className="text-sm text-slate-600 font-medium">Students will appear here once they enroll in your courses</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-slate-200">
               {learners.map((learner) => (
                 <motion.div
                   key={learner._id}
-                  className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="p-5 hover:bg-slate-50 transition-all duration-200 cursor-pointer"
                   onClick={() => startChat(learner)}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-4">
                       <div className="relative">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <FaUserTie className="text-blue-600" />
+                        <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center shadow-md">
+                          <FaUserTie className="text-primary-600" />
                         </div>
-                        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                          isUserOnline(learner._id) ? 'bg-green-500' : 'bg-gray-400'
+                        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white shadow-md ${
+                          isUserOnline(learner._id) ? 'bg-green-500' : 'bg-slate-400'
                         }`}>
                           <FaCircle className="w-full h-full" />
                         </div>
                       </div>
                       <div>
-                        <h3 className="font-medium text-gray-900">{learner.name}</h3>
-                        <p className="text-sm text-gray-600">{learner.email}</p>
+                        <h3 className="font-bold text-slate-900">{learner.name}</h3>
+                        <p className="text-sm text-slate-600 font-medium">{learner.email}</p>
                         {learner.courses && learner.courses.length > 0 && (
                           <div className="mt-1">
-                            <p className="text-xs text-blue-600">
+                            <p className="text-xs text-primary-600 font-semibold">
                               Enrolled in: {learner.courses.map(course => course.title).join(', ')}
                             </p>
                           </div>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`text-xs px-2 py-1 rounded-full ${
+                    <div className="flex items-center space-x-3">
+                      <span className={`text-xs px-3 py-1.5 rounded-full font-bold border ${
                         isUserOnline(learner._id) 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-600'
+                          ? 'bg-green-100 text-green-800 border-green-200' 
+                          : 'bg-slate-100 text-slate-600 border-slate-200'
                       }`}>
                         {isUserOnline(learner._id) ? 'Online' : 'Offline'}
                       </span>
-                      <FaPaperPlane className="text-blue-600" />
+                      <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center shadow-md">
+                        <FaPaperPlane className="text-primary-600" />
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -195,30 +203,30 @@ const TutorLearnerMessaging = () => {
 
         {/* Chat Modal */}
         {showChatModal && activeChat && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg w-full max-w-4xl h-[80vh] flex flex-col">
-              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-xl w-full max-w-4xl h-[80vh] flex flex-col shadow-2xl border border-slate-200">
+              <div className="flex items-center justify-between p-5 border-b border-slate-200 bg-gradient-to-r from-primary-50 to-primary-100/50">
                 <div className="flex items-center space-x-3">
                   <div className="relative">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <FaUserTie className="text-blue-600" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center shadow-md">
+                      <FaUserTie className="text-primary-600" />
                     </div>
-                    <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
-                      isUserOnline(activeChat.otherUser._id) ? 'bg-green-500' : 'bg-gray-400'
+                    <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white shadow-md ${
+                      isUserOnline(activeChat.otherUser._id) ? 'bg-green-500' : 'bg-slate-400'
                     }`}>
                       <FaCircle className="w-full h-full" />
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900">{activeChat.otherUser.name}</h3>
-                    <p className="text-sm text-gray-600">
+                    <h3 className="font-bold text-slate-900">{activeChat.otherUser.name}</h3>
+                    <p className="text-sm text-slate-600 font-medium">
                       {console.log('🔍 Status check - isTyping:', isTyping, 'isOnline:', isUserOnline(activeChat.otherUser._id))}
                       {isTyping ? (
-                        <span className="flex items-center text-blue-600">
+                        <span className="flex items-center text-primary-600">
                           <div className="flex space-x-1 mr-2">
-                            <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce"></div>
-                            <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                            <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                            <div className="w-1.5 h-1.5 bg-primary-600 rounded-full animate-bounce"></div>
+                            <div className="w-1.5 h-1.5 bg-primary-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                            <div className="w-1.5 h-1.5 bg-primary-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                           </div>
                           typing...
                         </span>
@@ -230,9 +238,9 @@ const TutorLearnerMessaging = () => {
                 </div>
                 <button
                   onClick={() => setShowChatModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-2 hover:bg-slate-100 rounded-full transition-colors shadow-sm hover:shadow-md"
                 >
-                  <FaTimes className="text-gray-500" />
+                  <FaTimes className="text-slate-600" />
                 </button>
               </div>
               

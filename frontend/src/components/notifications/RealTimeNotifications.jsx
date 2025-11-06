@@ -22,7 +22,7 @@ import {
 } from 'react-icons/fa';
 import { showSuccess, showError, showWarning, showInfo } from '../../services/toastService.jsx';
 import { useAuth } from '../../context/AuthContext';
-import apiService from '../../services/api';
+import apiService, { getTabId, getStorageKey } from '../../services/api';
 
 const RealTimeNotifications = () => {
   const { user } = useAuth();
@@ -49,9 +49,19 @@ const RealTimeNotifications = () => {
 
   // Initialize WebSocket connection
   useEffect(() => {
-    if (user) {
-      initializeWebSocket();
-      fetchNotifications();
+    // Only initialize if user is authenticated and token exists
+    if (user && user._id) {
+      // Check if token exists before making requests
+      const token = sessionStorage.getItem(getStorageKey('token'));
+      if (token) {
+        console.log('✅ Token found, initializing notifications...');
+        initializeWebSocket();
+        fetchNotifications();
+      } else {
+        console.log('⚠️ No token found, skipping notification initialization. User may not be logged in yet.');
+      }
+    } else {
+      console.log('⚠️ User not authenticated, skipping notification initialization');
     }
 
     return () => {
@@ -361,9 +371,21 @@ const RealTimeNotifications = () => {
 
   // Fetch existing notifications
   const fetchNotifications = async () => {
+    // Don't fetch if user is not authenticated
+    if (!user || !user._id) {
+      console.log('⚠️ User not authenticated, skipping notification fetch');
+      return;
+    }
+
+    // Check if token exists before making request
+    const token = sessionStorage.getItem(getStorageKey('token'));
+    if (!token) {
+      console.log('⚠️ No authentication token found, skipping notification fetch');
+      return;
+    }
+
     try {
       // Use the API service which handles authentication automatically
-      // No need to manually check for tokens here
       console.log('🔄 Fetching notifications via API service...');
 
       const response = await apiService.get('/notifications/my-notifications', {
@@ -383,6 +405,9 @@ const RealTimeNotifications = () => {
       // If it's a 401 error, the API service will handle token clearing
       if (error.response?.status === 401) {
         console.log('🔐 Authentication expired, API service will handle token clearing');
+        // Clear notifications on auth failure
+        setNotifications([]);
+        setUnreadCount(0);
         return;
       }
       

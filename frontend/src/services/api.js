@@ -5,7 +5,7 @@ import { config } from '../config/environment';
 // Create axios instance with clean configuration
 const api = axios.create({
   baseURL: config.apiUrl,
-  timeout: 30000, // Increased from 10s to 30s for better reliability
+  timeout: 600000, // 10 minutes default (for large file uploads)
   headers: {
     'Content-Type': 'application/json',
   },
@@ -26,9 +26,30 @@ const getStorageKey = (key) => {
   return `skilllift_${tabId}_${key}`;
 };
 
+// Export these functions for use in other components
+export { getTabId, getStorageKey };
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
+    // Don't set Content-Type for FormData - let axios handle it automatically
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+      console.log('📤 FormData detected - letting axios set Content-Type automatically');
+      // Set extended timeout for file uploads (10 minutes for large files)
+      // Calculate timeout based on file size: 1 minute per 100MB, minimum 2 minutes, maximum 10 minutes
+      let uploadTimeout = 600000; // Default 10 minutes
+      if (config.data instanceof FormData) {
+        // Try to estimate file size from FormData (approximate)
+        // For large files, use maximum timeout
+        uploadTimeout = 600000; // 10 minutes for large uploads
+      }
+      if (!config.timeout || config.timeout < uploadTimeout) {
+        config.timeout = uploadTimeout;
+        console.log(`⏱️ Timeout set to ${uploadTimeout / 1000 / 60} minutes for file upload`);
+      }
+    }
+    
     // Get token from tab-specific sessionStorage
     const token = sessionStorage.getItem(getStorageKey('token'));
     console.log('🔍 Token retrieval:', JSON.stringify({
@@ -66,7 +87,9 @@ api.interceptors.request.use(
     
     console.log('🔍 Final headers:', JSON.stringify({
       hasAuth: !!config.headers.Authorization,
-      authHeader: config.headers.Authorization ? 'Bearer ***' : 'none'
+      authHeader: config.headers.Authorization ? 'Bearer ***' : 'none',
+      contentType: config.headers['Content-Type'] || 'auto-detect',
+      timeout: config.timeout
     }));
     
     console.log('🔍 API Request:', JSON.stringify({
@@ -74,7 +97,9 @@ api.interceptors.request.use(
       url: config.url,
       baseURL: config.baseURL,
       fullURL: `${config.baseURL}${config.url}`,
-      hasAuth: !!config.headers.Authorization
+      hasAuth: !!config.headers.Authorization,
+      isFormData: config.data instanceof FormData,
+      timeout: config.timeout
     }));
     
     return config;
@@ -167,14 +192,13 @@ export const apiService = {
   // DELETE request
   delete: (url, config = {}) => api.delete(url, config),
   
-  // Upload file
+  // Upload file - with extended timeout for large files
   upload: (url, formData, config = {}) => {
+    // Don't set Content-Type manually - let axios handle it with boundary
+    // The request interceptor will detect FormData and remove Content-Type
     return api.post(url, formData, {
       ...config,
-      headers: {
-        ...config.headers,
-        'Content-Type': 'multipart/form-data',
-      },
+      timeout: 600000, // 10 minutes for file uploads (allows for large files)
     });
   },
 };

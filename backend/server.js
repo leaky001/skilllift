@@ -30,10 +30,18 @@ if (process.env.NODE_ENV === 'development' && !process.env.USE_MOCK_PAYMENT) {
 
 const app = express();
 
-// Set server timeout for long-running requests (like file uploads)
+// Set server timeout for requests
+// Note: Individual routes can override this if needed
 app.use((req, res, next) => {
-  req.setTimeout(120000); // 2 minutes for file uploads
-  res.setTimeout(120000); // 2 minutes for file uploads
+  // Extended timeout for upload routes to handle large files (10 minutes)
+  // Other routes use 2 minutes timeout
+  if (req.path.includes('/upload') || req.path.includes('/replays')) {
+    req.setTimeout(600000); // 10 minutes for upload routes (allows for large files up to 2GB)
+    res.setTimeout(600000); // 10 minutes for upload routes
+  } else {
+    req.setTimeout(120000); // 2 minutes for other requests
+    res.setTimeout(120000); // 2 minutes for other requests
+  }
   next();
 });
 
@@ -51,6 +59,8 @@ if (process.env.NODE_ENV !== 'development') {
 }
 
 // Body parsing middleware
+// Note: express.json() and express.urlencoded() automatically skip multipart/form-data
+// So they won't interfere with multer file uploads
 app.use(express.json({ limit: '2gb' }));
 app.use(express.urlencoded({ extended: true, limit: '2gb' }));
 

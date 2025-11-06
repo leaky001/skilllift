@@ -390,13 +390,13 @@ const TutorCourses = () => {
     try {
       
       return (
-    <div className="bg-white rounded-xl shadow-soft hover:shadow-soft-lg transition-all duration-300 border border-neutral-100 overflow-hidden h-full flex flex-col course-card-text">
+    <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-slate-100 overflow-hidden h-full flex flex-col course-card-text transform hover:-translate-y-1 group">
       {/* Course Image */}
-      <div className="relative h-48 bg-gradient-to-br from-neutral-100 to-neutral-200 flex-shrink-0">
+      <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 flex-shrink-0 overflow-hidden">
         <img 
           src={getThumbnailUrl(course.thumbnail) || getPlaceholderImage(course.category)} 
           alt={course.title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
           onError={(e) => {
             console.log('❌ Image failed to load:', e.target.src);
             e.target.src = getPlaceholderImage(course.category);
@@ -404,26 +404,26 @@ const TutorCourses = () => {
         />
         
         {/* Status Badge */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1">
-          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(course.status)}`}>
+        <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
+          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold shadow-md backdrop-blur-sm ${getStatusColor(course.status)}`}>
             {getStatusIcon(course.status)}
-            <span className="ml-1 capitalize">{course.status}</span>
+            <span className="ml-1.5 capitalize">{course.status}</span>
           </span>
           
           {/* Course Type Badge */}
-          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold shadow-md backdrop-blur-sm ${
             course.courseType === 'online-live' 
-              ? 'bg-primary-100 text-primary-800' 
-              : 'bg-primary-100 text-primary-800'
+              ? 'bg-primary-100 text-primary-800 border border-primary-200' 
+              : 'bg-primary-100 text-primary-800 border border-primary-200'
           }`}>
             {course.courseType === 'online-live' ? (
               <>
-                <FaVideo className="mr-1 h-3 w-3" />
+                <FaVideo className="mr-1.5 h-3 w-3" />
                 <span>Live Classes</span>
               </>
             ) : (
               <>
-                <FaPlay className="mr-1 h-3 w-3" />
+                <FaPlay className="mr-1.5 h-3 w-3" />
                 <span>Pre-recorded</span>
               </>
             )}
@@ -446,10 +446,10 @@ const TutorCourses = () => {
         )}
         
         {/* Rating */}
-        <div className="absolute bottom-3 right-3">
-          <div className="flex items-center space-x-1">
-            <FaStar className="text-primary-500 text-sm" />
-            <span className="text-white text-sm font-medium bg-black bg-opacity-50 px-2 py-1 rounded">
+        <div className="absolute bottom-3 right-3 z-10">
+          <div className="flex items-center space-x-1.5 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
+            <FaStar className="text-yellow-400 text-sm" />
+            <span className="text-white text-sm font-bold">
               {course.rating || 0}
             </span>
           </div>
@@ -459,20 +459,20 @@ const TutorCourses = () => {
       <div className="p-6 flex-1 flex flex-col">
         {/* Course Title and Description */}
         <div className="mb-4 flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-neutral-900 mb-2 leading-tight line-clamp-2 break-words overflow-hidden">
+          <h3 className="text-lg font-bold text-slate-900 mb-2 leading-tight line-clamp-2 break-words overflow-hidden">
             {course.title}
           </h3>
-          <p className="text-sm text-neutral-600 mb-3 leading-relaxed line-clamp-3 break-words overflow-hidden">
+          <p className="text-sm text-slate-600 mb-3 leading-relaxed line-clamp-3 break-words overflow-hidden">
             {course.description}
           </p>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500 mb-2">
-            <span className="bg-neutral-100 px-2 py-1 rounded truncate max-w-20" title={course.category}>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mb-3">
+            <span className="bg-slate-100 px-2.5 py-1 rounded-md truncate max-w-24 font-medium border border-slate-200" title={course.category}>
               {course.category}
             </span>
-            <span className="flex-shrink-0">•</span>
-            <span className="truncate max-w-16">{course.level || 'Beginner'}</span>
-            <span className="flex-shrink-0">•</span>
-            <span className="truncate max-w-20">{course.duration || '8 weeks'}</span>
+            <span className="flex-shrink-0 text-slate-400">•</span>
+            <span className="truncate max-w-20 font-medium">{course.level || 'Beginner'}</span>
+            <span className="flex-shrink-0 text-slate-400">•</span>
+            <span className="truncate max-w-24 font-medium">{course.duration || '8 weeks'}</span>
           </div>
           
           {/* Course Type Indicator */}
@@ -505,77 +505,77 @@ const TutorCourses = () => {
 
         {/* Course Stats */}
         <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="text-center p-3 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200">
-            <div className="text-xl font-bold text-primary-600">
+          <div className="text-center p-3 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200 hover:border-primary-300 transition-colors">
+            <div className="text-2xl font-bold text-primary-700">
               {course.totalEnrollments || 0}
             </div>
-            <div className="text-xs text-primary-600 font-medium">Students</div>
+            <div className="text-xs text-primary-600 font-semibold mt-1">Students</div>
           </div>
           
             {/* Live class functionality removed */}
-            <div className="text-center p-3 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200">
-              <div className="text-xl font-bold text-primary-600">
+            <div className="text-center p-3 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200 hover:border-primary-300 transition-colors">
+              <div className="text-2xl font-bold text-primary-700">
                 {course.totalLessons || 0}
               </div>
-              <div className="text-xs text-primary-600 font-medium">Lessons</div>
+              <div className="text-xs text-primary-600 font-semibold mt-1">Lessons</div>
             </div>
           
-          <div className="text-center p-3 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200">
-            <div className="text-xl font-bold text-primary-600">
+          <div className="text-center p-3 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200 hover:border-primary-300 transition-colors">
+            <div className="text-2xl font-bold text-primary-700">
               {getCourseAssignments(course._id).length}
             </div>
-            <div className="text-xs text-primary-600 font-medium">Assignments</div>
+            <div className="text-xs text-primary-600 font-semibold mt-1">Assignments</div>
           </div>
         </div>
 
         {/* Price Display */}
-        <div className="text-center p-3 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200 mb-4">
-          <div className="text-lg font-bold text-primary-700">
+        <div className="text-center p-4 bg-gradient-to-br from-accent-50 to-accent-100 rounded-lg border border-accent-200 mb-4">
+          <div className="text-2xl font-bold text-accent-700">
             {formatCurrency(course.price)}
           </div>
-          <div className="text-xs text-primary-600 font-medium">Course Price</div>
+          <div className="text-xs text-accent-600 font-semibold mt-1">Course Price</div>
         </div>
 
         {/* Course Meta */}
         <div className="mb-4">
-          <div className="flex flex-wrap items-center gap-3 text-sm text-neutral-600 mb-2">
-            <div className="flex items-center space-x-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600 mb-2">
+            <div className="flex items-center space-x-1.5 min-w-0">
               <FaFileAlt className="text-primary-600 flex-shrink-0" />
-              <span className="truncate">{getCourseAssignments(course._id).length} assignments</span>
+              <span className="truncate font-medium">{getCourseAssignments(course._id).length} assignments</span>
             </div>
             
             {/* Live class functionality removed */}
-            <div className="flex items-center space-x-1 min-w-0">
+            <div className="flex items-center space-x-1.5 min-w-0">
               <FaBook className="text-primary-600 flex-shrink-0" />
-              <span className="truncate">{course.totalLessons || 0} lessons</span>
+              <span className="truncate font-medium">{course.totalLessons || 0} lessons</span>
             </div>
             
             {/* Live class functionality removed */}
           </div>
-          <div className="text-sm text-neutral-500 truncate">
+          <div className="text-sm text-slate-500 truncate font-medium">
             Created {formatDate(course.createdAt)}
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="pt-4 border-t border-neutral-100 mt-auto">
+        <div className="pt-4 border-t border-slate-200 mt-auto">
           <div className="flex flex-col space-y-2">
             {/* Primary Actions */}
             <div className="flex space-x-2 min-w-0">
               <Link
                 to={`/tutor/courses/${course._id}`}
-                className="flex-1 inline-flex items-center justify-center px-2 py-2 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors min-w-0"
+                className="flex-1 inline-flex items-center justify-center px-3 py-2.5 text-xs font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-all duration-200 shadow-sm hover:shadow-md min-w-0"
               >
-                <FaEye className="mr-1 h-3 w-3 flex-shrink-0" />
+                <FaEye className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />
                 <span className="truncate">View</span>
               </Link>
               
               {(course.status === 'draft' || course.status === 'pending') && (
                 <Link
                   to={`/tutor/courses/${course._id}/edit`}
-                  className="flex-1 inline-flex items-center justify-center px-2 py-2 text-xs font-medium text-neutral-700 bg-neutral-100 rounded-lg hover:bg-neutral-200 transition-colors min-w-0"
+                  className="flex-1 inline-flex items-center justify-center px-3 py-2.5 text-xs font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-all duration-200 shadow-sm hover:shadow-md min-w-0"
                 >
-                  <FaEdit className="mr-1 h-3 w-3 flex-shrink-0" />
+                  <FaEdit className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />
                   <span className="truncate">Edit</span>
                 </Link>
               )}
@@ -592,19 +592,19 @@ const TutorCourses = () => {
                     <div className="flex space-x-2 min-w-0">
                       <Link
                         to={`/tutor/assignments/create?courseId=${course._id}&courseTitle=${encodeURIComponent(course.title)}`}
-                        className="flex-1 inline-flex items-center justify-center px-2 py-2 text-xs font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-sm min-w-0 course-card-button"
+                        className="flex-1 inline-flex items-center justify-center px-3 py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg min-w-0 course-card-button"
                         title={`Create assignment for ${course.title}`}
                       >
-                        <FaFileAlt className="mr-1 h-3 w-3 flex-shrink-0" />
+                        <FaFileAlt className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />
                         <span className="truncate">Assignment</span>
                       </Link>
                       
                       <button
                         onClick={() => handleCreateLiveClass(course)}
-                        className="flex-1 inline-flex items-center justify-center px-2 py-2 text-xs font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-sm min-w-0 course-card-button"
+                        className="flex-1 inline-flex items-center justify-center px-3 py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg min-w-0 course-card-button"
                         title={`Create live class for ${course.title}`}
                       >
-                        <FaPlay className="mr-1 h-3 w-3 flex-shrink-0" />
+                        <FaPlay className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />
                         <span className="truncate">Live Class</span>
                       </button>
                     </div>
@@ -617,19 +617,19 @@ const TutorCourses = () => {
                     <div className="flex space-x-2 min-w-0">
                       <Link
                         to={`/tutor/assignments/create?courseId=${course._id}&courseTitle=${encodeURIComponent(course.title)}`}
-                        className="flex-1 inline-flex items-center justify-center px-2 py-2 text-xs font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-sm min-w-0 course-card-button"
+                        className="flex-1 inline-flex items-center justify-center px-3 py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg min-w-0 course-card-button"
                         title={`Create assignment for ${course.title}`}
                       >
-                        <FaFileAlt className="mr-1 h-3 w-3 flex-shrink-0" />
+                        <FaFileAlt className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />
                         <span className="truncate">Assignment</span>
                       </Link>
                       
                       <Link
                         to={`/tutor/courses/${course._id}?tab=lessons`}
-                        className="flex-1 inline-flex items-center justify-center px-2 py-2 text-xs font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-sm min-w-0 course-card-button"
+                        className="flex-1 inline-flex items-center justify-center px-3 py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg min-w-0 course-card-button"
                         title={`Manage lessons for ${course.title}`}
                       >
-                        <FaBook className="mr-1 h-3 w-3 flex-shrink-0" />
+                        <FaBook className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />
                         <span className="truncate">Lessons</span>
                       </Link>
                     </div>
@@ -640,11 +640,11 @@ const TutorCourses = () => {
           </div>
           
           {/* Secondary Actions */}
-          <div className="flex justify-end space-x-1 mt-2">
+          <div className="flex justify-end space-x-2 mt-3">
             {course.status === 'archived' ? (
               <button
                 onClick={() => handleStatusChange(course._id, 'active')}
-                className="inline-flex items-center p-2 text-sm font-medium text-primary-600 bg-primary-100 rounded-lg hover:bg-primary-200 transition-colors"
+                className="inline-flex items-center p-2.5 text-sm font-medium text-primary-600 bg-primary-100 rounded-lg hover:bg-primary-200 transition-all duration-200 shadow-sm hover:shadow-md"
                 title="Restore Course"
               >
                 <FaUndo className="h-4 w-4" />
@@ -652,7 +652,7 @@ const TutorCourses = () => {
             ) : course.status !== 'archived' ? (
               <button
                 onClick={() => handleStatusChange(course._id, 'archived')}
-                className="inline-flex items-center p-2 text-sm font-medium text-neutral-600 bg-neutral-100 rounded-lg hover:bg-neutral-200 transition-colors"
+                className="inline-flex items-center p-2.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-all duration-200 shadow-sm hover:shadow-md"
                 title="Archive Course"
               >
                 <FaArchive className="h-4 w-4" />
@@ -661,7 +661,7 @@ const TutorCourses = () => {
             
             <button
               onClick={() => handleDeleteCourse(course._id)}
-              className="inline-flex items-center p-2 text-sm font-medium text-red-600 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
+              className="inline-flex items-center p-2.5 text-sm font-medium text-red-600 bg-red-100 rounded-lg hover:bg-red-200 transition-all duration-200 shadow-sm hover:shadow-md"
               title="Delete Course"
             >
               <FaTrash className="h-4 w-4" />
@@ -701,18 +701,18 @@ const TutorCourses = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-primary-50 p-6 overflow-y-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 p-6 overflow-y-auto">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-neutral-900 mb-2">My Courses</h1>
-              <p className="text-neutral-600">Manage and track your course performance</p>
+              <h1 className="text-4xl font-bold text-slate-900 mb-2 tracking-tight">My Courses</h1>
+              <p className="text-slate-600 text-lg">Manage and track your course performance</p>
             </div>
             <Link
               to="/tutor/courses/create"
-              className="btn-primary"
+              className="inline-flex items-center justify-center px-6 py-3 bg-primary-600 text-white font-semibold rounded-xl shadow-md hover:bg-primary-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
             >
               <FaPlus className="mr-2" />
               Create Course
@@ -720,57 +720,65 @@ const TutorCourses = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-xl p-6 shadow-soft">
-              <div className="flex items-center">
-                <div className="p-3 bg-primary-100 rounded-lg">
-                  <FaBookOpen className="text-primary-600 text-xl" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600">Total Courses</p>
-                  <p className="text-2xl font-bold text-neutral-900">{courses.length}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-soft">
-              <div className="flex items-center">
-                <div className="p-3 bg-secondary-100 rounded-lg">
-                  <FaUsers className="text-secondary-600 text-xl" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600">Total Students</p>
-                  <p className="text-2xl font-bold text-neutral-900">
-                    {courses.reduce((total, course) => total + (course.totalEnrollments || 0), 0)}
-                  </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg border border-slate-100 transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="p-3 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl shadow-sm">
+                    <FaBookOpen className="text-primary-600 text-xl" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-slate-600 mb-1">Total Courses</p>
+                    <p className="text-3xl font-bold text-slate-900">{courses.length}</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-soft">
-              <div className="flex items-center">
-                <div className="p-3 bg-accent-100 rounded-lg">
-                  <FaMoneyBillWave className="text-accent-600 text-xl" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600">Total Revenue</p>
-                  <p className="text-2xl font-bold text-neutral-900">
-                    {formatCurrency(courses.reduce((total, course) => total + (course.price || 0), 0))}
-                  </p>
+            <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg border border-slate-100 transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="p-3 bg-gradient-to-br from-secondary-100 to-secondary-200 rounded-xl shadow-sm">
+                    <FaUsers className="text-secondary-600 text-xl" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-slate-600 mb-1">Total Students</p>
+                    <p className="text-3xl font-bold text-slate-900">
+                      {courses.reduce((total, course) => total + (course.totalEnrollments || 0), 0)}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-soft">
-              <div className="flex items-center">
-                <div className="p-3 bg-accent-100 rounded-lg">
-                  <FaGraduationCap className="text-accent-600 text-xl" />
+            <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg border border-slate-100 transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="p-3 bg-gradient-to-br from-accent-100 to-accent-200 rounded-xl shadow-sm">
+                    <FaMoneyBillWave className="text-accent-600 text-xl" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-slate-600 mb-1">Total Revenue</p>
+                    <p className="text-3xl font-bold text-slate-900">
+                      {formatCurrency(courses.reduce((total, course) => total + (course.price || 0), 0))}
+                    </p>
+                  </div>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600">Published</p>
-                  <p className="text-2xl font-bold text-neutral-900">
-                    {courses.filter(c => c.status === 'published').length}
-                  </p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg border border-slate-100 transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="p-3 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl shadow-sm">
+                    <FaGraduationCap className="text-primary-600 text-xl" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-slate-600 mb-1">Published</p>
+                    <p className="text-3xl font-bold text-slate-900">
+                      {courses.filter(c => c.status === 'published').length}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -778,24 +786,24 @@ const TutorCourses = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl p-6 shadow-soft mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" />
+        <div className="bg-white rounded-xl p-6 shadow-md border border-slate-100 mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 flex-1">
+              <div className="relative flex-1 sm:max-w-xs">
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search courses..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
                 />
               </div>
               
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white text-slate-700 font-medium"
               >
                 <option value="all">All Status</option>
                 <option value="draft">Draft</option>
@@ -807,7 +815,7 @@ const TutorCourses = () => {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white text-slate-700 font-medium"
               >
                 <option value="all">All Categories</option>
                 {categories.map(category => (
@@ -818,7 +826,7 @@ const TutorCourses = () => {
               <select
                 value={selectedCourseType}
                 onChange={(e) => setSelectedCourseType(e.target.value)}
-                className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white text-slate-700 font-medium"
               >
                 <option value="all">All Types</option>
                 <option value="online-live">Live Classes</option>
@@ -826,10 +834,10 @@ const TutorCourses = () => {
               </select>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center">
               <button
                 onClick={() => setShowStats(!showStats)}
-                className="btn-secondary"
+                className="inline-flex items-center px-4 py-2.5 text-sm font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               >
                 <FaChartLine className="mr-2" />
                 {showStats ? 'Hide' : 'Show'} Stats
@@ -840,17 +848,20 @@ const TutorCourses = () => {
 
         {/* Course Grid */}
         {filteredCourses.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-6xl text-neutral-300 mb-4">📚</div>
-            <h3 className="text-xl font-semibold text-neutral-600 mb-2">No courses found</h3>
-            <p className="text-neutral-500 mb-6">
+          <div className="text-center py-16 bg-white rounded-xl shadow-md border border-slate-100">
+            <div className="text-7xl mb-6">📚</div>
+            <h3 className="text-2xl font-bold text-slate-900 mb-3">No courses found</h3>
+            <p className="text-slate-600 mb-8 max-w-md mx-auto">
               {searchQuery || selectedStatus !== 'all' || selectedCategory !== 'all' || selectedCourseType !== 'all'
-                ? 'Try adjusting your filters'
-                : "You haven't created any courses yet"
+                ? 'Try adjusting your filters to find what you\'re looking for'
+                : "You haven't created any courses yet. Start by creating your first course!"
               }
             </p>
             {!searchQuery && selectedStatus === 'all' && selectedCategory === 'all' && selectedCourseType === 'all' && (
-              <Link to="/tutor/courses/create" className="btn-primary">
+              <Link 
+                to="/tutor/courses/create" 
+                className="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-semibold rounded-xl shadow-md hover:bg-primary-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+              >
                 <FaPlus className="mr-2" />
                 Create Your First Course
               </Link>
@@ -868,26 +879,26 @@ const TutorCourses = () => {
 
       {/* Create Live Class Modal */}
       {showCreateLiveClassModal && selectedCourse && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Create Live Class</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto border border-slate-200">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
+              <h2 className="text-2xl font-bold text-slate-900">Create Live Class</h2>
               <button
                 onClick={() => setShowCreateLiveClassModal(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-slate-500 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-lg transition-colors"
               >
                 <FaTimes className="text-xl" />
               </button>
             </div>
 
-            <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-              <h3 className="font-semibold text-blue-900">Course: {selectedCourse.title}</h3>
-              <p className="text-blue-700 text-sm">{selectedCourse.description}</p>
+            <div className="mb-6 p-4 bg-primary-50 rounded-lg border border-primary-200">
+              <h3 className="font-semibold text-primary-900 mb-1">Course: {selectedCourse.title}</h3>
+              <p className="text-primary-700 text-sm">{selectedCourse.description}</p>
             </div>
 
-            <form onSubmit={handleSubmitLiveClass} className="space-y-4">
+            <form onSubmit={handleSubmitLiveClass} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Live Class Title *
                 </label>
                 <input
@@ -895,14 +906,14 @@ const TutorCourses = () => {
                   name="title"
                   value={liveClassFormData.title}
                   onChange={handleLiveClassFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
                   placeholder="Enter live class title"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Description
                 </label>
                 <textarea
@@ -910,14 +921,14 @@ const TutorCourses = () => {
                   value={liveClassFormData.description}
                   onChange={handleLiveClassFormChange}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white resize-none"
                   placeholder="Enter live class description"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Scheduled Date & Time *
                   </label>
                   <input
@@ -925,20 +936,20 @@ const TutorCourses = () => {
                     name="scheduledDate"
                     value={liveClassFormData.scheduledDate}
                     onChange={handleLiveClassFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Duration (minutes)
                   </label>
                   <select
                     name="duration"
                     value={liveClassFormData.duration}
                     onChange={handleLiveClassFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white text-slate-700 font-medium"
                   >
                     <option value={30}>30 minutes</option>
                     <option value={60}>1 hour</option>
@@ -949,64 +960,64 @@ const TutorCourses = () => {
                 </div>
               </div>
 
-              <div className="border-t pt-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Live Class Settings</h3>
+              <div className="border-t border-slate-200 pt-5">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">Live Class Settings</h3>
                 
-                <div className="space-y-3">
-                  <div className="flex items-center">
+                <div className="space-y-4">
+                  <div className="flex items-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
                     <input
                       type="checkbox"
                       name="settings.allowScreenShare"
                       checked={liveClassFormData.settings.allowScreenShare}
                       onChange={handleLiveClassFormChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded"
                     />
-                    <label className="ml-2 text-sm text-gray-700">
+                    <label className="ml-3 text-sm font-medium text-slate-700 cursor-pointer">
                       Allow screen sharing
                     </label>
                   </div>
 
-                  <div className="flex items-center">
+                  <div className="flex items-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
                     <input
                       type="checkbox"
                       name="settings.allowChat"
                       checked={liveClassFormData.settings.allowChat}
                       onChange={handleLiveClassFormChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded"
                     />
-                    <label className="ml-2 text-sm text-gray-700">
+                    <label className="ml-3 text-sm font-medium text-slate-700 cursor-pointer">
                       Enable chat during class
                     </label>
                   </div>
 
-                  <div className="flex items-center">
+                  <div className="flex items-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
                     <input
                       type="checkbox"
                       name="settings.allowLearnerScreenShare"
                       checked={liveClassFormData.settings.allowLearnerScreenShare}
                       onChange={handleLiveClassFormChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded"
                     />
-                    <label className="ml-2 text-sm text-gray-700">
+                    <label className="ml-3 text-sm font-medium text-slate-700 cursor-pointer">
                       Allow learners to share screen
                     </label>
                   </div>
 
-                  <div className="flex items-center">
+                  <div className="flex items-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
                     <input
                       type="checkbox"
                       name="settings.autoRecord"
                       checked={liveClassFormData.settings.autoRecord}
                       onChange={handleLiveClassFormChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded"
                     />
-                    <label className="ml-2 text-sm text-gray-700">
+                    <label className="ml-3 text-sm font-medium text-slate-700 cursor-pointer">
                       Automatically record session
                     </label>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
                       Maximum Participants
                     </label>
                     <input
@@ -1016,24 +1027,24 @@ const TutorCourses = () => {
                       onChange={handleLiveClassFormChange}
                       min="1"
                       max="100"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-3 pt-4">
+              <div className="flex justify-end space-x-3 pt-5 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setShowCreateLiveClassModal(false)}
-                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
+                  className="px-5 py-2.5 text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-all duration-200 font-semibold shadow-sm hover:shadow-md"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreatingLiveClass}
-                  className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center space-x-2"
+                  className="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center space-x-2 font-semibold shadow-md hover:shadow-lg transition-all duration-200"
                 >
                   {isCreatingLiveClass ? (
                     <>

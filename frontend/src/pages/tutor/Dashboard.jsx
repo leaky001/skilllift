@@ -411,9 +411,9 @@ const TutorDashboard = () => {
   };
 
   const LearnerCard = ({ learner }) => (
-    <div className="bg-white rounded-xl shadow-lg p-4 hover:shadow-xl transition-all duration-300 border border-slate-100">
+    <div className="bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition-all duration-300 border border-slate-100">
       <div className="flex items-center space-x-4">
-        <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
+        <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">
           {learner.avatar}
         </div>
         <div className="flex-1 min-w-0">
@@ -422,15 +422,15 @@ const TutorDashboard = () => {
           <div className="flex items-center space-x-4 text-sm">
             <div className="flex items-center space-x-1">
               <FaStar className="text-accent-400" />
-              <span className="text-slate-700">{learner.rating}</span>
+              <span className="text-slate-700 font-medium">{learner.rating}</span>
             </div>
             <span className="text-slate-500">•</span>
-            <span className="text-slate-700">{learner.progress}% complete</span>
+            <span className="text-slate-700 font-medium">{learner.progress}% complete</span>
           </div>
         </div>
         <div className="text-right">
-          <span className="text-xs text-slate-500 block">{learner.signupDate}</span>
-          <button className="mt-2 px-4 py-2 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 transition-colors text-sm font-medium">
+          <span className="text-xs text-slate-500 block mb-2">{learner.signupDate}</span>
+          <button className="px-4 py-2 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 transition-colors text-sm font-semibold shadow-sm hover:shadow-md">
             View Profile
           </button>
         </div>
@@ -439,11 +439,11 @@ const TutorDashboard = () => {
   );
 
   const NotificationCard = ({ notification }) => (
-    <div className={`bg-white rounded-xl shadow-lg p-4 hover:shadow-xl transition-all duration-300 border-l-4 ${
+    <div className={`bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition-all duration-300 border-l-4 ${
       !notification.read ? 'border-l-primary-500' : 'border-l-slate-300'
     } border border-slate-100`}>
       <div className="flex items-start space-x-3">
-        <div className={`p-2 rounded-xl ${
+        <div className={`p-2.5 rounded-xl shadow-sm ${
           notification.type === 'enrollment' ? 'bg-primary-100 text-primary-600' :
           notification.type === 'live' ? 'bg-secondary-100 text-secondary-600' :
           notification.type === 'payment' || notification.type === 'payment_received' ? 'bg-accent-100 text-accent-600' :
@@ -456,38 +456,38 @@ const TutorDashboard = () => {
         </div>
         <div className="flex-1">
           <h4 className="font-bold text-slate-900 mb-1">{notification.title}</h4>
-          <p className="text-slate-700 mb-2">{notification.message}</p>
+          <p className="text-slate-700 mb-2 text-sm leading-relaxed">{notification.message}</p>
           <span className="text-sm text-slate-500">{notification.time}</span>
         </div>
         {!notification.read && (
-          <div className="w-3 h-3 bg-primary-500 rounded-full"></div>
+          <div className="w-3 h-3 bg-primary-500 rounded-full shadow-sm"></div>
         )}
       </div>
     </div>
   );
 
   const SessionCard = ({ session }) => (
-    <div className="bg-white rounded-xl shadow-lg p-4 hover:shadow-xl transition-all duration-300 border border-slate-100">
+    <div className="bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition-all duration-300 border border-slate-100">
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <h4 className="font-bold text-slate-900 mb-2 text-lg">{session.title}</h4>
           <div className="flex items-center space-x-4 text-sm text-slate-600 mb-3">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
               <FaCalendarAlt className="text-primary-500" />
-              <span>{session.date}</span>
+              <span className="font-medium">{session.date}</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <FaClock className="text-secondary-500" />
-              <span>{session.time}</span>
+            <div className="flex items-center space-x-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+              <FaClock className="text-primary-500" />
+              <span className="font-medium">{session.time}</span>
             </div>
           </div>
           <div className="flex items-center space-x-4 text-sm text-slate-500">
-            <span>{session.learners} learners enrolled</span>
+            <span className="font-medium">{session.learners} learners enrolled</span>
           </div>
         </div>
-        <button className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg ${
+        <button className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg ${
           session.status === 'ready' 
-            ? 'bg-gradient-to-r from-secondary-500 to-secondary-600 text-white hover:from-secondary-600 hover:to-secondary-700' 
+            ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white hover:from-primary-700 hover:to-primary-800' 
             : 'bg-gradient-to-r from-slate-400 to-slate-500 text-white hover:from-slate-500 hover:to-slate-600'
         }`}>
           {session.status === 'ready' ? 'Start Now' : 'Edit Session'}
@@ -497,64 +497,65 @@ const TutorDashboard = () => {
   );
 
   const CoursePerformanceCard = ({ course }) => (
-    <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border border-slate-100">
+    <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-all duration-300 border border-slate-100">
       <div className="flex items-center justify-between mb-4">
         <h4 className="font-bold text-slate-900 text-lg">{course.title}</h4>
-        <div className="flex items-center space-x-1">
-          <FaStar className="text-accent-400" />
-          <span className="font-medium">{course.rating}</span>
+        <div className="flex items-center space-x-1 bg-accent-50 px-3 py-1.5 rounded-lg border border-accent-200">
+          <FaStar className="text-accent-500" />
+          <span className="font-semibold text-accent-700">{course.rating}</span>
         </div>
       </div>
       
       <div className="grid grid-cols-3 gap-4 mb-4">
-        <div className="text-center">
+        <div className="text-center p-3 bg-primary-50 rounded-xl border border-primary-200">
           <div className="text-2xl font-bold text-primary-600">{course.learners}</div>
-          <div className="text-sm text-slate-600">Learners</div>
+          <div className="text-sm text-slate-600 font-medium">Learners</div>
         </div>
-        <div className="text-center">
+        <div className="text-center p-3 bg-secondary-50 rounded-xl border border-secondary-200">
           <div className="text-2xl font-bold text-secondary-600">{course.completion}%</div>
-          <div className="text-sm text-slate-600">Completion</div>
+          <div className="text-sm text-slate-600 font-medium">Completion</div>
         </div>
-        <div className="text-center">
+        <div className="text-center p-3 bg-accent-50 rounded-xl border border-accent-200">
           <div className="text-2xl font-bold text-accent-600">{course.earnings}</div>
-          <div className="text-sm text-slate-600">Earnings</div>
+          <div className="text-sm text-slate-600 font-medium">Earnings</div>
         </div>
       </div>
       
-      <button className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white py-3 rounded-xl font-medium hover:from-primary-600 hover:to-primary-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+      <button className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
         View Details
       </button>
     </div>
   );
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-secondary-500 to-secondary-600 rounded-3xl p-8 text-white shadow-xl">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">Welcome, {user?.name || 'Tutor'}! 👋</h1>
-            <p className="text-xl text-secondary-100">Here's what's happening with your courses today.</p>
-            <div className="mt-6 flex items-center space-x-4">
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
-                <span className="text-sm font-medium">Active Courses: {stats.find(s => s.title === 'Total Courses')?.value || '0'}</span>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
-                <span className="text-sm font-medium">Total Learners: {stats.find(s => s.title === 'Total Learners')?.value || '0'}</span>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
-                <span className="text-sm font-medium">This Month: ₦{stats.find(s => s.title === 'Monthly')?.value || '0'}</span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 p-6 overflow-y-auto">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Welcome Section */}
+        <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl p-8 text-white shadow-xl border border-primary-500">
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-4xl font-bold mb-2 tracking-tight">Welcome, {user?.name || 'Tutor'}! 👋</h1>
+              <p className="text-xl text-primary-100">Here's what's happening with your courses today.</p>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl px-5 py-2.5 border border-white/30 shadow-sm">
+                  <span className="text-sm font-semibold">Active Courses: {stats.find(s => s.title === 'Total Courses')?.value || '0'}</span>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl px-5 py-2.5 border border-white/30 shadow-sm">
+                  <span className="text-sm font-semibold">Total Learners: {stats.find(s => s.title === 'Total Learners')?.value || '0'}</span>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl px-5 py-2.5 border border-white/30 shadow-sm">
+                  <span className="text-sm font-semibold">This Month: ₦{stats.find(s => s.title === 'Monthly')?.value || '0'}</span>
+                </div>
               </div>
             </div>
+            <button 
+              onClick={testDashboardAPI}
+              className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2 text-sm font-semibold hover:bg-white/30 transition-all duration-200 shadow-sm border border-white/30"
+            >
+              🧪 Test API
+            </button>
           </div>
-          <button 
-            onClick={testDashboardAPI}
-            className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2 text-sm font-medium hover:bg-white/30 transition-colors"
-          >
-            🧪 Test API
-          </button>
         </div>
-      </div>
 
       
 
@@ -600,185 +601,186 @@ const TutorDashboard = () => {
         })()}
       </div>
 
-      {/* Tabs */}
-      <div className="bg-white rounded-2xl shadow-lg p-2 border border-slate-200">
-        <div className="flex space-x-1">
-          {['overview', 'sessions', 'performance', 'ratings', 'notifications'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-4 px-6 rounded-xl font-medium transition-all duration-300 ${
-                activeTab === tab
-                  ? 'bg-gradient-to-r from-secondary-500 to-secondary-600 text-white shadow-lg transform scale-105'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
+        {/* Tabs */}
+        <div className="bg-white rounded-xl shadow-md p-2 border border-slate-100">
+          <div className="flex space-x-1">
+            {['overview', 'sessions', 'performance', 'ratings', 'notifications'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
+                  activeTab === tab
+                    ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg transform scale-105'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <>
+            {/* Enhanced Overview Section */}
+            <div className="space-y-8">
+              {/* Performance Overview Cards */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Course Performance Chart */}
+                <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-6 border border-slate-100">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-slate-900">Course Performance</h3>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-slate-600">Last 30 days</span>
+                      <div className="w-3 h-3 bg-primary-500 rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border border-primary-200 shadow-sm">
+                      <div className="text-2xl font-bold text-primary-600">{stats.find(s => s.title === 'Completion Rate')?.value || '0%'}</div>
+                      <div className="text-sm text-primary-700 font-medium">Completion Rate</div>
+                      <div className="text-xs text-primary-600 mt-1">{stats.find(s => s.title === 'Completion Rate')?.change || 'No data'}</div>
+                    </div>
+                    <div className="text-center p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border border-primary-200 shadow-sm">
+                      <div className="text-2xl font-bold text-primary-600">{stats.find(s => s.title === 'Average Rating')?.value || '0.0'}</div>
+                      <div className="text-sm text-primary-700 font-medium">Average Rating</div>
+                      <div className="text-xs text-primary-600 mt-1">{stats.find(s => s.title === 'Average Rating')?.change || 'No data'}</div>
+                    </div>
+                    <div className="text-center p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border border-primary-200 shadow-sm">
+                      <div className="text-2xl font-bold text-primary-600">{stats.find(s => s.title === 'Total Learners')?.value || '0'}</div>
+                      <div className="text-sm text-primary-700 font-medium">Active Learners</div>
+                      <div className="text-xs text-primary-600 mt-1">{stats.find(s => s.title === 'Total Learners')?.change || 'No data'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Stats */}
+                <div className="bg-white rounded-xl shadow-md p-6 border border-slate-100">
+                  <h3 className="text-xl font-bold text-slate-900 mb-6">Quick Stats</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border border-primary-200 shadow-sm">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center shadow-sm">
+                          <FaDollarSign className="text-white text-sm" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-slate-700">Today's Earnings</div>
+                          <div className="text-lg font-bold text-slate-900">₦{stats.find(s => s.title === 'Today\'s Earnings')?.value || '0'}</div>
+                        </div>
+                      </div>
+                      <div className="text-primary-600 text-sm font-semibold">+15%</div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border border-primary-200 shadow-sm">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center shadow-sm">
+                          <FaVideo className="text-white text-sm" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-slate-700">Live Sessions</div>
+                          <div className="text-lg font-bold text-slate-900">3 Today</div>
+                        </div>
+                      </div>
+                      <div className="text-primary-600 text-sm font-semibold">Next: 2:00 PM</div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border border-primary-200 shadow-sm">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center shadow-sm">
+                          <FaUsers className="text-white text-sm" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-slate-700">New Enrollments</div>
+                          <div className="text-lg font-bold text-slate-900">{stats.find(s => s.title === 'New Enrollments')?.value || '0'} Today</div>
+                        </div>
+                      </div>
+                      <div className="text-primary-600 text-sm font-semibold">+25%</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+              {/* Main Content Area */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Recent Learners Signups */}
+                <div className="lg:col-span-2">
+                  <div className="bg-white rounded-xl shadow-md p-6 border border-slate-100">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-2xl font-bold text-slate-900">Recent Learner Signups</h2>
+                      <Link to="/tutor/learners" className="text-primary-600 hover:text-primary-700 font-semibold flex items-center space-x-2 transition-colors">
+                        <span>View All</span>
+                        <FaArrowRight className="text-sm" />
+                      </Link>
+                    </div>
+                    <div className="space-y-4">
+                      {displayLearners.map((learner) => (
+                        <LearnerCard key={`learner-${learner._id || learner.id}`} learner={learner} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recent Notifications */}
+                <div>
+                  <div className="bg-white rounded-xl shadow-md p-6 border border-slate-100">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-2xl font-bold text-slate-900">Recent Notifications</h2>
+                      <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
+                    </div>
+                    <div className="space-y-4">
+                      {recentNotifications.slice(0, 4).map((notification, index) => (
+                        <NotificationCard key={`recent-notification-${notification._id || notification.id || `fallback-${index}`}`} notification={notification} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeTab === 'sessions' && (
+          <div>
+            <h2 className="text-3xl font-bold text-slate-900 mb-6">Upcoming Live Sessions</h2>
+            <div className="space-y-4">
+              {displaySessions.map((session) => (
+                <SessionCard key={`session-${session._id || session.id}`} session={session} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'performance' && (
+          <div>
+            <h2 className="text-3xl font-bold text-slate-900 mb-6">Course Performance</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayPerformance.map((course) => (
+                <CoursePerformanceCard key={`course-${course._id || course.id}`} course={course} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'ratings' && (
+          <div>
+            <h2 className="text-3xl font-bold text-slate-900 mb-6">Course Ratings & Reviews</h2>
+            <TutorRatingDashboard />
+          </div>
+        )}
+
+        {activeTab === 'notifications' && (
+          <div>
+            <h2 className="text-3xl font-bold text-slate-900 mb-6">All Notifications</h2>
+            <div className="space-y-4">
+              {recentNotifications.map((notification, index) => (
+                <NotificationCard key={`all-notification-${notification._id || notification.id || `fallback-${index}`}`} notification={notification} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Tab Content */}
-      {activeTab === 'overview' && (
-        <>
-          {/* Enhanced Overview Section */}
-          <div className="space-y-8">
-            {/* Performance Overview Cards */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Course Performance Chart */}
-              <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6 border border-slate-100">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-slate-900">Course Performance</h3>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-slate-600">Last 30 days</span>
-                    <div className="w-3 h-3 bg-secondary-500 rounded-full animate-pulse"></div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
-                    <div className="text-2xl font-bold text-blue-600">{stats.find(s => s.title === 'Completion Rate')?.value || '0%'}</div>
-                    <div className="text-sm text-blue-700">Completion Rate</div>
-                    <div className="text-xs text-blue-600 mt-1">{stats.find(s => s.title === 'Completion Rate')?.change || 'No data'}</div>
-                  </div>
-                  <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
-                    <div className="text-2xl font-bold text-blue-600">{stats.find(s => s.title === 'Average Rating')?.value || '0.0'}</div>
-                    <div className="text-sm text-blue-700">Average Rating</div>
-                    <div className="text-xs text-blue-600 mt-1">{stats.find(s => s.title === 'Average Rating')?.change || 'No data'}</div>
-                  </div>
-                  <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
-                    <div className="text-2xl font-bold text-blue-600">{stats.find(s => s.title === 'Total Learners')?.value || '0'}</div>
-                    <div className="text-sm text-blue-700">Active Learners</div>
-                    <div className="text-xs text-blue-600 mt-1">{stats.find(s => s.title === 'Total Learners')?.change || 'No data'}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-100">
-                <h3 className="text-xl font-bold text-slate-900 mb-6">Quick Stats</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                        <FaDollarSign className="text-white text-sm" />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-slate-700">Today's Earnings</div>
-                        <div className="text-lg font-bold text-slate-900">₦{stats.find(s => s.title === 'Today\'s Earnings')?.value || '0'}</div>
-                      </div>
-                    </div>
-                    <div className="text-blue-600 text-sm font-medium">+15%</div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                        <FaVideo className="text-white text-sm" />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-slate-700">Live Sessions</div>
-                        <div className="text-lg font-bold text-slate-900">3 Today</div>
-                      </div>
-                    </div>
-                    <div className="text-blue-600 text-sm font-medium">Next: 2:00 PM</div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                        <FaUsers className="text-white text-sm" />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-slate-700">New Enrollments</div>
-                        <div className="text-lg font-bold text-slate-900">{stats.find(s => s.title === 'New Enrollments')?.value || '0'} Today</div>
-                      </div>
-                    </div>
-                    <div className="text-blue-600 text-sm font-medium">+25%</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-
-          {/* Main Content Area */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Recent Learners Signups */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-100">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-slate-900">Recent Learner Signups</h2>
-                  <Link to="/tutor/learners" className="text-secondary-600 hover:text-secondary-700 font-medium flex items-center space-x-2">
-                    <span>View All</span>
-                    <FaArrowRight className="text-sm" />
-                  </Link>
-                </div>
-                <div className="space-y-4">
-                  {displayLearners.map((learner) => (
-                    <LearnerCard key={`learner-${learner._id || learner.id}`} learner={learner} />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Recent Notifications */}
-            <div>
-              <div className="bg-white rounded-2xl shadow-lg p-6 border border-slate-100">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-slate-900">Recent Notifications</h2>
-                    <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
-                </div>
-                <div className="space-y-4">
-                    {recentNotifications.slice(0, 4).map((notification, index) => (
-                    <NotificationCard key={`recent-notification-${notification._id || notification.id || `fallback-${index}`}`} notification={notification} />
-                  ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {activeTab === 'sessions' && (
-        <div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-6">Upcoming Live Sessions</h2>
-          <div className="space-y-4">
-            {displaySessions.map((session) => (
-              <SessionCard key={`session-${session._id || session.id}`} session={session} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'performance' && (
-        <div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-6">Course Performance</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayPerformance.map((course) => (
-              <CoursePerformanceCard key={`course-${course._id || course.id}`} course={course} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'ratings' && (
-        <div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-6">Course Ratings & Reviews</h2>
-          <TutorRatingDashboard />
-        </div>
-      )}
-
-      {activeTab === 'notifications' && (
-        <div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-6">All Notifications</h2>
-          <div className="space-y-4">
-            {recentNotifications.map((notification, index) => (
-              <NotificationCard key={`all-notification-${notification._id || notification.id || `fallback-${index}`}`} notification={notification} />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

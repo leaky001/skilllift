@@ -79,7 +79,8 @@ const LearnerNotifications = () => {
       review_approved: FaCheckCircle,
       enrollment_confirmed: FaBookOpen,
       assignment_due: FaClipboard,
-      course_update: FaInfoCircle
+      course_update: FaInfoCircle,
+      replay_uploaded: FaVideo // Video icon for replay notifications
     };
     return iconMap[type] || FaBell;
   };
@@ -290,6 +291,33 @@ const LearnerNotifications = () => {
                                   {notification.data.courseTitle}
                                 </div>
                               </div>
+                            </div>
+                          )}
+                          
+                          {/* Special handling for replay upload notifications */}
+                          {notification.type === 'replay_uploaded' && notification.data?.courseId && (
+                            <div className="mb-3 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                              <p className="text-sm text-indigo-800 font-medium mb-2">🎬 Replay Details:</p>
+                              <div className="grid grid-cols-2 gap-2 text-sm text-indigo-700 mb-3">
+                                <div>
+                                  <strong>Course:</strong><br />
+                                  {notification.data.courseTitle || 'Unknown Course'}
+                                </div>
+                                <div>
+                                  <strong>Topic:</strong><br />
+                                  {notification.data.topic || 'Class Replay'}
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  // Navigate to replays page filtered by course
+                                  window.location.href = `/learner/replays?courseId=${notification.data.courseId}`;
+                                }}
+                                className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center space-x-2 text-sm font-medium"
+                              >
+                                <FaPlay className="text-xs" />
+                                <span>View Replay</span>
+                              </button>
                             </div>
                           )}
                           

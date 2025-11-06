@@ -236,38 +236,75 @@ export const AuthProvider = ({ children }) => {
     try {
       dispatch({ type: 'LOGIN_START' });
       
+      console.log('🔄 Starting registration...', { email: userData.email, role: userData.role });
       
       const response = await apiService.post('/auth/register', userData);
       
+      console.log('📡 Registration response received:', {
+        status: response.status,
+        success: response.data?.success,
+        hasData: !!response.data?.data,
+        message: response.data?.message
+      });
       
-      if (response.data.success) {
-        const user = response.data.data;
-        const tabId = getTabId();
-        
-        
-        // Store in tab-specific sessionStorage
-        sessionStorage.setItem(getStorageKey('user'), JSON.stringify(user));
-        sessionStorage.setItem(getStorageKey('token'), user.token);
-        
-        dispatch({ 
-          type: 'LOGIN_SUCCESS', 
-          payload: user,
-          tabId: tabId
-        });
-        
-        showSuccess(`Welcome to SkillLift, ${user.name}!`);
-        return { success: true, user };
+      // Check for success in response (handle both 200 and 201 status codes)
+      if (response.status === 200 || response.status === 201) {
+        if (response.data && response.data.success) {
+          const user = response.data.data;
+          const tabId = getTabId();
+          
+          console.log('✅ Registration successful, storing user data...');
+          
+          // Store in tab-specific sessionStorage
+          sessionStorage.setItem(getStorageKey('user'), JSON.stringify(user));
+          sessionStorage.setItem(getStorageKey('token'), user.token);
+          
+          dispatch({ 
+            type: 'LOGIN_SUCCESS', 
+            payload: user,
+            tabId: tabId
+          });
+          
+          showSuccess(`Welcome to SkillLift, ${user.name}!`);
+          return { success: true, user };
+        } else {
+          // Response received but success is false
+          const errorMsg = response.data?.message || 'Registration failed';
+          console.error('❌ Registration failed:', errorMsg);
+          dispatch({ type: 'LOGIN_FAILURE', payload: errorMsg });
+          showError(errorMsg);
+          return { success: false, error: errorMsg };
+        }
       } else {
-        dispatch({ type: 'LOGIN_FAILURE', payload: response.data.message });
-        showError(response.data.message || 'Registration failed');
-        return { success: false, error: response.data.message };
+        // Unexpected status code
+        const errorMsg = response.data?.message || 'Registration failed with unexpected status';
+        console.error('❌ Unexpected status code:', response.status);
+        dispatch({ type: 'LOGIN_FAILURE', payload: errorMsg });
+        showError(errorMsg);
+        return { success: false, error: errorMsg };
       }
     } catch (error) {
+      console.error('❌ Registration error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        code: error.code
+      });
       
-      const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+      // Check if user was actually created (might be in database even if response failed)
+      // This handles the case where registration succeeds but response fails
+      const errorMessage = error.response?.data?.message || error.message || 'Registration failed. Please try again.';
+      
+      // If we got a response but it's an error, check if it's a duplicate user error
+      if (error.response?.status === 400 && error.response?.data?.message?.includes('already exists')) {
+        dispatch({ type: 'LOGIN_FAILURE', payload: errorMessage });
+        showError(errorMessage);
+        return { success: false, error: errorMessage };
+      }
+      
       dispatch({ type: 'LOGIN_FAILURE', payload: errorMessage });
       
-      if (error.code === 'NETWORK_ERROR') {
+      if (error.code === 'NETWORK_ERROR' || error.code === 'ECONNABORTED') {
         showNetworkError();
       } else {
         showError(errorMessage);

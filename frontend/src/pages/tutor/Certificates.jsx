@@ -490,23 +490,23 @@ const TutorCertificates = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow w-full"
+      className="bg-white rounded-xl shadow-md border border-slate-100 p-6 hover:shadow-xl transition-all duration-300 w-full"
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
-            <FaCertificate className="text-indigo-600 text-xl" />
+          <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center">
+            <FaCertificate className="text-primary-600 text-xl" />
         </div>
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">{certificate.studentName}</h3>
-            <p className="text-slate-600">{certificate.courseName}</p>
+            <h3 className="text-lg font-bold text-slate-900">{certificate.studentName}</h3>
+            <p className="text-slate-600 font-medium">{certificate.courseName}</p>
         </div>
       </div>
         <div className="flex items-center space-x-2">
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-            certificate.status === 'issued' ? 'bg-green-100 text-green-800' :
-            certificate.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-            'bg-red-100 text-red-800'
+          <span className={`px-3 py-1.5 rounded-full text-xs font-bold border ${
+            certificate.status === 'issued' ? 'bg-green-100 text-green-800 border-green-200' :
+            certificate.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+            'bg-red-100 text-red-800 border-red-200'
           }`}>
             {certificate.status.charAt(0).toUpperCase() + certificate.status.slice(1)}
           </span>
@@ -540,13 +540,13 @@ const TutorCertificates = () => {
               setSelectedCertificate(certificate);
               setShowPreviewModal(true);
             }}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors"
+            className="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md hover:shadow-lg flex items-center"
           >
             <FaEye className="mr-2" />
             Preview
           </button>
           
-          <button className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors">
+          <button className="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 border border-red-200 flex items-center">
             <FaTrash className="mr-2" />
             Delete
           </button>
@@ -786,15 +786,15 @@ const TutorCertificates = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50">
       
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white shadow-md border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Certificates</h1>
-              <p className="text-slate-600 mt-1">Generate and manage student certificates</p>
+              <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-2">Certificates</h1>
+              <p className="text-slate-600 text-lg">Generate and manage student certificates</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="relative">
@@ -804,12 +804,12 @@ const TutorCertificates = () => {
                   placeholder="Search certificates..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
                 />
               </div>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="bg-indigo-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-indigo-600 transition-colors flex items-center"
+                className="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md hover:shadow-lg flex items-center"
               >
                 <FaPlus className="mr-2" />
                 Generate Certificate
@@ -820,16 +820,16 @@ const TutorCertificates = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-xl shadow-md border border-slate-100 p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Course</label>
               <select
                 value={selectedCourse}
                 onChange={(e) => setSelectedCourse(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
               >
                 {courseOptions.map(course => (
                   <option key={course} value={course}>
@@ -844,7 +844,7 @@ const TutorCertificates = () => {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
               >
                 {statuses.map(status => (
                   <option key={status} value={status}>
@@ -861,7 +861,7 @@ const TutorCertificates = () => {
                   setSelectedCourse('all');
                   setSelectedStatus('all');
                 }}
-                className="w-full bg-slate-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-slate-600 transition-colors"
+                className="w-full bg-slate-500 hover:bg-slate-600 text-white px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 Clear Filters
               </button>
@@ -870,20 +870,22 @@ const TutorCertificates = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-1 bg-white p-1 rounded-xl shadow-sm mb-8">
-          {['all', 'issued', 'pending', 'revoked', 'projects'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
-                activeTab === tab
-                  ? 'bg-indigo-500 text-white'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
+        <div className="bg-white rounded-xl shadow-md border border-slate-100 mb-6">
+          <div className="flex space-x-1 p-1">
+            {['all', 'issued', 'pending', 'revoked', 'projects'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-colors ${
+                  activeTab === tab
+                    ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-md'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Results Count */}
@@ -1113,22 +1115,24 @@ const TutorCertificates = () => {
 
         {/* Certificates Grid */}
         {activeTab !== 'projects' && (loading ? (
-          <div className="text-center py-12">
-            <FaSpinner className="text-6xl text-slate-300 mx-auto mb-4 animate-spin" />
-            <h3 className="text-xl font-medium text-slate-900 mb-2">Loading certificates...</h3>
-            <p className="text-slate-600">Please wait while we fetch the data.</p>
+          <div className="bg-white rounded-xl shadow-md border border-slate-100 text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Loading certificates...</h3>
+            <p className="text-slate-600 text-lg">Please wait while we fetch the data.</p>
           </div>
         ) : filteredCertificates.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredCertificates.map((certificate) => (
               <CertificateCard key={certificate.id} certificate={certificate} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <FaCertificate className="text-6xl text-slate-300 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-slate-900 mb-2">No certificates found</h3>
-            <p className="text-slate-600">Try adjusting your search or filters</p>
+          <div className="bg-white rounded-xl shadow-md border border-slate-100 text-center py-12">
+            <div className="w-20 h-20 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FaCertificate className="text-4xl text-slate-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 mb-3">No certificates found</h3>
+            <p className="text-slate-600 text-lg">Try adjusting your search or filters</p>
           </div>
         ))}
 

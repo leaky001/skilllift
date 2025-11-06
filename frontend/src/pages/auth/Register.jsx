@@ -196,7 +196,7 @@ const Register = () => {
   const roleInfo = getRoleInfo();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -206,11 +206,11 @@ const Register = () => {
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className={`${roleInfo.iconBg} rounded-full p-3 shadow-lg`}>
+            <div className={`${roleInfo.iconBg} rounded-full p-4 shadow-lg`}>
               <roleInfo.icon className={`text-3xl ${roleInfo.iconColor}`} />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-slate-900 mb-4">
+          <h1 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">
             {roleInfo.title}
           </h1>
           <p className="text-xl text-slate-600 mb-2">
@@ -218,8 +218,8 @@ const Register = () => {
           </p>
           
           {/* Role Display */}
-          <div className="mt-4 inline-block bg-primary-100 rounded-full px-4 py-2">
-            <span className="text-primary-700 font-medium capitalize">
+          <div className="mt-4 inline-block bg-gradient-to-r from-primary-100 to-primary-200 rounded-full px-4 py-2 border border-primary-200">
+            <span className="text-primary-700 font-semibold capitalize">
               {role} Account
             </span>
           </div>
@@ -229,7 +229,7 @@ const Register = () => {
         <div className="text-center">
           <button
             onClick={() => navigate('/')}
-            className="text-slate-600 hover:text-slate-900 transition-colors flex items-center justify-center mx-auto"
+            className="text-slate-600 hover:text-primary-600 transition-colors flex items-center justify-center mx-auto font-medium"
           >
             <FaArrowLeft className="mr-2" />
             Choose Different Role
@@ -238,20 +238,20 @@ const Register = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Features Section */}
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
-            <h3 className="text-2xl font-bold mb-6 text-slate-900">Why Choose SkillLift?</h3>
+          <div className="bg-white rounded-xl shadow-md border border-slate-100 p-8">
+            <h3 className="text-2xl font-bold mb-6 text-slate-900 tracking-tight">Why Choose SkillLift?</h3>
             <div className="space-y-4">
               {roleInfo.features.map((feature, index) => (
                 <div key={index} className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-accent-500 rounded-full"></div>
-                  <span className="text-slate-600">{feature}</span>
+                  <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
+                  <span className="text-slate-600 font-medium">{feature}</span>
                 </div>
               ))}
             </div>
             
-            <div className="mt-8 p-4 bg-slate-50 rounded-xl">
+            <div className="mt-8 p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border border-primary-200">
               <h4 className="font-bold mb-2 text-slate-900">Platform Benefits</h4>
-              <ul className="text-sm text-slate-600 space-y-1">
+              <ul className="text-sm text-slate-600 space-y-1 font-medium">
                 <li>• Secure payment processing</li>
                 <li>• 24/7 customer support</li>
                 <li>• Mobile-friendly platform</li>
@@ -261,7 +261,7 @@ const Register = () => {
           </div>
 
           {/* Registration Form */}
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
+          <div className="bg-white rounded-xl shadow-md border border-slate-100 p-8">
             <form onSubmit={formik.handleSubmit} className="space-y-6">
               {/* Full Name Field */}
               <div>
@@ -278,9 +278,9 @@ const Register = () => {
                     type="text"
                     autoComplete="name"
                     required
-                    className={`appearance-none relative block w-full pl-10 pr-3 py-3 border rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
+                    className={`appearance-none relative block w-full pl-10 pr-3 py-3 border rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white ${
                       formik.touched.name && formik.errors.name
-                        ? 'border-error-300 focus:ring-error-500'
+                        ? 'border-red-300 focus:ring-red-500'
                         : 'border-slate-300'
                     }`}
                     placeholder="Enter your full name"
@@ -309,10 +309,10 @@ const Register = () => {
                     type="email"
                     autoComplete="email"
                     required
-                    className={`appearance-none relative block w-full pl-10 pr-3 py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-colors ${
+                    className={`appearance-none relative block w-full pl-10 pr-3 py-3 border rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white ${
                       formik.touched.email && formik.errors.email
                         ? 'border-red-300 focus:ring-red-500'
-                        : 'border-gray-300'
+                        : 'border-slate-300'
                     }`}
                     placeholder="Enter your email"
                     onChange={formik.handleChange}
@@ -340,10 +340,10 @@ const Register = () => {
                     type="tel"
                     autoComplete="tel"
                     required
-                    className={`appearance-none relative block w-full pl-10 pr-3 py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-colors ${
+                    className={`appearance-none relative block w-full pl-10 pr-3 py-3 border rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white ${
                       formik.touched.phone && formik.errors.phone
                         ? 'border-red-300 focus:ring-red-500'
-                        : 'border-gray-300'
+                        : 'border-slate-300'
                     }`}
                     placeholder="Enter your phone number"
                     onChange={formik.handleChange}
@@ -371,10 +371,10 @@ const Register = () => {
                     type={showPassword ? 'text' : 'password'}
                     autoComplete="new-password"
                     required
-                    className={`appearance-none relative block w-full pl-10 pr-12 py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-colors ${
+                    className={`appearance-none relative block w-full pl-10 pr-12 py-3 border rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white ${
                       formik.touched.password && formik.errors.password
                         ? 'border-red-300 focus:ring-red-500'
-                        : 'border-gray-300'
+                        : 'border-slate-300'
                     }`}
                     placeholder="Create a password"
                     onChange={formik.handleChange}
@@ -413,10 +413,10 @@ const Register = () => {
                     type={showConfirmPassword ? 'text' : 'password'}
                     autoComplete="new-password"
                     required
-                    className={`appearance-none relative block w-full pl-10 pr-12 py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-colors ${
+                    className={`appearance-none relative block w-full pl-10 pr-12 py-3 border rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white ${
                       formik.touched.confirmPassword && formik.errors.confirmPassword
                         ? 'border-red-300 focus:ring-red-500'
-                        : 'border-gray-300'
+                        : 'border-slate-300'
                     }`}
                     placeholder="Confirm your password"
                     onChange={formik.handleChange}
@@ -447,15 +447,15 @@ const Register = () => {
                   name="terms"
                   type="checkbox"
                   required
-                  className="h-4 w-4 text-lavender focus:ring-lavender border-gray-300 rounded mt-1"
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded mt-1"
                 />
-                <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
+                <label htmlFor="terms" className="ml-2 block text-sm text-slate-700 font-medium">
                   I agree to the{' '}
-                  <a href="#" className="text-lavender hover:underline">
+                  <a href="#" className="text-primary-600 hover:text-primary-700 hover:underline font-semibold">
                     Terms of Service
                   </a>{' '}
                   and{' '}
-                  <a href="#" className="text-lavender hover:underline">
+                  <a href="#" className="text-primary-600 hover:text-primary-700 hover:underline font-semibold">
                     Privacy Policy
                   </a>
                 </label>
@@ -466,8 +466,8 @@ const Register = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white ${roleInfo.buttonColor} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lavender transition-all duration-200 ${
-                    isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg'
+                  className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r ${roleInfo.buttonColor.includes('primary') ? 'from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800' : 'from-secondary-600 to-secondary-700 hover:from-secondary-700 hover:to-secondary-800'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 shadow-md hover:shadow-lg ${
+                    isLoading ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
                   {isLoading ? (
@@ -485,10 +485,10 @@ const Register = () => {
               <div className="mt-6">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300" />
+                    <div className="w-full border-t border-slate-300" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                    <span className="px-2 bg-white text-slate-500 font-medium">Or continue with</span>
                   </div>
                 </div>
 
@@ -496,7 +496,7 @@ const Register = () => {
                   <button
                     type="button"
                     onClick={() => handleSocialLogin('google')}
-                    className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
+                    className="w-full inline-flex justify-center py-2.5 px-4 border border-slate-300 rounded-xl shadow-sm bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all duration-200 hover:shadow-md"
                   >
                     <FaGoogle className="text-red-500" />
                     <span className="ml-2">Google</span>
@@ -504,7 +504,7 @@ const Register = () => {
                   <button
                     type="button"
                     onClick={() => handleSocialLogin('facebook')}
-                    className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
+                    className="w-full inline-flex justify-center py-2.5 px-4 border border-slate-300 rounded-xl shadow-sm bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all duration-200 hover:shadow-md"
                   >
                     <FaFacebook className="text-blue-600" />
                     <span className="ml-2">Facebook</span>

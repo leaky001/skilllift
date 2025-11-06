@@ -289,21 +289,24 @@ const TutorLiveClasses = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading live classes...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Courses</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 flex items-center justify-center">
+        <div className="text-center bg-white rounded-xl shadow-md p-8 border border-slate-100 max-w-md">
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Error Loading Courses</h2>
+          <p className="text-slate-600 mb-6">{error}</p>
           <button
             onClick={loadCourses}
-            className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700"
+            className="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-all duration-200 shadow-md hover:shadow-lg"
           >
             Try Again
           </button>
@@ -313,365 +316,374 @@ const TutorLiveClasses = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Live Classes</h1>
-          <p className="text-gray-600">Manage live classes for your courses • Auto-refreshing every 5s</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => {
-              console.log('🔄 Manual refresh triggered');
-              loadCourses();
-            }}
-            className="bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 flex items-center space-x-2"
-            title="Refresh live classes"
-          >
-            <FaSync />
-            <span>Refresh</span>
-          </button>
-          <button
-            onClick={handleCreateCourse}
-            className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 flex items-center space-x-2"
-          >
-            <FaPlus />
-            <span>Create Course</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Courses List */}
-      <div className="space-y-6">
-        {courses.length === 0 ? (
-          <div className="text-center py-12">
-            <FaBook className="text-6xl text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">No Courses Yet</h3>
-            <p className="text-gray-500 mb-6">Create your first course to start managing live classes.</p>
-            <button
-              onClick={handleCreateCourse}
-              className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700"
-            >
-              Create Course
-            </button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 p-6 overflow-y-auto">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-4xl font-bold text-slate-900 mb-2 tracking-tight">Live Classes</h1>
+              <p className="text-slate-600 text-lg">Manage live classes for your courses • Auto-refreshing every 5s</p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => {
+                  console.log('🔄 Manual refresh triggered');
+                  loadCourses();
+                }}
+                className="inline-flex items-center justify-center px-5 py-3 bg-slate-100 text-slate-700 font-semibold rounded-xl shadow-sm hover:bg-slate-200 hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                title="Refresh live classes"
+              >
+                <FaSync className="mr-2" />
+                <span>Refresh</span>
+              </button>
+              <button
+                onClick={handleCreateCourse}
+                className="inline-flex items-center justify-center px-6 py-3 bg-primary-600 text-white font-semibold rounded-xl shadow-md hover:bg-primary-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              >
+                <FaPlus className="mr-2" />
+                <span>Create Course</span>
+              </button>
+            </div>
           </div>
-        ) : (
-          courses.map((course) => (
-            <div key={course._id} className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h3 className="text-xl font-semibold text-gray-900">{course.title}</h3>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      course.status === 'published' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {course.status.charAt(0).toUpperCase() + course.status.slice(1)}
-                    </span>
-                  </div>
-                  
-                  <p className="text-gray-600 mb-4">{course.description}</p>
-                  
-                  <div className="flex items-center space-x-6 text-sm text-gray-500">
-                    <div className="flex items-center space-x-2">
-                      <FaUsers />
-                      <span>{course.enrolledLearners || 0} enrolled</span>
+        </div>
+
+        {/* Courses List */}
+        <div className="space-y-6">
+          {courses.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-xl shadow-md border border-slate-100">
+              <div className="text-7xl mb-6">📚</div>
+              <h3 className="text-2xl font-bold text-slate-900 mb-3">No Courses Yet</h3>
+              <p className="text-slate-600 mb-8 max-w-md mx-auto">Create your first course to start managing live classes.</p>
+              <button
+                onClick={handleCreateCourse}
+                className="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-semibold rounded-xl shadow-md hover:bg-primary-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+              >
+                <FaPlus className="mr-2" />
+                Create Course
+              </button>
+            </div>
+          ) : (
+            courses.map((course) => (
+              <div key={course._id} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-slate-100 p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <h3 className="text-xl font-bold text-slate-900">{course.title}</h3>
+                      <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm ${
+                        course.status === 'published' 
+                          ? 'bg-primary-100 text-primary-800 border border-primary-200' 
+                          : 'bg-accent-100 text-accent-800 border border-accent-200'
+                      }`}>
+                        {course.status.charAt(0).toUpperCase() + course.status.slice(1)}
+                      </span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <FaCalendarAlt />
-                      <span>Created {new Date(course.createdAt).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <FaVideo />
-                      <span>{course.liveClasses?.length || 0} live classes</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={() => handleCreateLiveClass(course)}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2"
-                  >
-                    <FaPlus />
-                    <span>Create Live Class</span>
-                  </button>
-                  
-                  <button
-                    onClick={() => navigate(`/tutor/courses/${course._id}`)}
-                    className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center space-x-2"
-                  >
-                    <FaBook />
-                    <span>View Course</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Live Classes for this course */}
-              {course.liveClasses && course.liveClasses.length > 0 && (
-                <div className="mt-4 border-t pt-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Live Classes</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {course.liveClasses.map((liveClass) => (
-                      <div key={liveClass._id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-                        {/* Course Image */}
-                        <div className="h-48 bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
-                          <FaBook className="text-6xl text-white opacity-80" />
-                        </div>
-
-                        {/* Content */}
-                        <div className="p-6">
-                          <div className="flex items-center justify-between mb-3">
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                              liveClass.status === 'live' 
-                                ? 'bg-green-100 text-green-800' 
-                                : liveClass.status === 'ready'
-                                ? 'bg-blue-100 text-blue-800'
-                                : liveClass.status === 'ended' || liveClass.status === 'completed'
-                                ? 'bg-gray-100 text-gray-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {liveClass.status === 'completed' ? 'Completed' : liveClass.status.charAt(0).toUpperCase() + liveClass.status.slice(1)}
-                            </span>
-                            <span className="text-sm text-gray-500">
-                              {liveClass.attendees?.length || 0} participants
-                            </span>
-                          </div>
-
-                          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                            {liveClass.title}
-                          </h3>
-
-                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                            {liveClass.description}
-                          </p>
-
-                          <div className="space-y-2 mb-4">
-                            <div className="flex items-center text-sm text-gray-500">
-                              <FaCalendarAlt className="mr-2" />
-                              {new Date(liveClass.scheduledDate).toLocaleDateString('en-US', { 
-                                year: 'numeric', 
-                                month: 'short', 
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                hour12: true
-                              })}
-                            </div>
-                            <div className="flex items-center text-sm text-gray-500">
-                              <FaClock className="mr-2" />
-                              {liveClass.duration} minutes
-                            </div>
-                          </div>
-
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => handleStartLiveClass(liveClass, course._id)}
-                              className={`flex-1 flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors ${
-                                liveClass.status === 'ready' || liveClass.status === 'scheduled'
-                                  ? 'bg-green-600 text-white hover:bg-green-700'
-                                  : liveClass.status === 'live'
-                                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              }`}
-                              disabled={liveClass.status === 'ended' || liveClass.status === 'cancelled' || liveClass.status === 'completed'}
-                            >
-                              <FaPlay className="mr-2" />
-                              {liveClass.status === 'ready' || liveClass.status === 'scheduled' ? 'Start Live Class' : 
-                               liveClass.status === 'live' ? 'Join Live Class' : 
-                               liveClass.status === 'completed' ? 'Live Class Ended' : 'Not Available'}
-                            </button>
-                            
-                            <button
-                              onClick={() => handleDeleteLiveClass(liveClass._id)}
-                              className="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-colors"
-                              title="Delete Live Class"
-                            >
-                              <FaTimes />
-                            </button>
-                          </div>
-                        </div>
+                    
+                    <p className="text-slate-600 mb-4 leading-relaxed">{course.description}</p>
+                    
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
+                      <div className="flex items-center space-x-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                        <FaUsers className="text-primary-600" />
+                        <span className="font-medium">{course.enrolledLearners || 0} enrolled</span>
                       </div>
-                    ))}
+                      <div className="flex items-center space-x-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                        <FaCalendarAlt className="text-primary-600" />
+                        <span className="font-medium">Created {new Date(course.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center space-x-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                        <FaVideo className="text-primary-600" />
+                        <span className="font-medium">{course.liveClasses?.length || 0} live classes</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3 ml-4">
+                    <button
+                      onClick={() => handleCreateLiveClass(course)}
+                      className="inline-flex items-center px-4 py-2.5 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                    >
+                      <FaPlus className="mr-2" />
+                      <span>Create Live Class</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => navigate(`/tutor/courses/${course._id}`)}
+                      className="inline-flex items-center px-4 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-all duration-200 shadow-sm hover:shadow-md"
+                    >
+                      <FaBook className="mr-2" />
+                      <span>View Course</span>
+                    </button>
                   </div>
                 </div>
-              )}
+
+                {/* Live Classes for this course */}
+                {course.liveClasses && course.liveClasses.length > 0 && (
+                  <div className="mt-6 border-t border-slate-200 pt-6">
+                    <h4 className="text-lg font-bold text-slate-900 mb-4">Live Classes</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {course.liveClasses.map((liveClass) => (
+                        <div key={liveClass._id} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-slate-100 overflow-hidden group">
+                          {/* Course Image */}
+                          <div className="h-48 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center relative overflow-hidden">
+                            <FaVideo className="text-6xl text-white opacity-90 group-hover:scale-110 transition-transform duration-300" />
+                            <div className="absolute top-3 left-3">
+                              <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-md backdrop-blur-sm ${
+                                liveClass.status === 'live' 
+                                  ? 'bg-green-100 text-green-800 border border-green-200' 
+                                  : liveClass.status === 'ready'
+                                  ? 'bg-primary-100 text-primary-800 border border-primary-200'
+                                  : liveClass.status === 'ended' || liveClass.status === 'completed'
+                                  ? 'bg-slate-100 text-slate-800 border border-slate-200'
+                                  : 'bg-accent-100 text-accent-800 border border-accent-200'
+                              }`}>
+                                {liveClass.status === 'completed' ? 'Completed' : liveClass.status.charAt(0).toUpperCase() + liveClass.status.slice(1)}
+                              </span>
+                            </div>
+                            <div className="absolute bottom-3 right-3">
+                              <div className="flex items-center space-x-1.5 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
+                                <FaUsers className="text-white text-sm" />
+                                <span className="text-white text-sm font-bold">
+                                  {liveClass.attendees?.length || 0}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Content */}
+                          <div className="p-6">
+                            <h3 className="text-lg font-bold text-slate-900 mb-2 line-clamp-2">
+                              {liveClass.title}
+                            </h3>
+
+                            <p className="text-slate-600 text-sm mb-4 line-clamp-2 leading-relaxed">
+                              {liveClass.description}
+                            </p>
+
+                            <div className="space-y-2 mb-4">
+                              <div className="flex items-center text-sm text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+                                <FaCalendarAlt className="mr-2 text-primary-600" />
+                                <span className="font-medium">{new Date(liveClass.scheduledDate).toLocaleDateString('en-US', { 
+                                  year: 'numeric', 
+                                  month: 'short', 
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  hour12: true
+                                })}</span>
+                              </div>
+                              <div className="flex items-center text-sm text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+                                <FaClock className="mr-2 text-primary-600" />
+                                <span className="font-medium">{liveClass.duration} minutes</span>
+                              </div>
+                            </div>
+
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => handleStartLiveClass(liveClass, course._id)}
+                                className={`flex-1 flex items-center justify-center px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-sm hover:shadow-md ${
+                                  liveClass.status === 'ready' || liveClass.status === 'scheduled'
+                                    ? 'bg-primary-600 text-white hover:bg-primary-700'
+                                    : liveClass.status === 'live'
+                                    ? 'bg-secondary-600 text-white hover:bg-secondary-700'
+                                    : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                                }`}
+                                disabled={liveClass.status === 'ended' || liveClass.status === 'cancelled' || liveClass.status === 'completed'}
+                              >
+                                <FaPlay className="mr-2" />
+                                {liveClass.status === 'ready' || liveClass.status === 'scheduled' ? 'Start Live Class' : 
+                                 liveClass.status === 'live' ? 'Join Live Class' : 
+                                 liveClass.status === 'completed' ? 'Live Class Ended' : 'Not Available'}
+                              </button>
+                              
+                              <button
+                                onClick={() => handleDeleteLiveClass(liveClass._id)}
+                                className="bg-red-100 text-red-600 px-3 py-2.5 rounded-xl hover:bg-red-200 transition-all duration-200 shadow-sm hover:shadow-md"
+                                title="Delete Live Class"
+                              >
+                                <FaTimes />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
             </div>
           ))
         )}
       </div>
 
-      {/* CRITICAL FIX: Show ALL Available Live Classes (including learners') */}
-      {liveClasses.length > 0 && (
-        <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">All Available Live Classes</h2>
-              <p className="text-gray-600">Join any live class or manage your own</p>
+        {/* CRITICAL FIX: Show ALL Available Live Classes (including learners') */}
+        {liveClasses.length > 0 && (
+          <div className="mt-8 bg-white rounded-xl shadow-md border border-slate-100 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">All Available Live Classes</h2>
+                <p className="text-slate-600 mt-1">Join any live class or manage your own</p>
+              </div>
+              <div className="px-4 py-2 bg-primary-100 text-primary-800 rounded-xl border border-primary-200 font-semibold">
+                {liveClasses.filter(lc => lc.status === 'live').length} active now
+              </div>
             </div>
-            <div className="text-sm text-gray-500">
-              {liveClasses.filter(lc => lc.status === 'live').length} active now
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {liveClasses.map((liveClass) => {
-              // Determine if this is MY live class or someone else's
-              const tutorLiveClasses = courses.flatMap(c => c.liveClasses || []);
-              const isMyLiveClass = tutorLiveClasses.some(lc => lc._id === liveClass._id);
-              
-              return (
-                <div key={liveClass._id} className="bg-gray-50 rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-                  {/* Header with ownership indicator */}
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      liveClass.status === 'live' 
-                        ? 'bg-green-100 text-green-800' 
-                        : liveClass.status === 'ready'
-                        ? 'bg-blue-100 text-blue-800'
-                        : liveClass.status === 'ended' || liveClass.status === 'completed'
-                        ? 'bg-gray-100 text-gray-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {liveClass.status === 'completed' ? 'Completed' : liveClass.status.charAt(0).toUpperCase() + liveClass.status.slice(1)}
-                    </span>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      isMyLiveClass 
-                        ? 'bg-blue-100 text-blue-800' 
-                        : 'bg-green-100 text-green-800'
-                    }`}>
-                      {isMyLiveClass ? 'MY CLASS' : 'JOINABLE'}
-                    </span>
-                  </div>
-
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {liveClass.title}
-                  </h3>
-
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                    {liveClass.description}
-                  </p>
-
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <FaCalendarAlt className="mr-2" />
-                      {new Date(liveClass.scheduledDate).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'short', 
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {liveClasses.map((liveClass) => {
+                // Determine if this is MY live class or someone else's
+                const tutorLiveClasses = courses.flatMap(c => c.liveClasses || []);
+                const isMyLiveClass = tutorLiveClasses.some(lc => lc._id === liveClass._id);
+                
+                return (
+                  <div key={liveClass._id} className="bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 p-5 hover:shadow-lg transition-all duration-300 group">
+                    {/* Header with ownership indicator */}
+                    <div className="flex items-center justify-between mb-3">
+                      <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm ${
+                        liveClass.status === 'live' 
+                          ? 'bg-green-100 text-green-800 border border-green-200' 
+                          : liveClass.status === 'ready'
+                          ? 'bg-primary-100 text-primary-800 border border-primary-200'
+                          : liveClass.status === 'ended' || liveClass.status === 'completed'
+                          ? 'bg-slate-100 text-slate-800 border border-slate-200'
+                          : 'bg-accent-100 text-accent-800 border border-accent-200'
+                      }`}>
+                        {liveClass.status === 'completed' ? 'Completed' : liveClass.status.charAt(0).toUpperCase() + liveClass.status.slice(1)}
+                      </span>
+                      <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                        isMyLiveClass 
+                          ? 'bg-primary-100 text-primary-800 border border-primary-200' 
+                          : 'bg-secondary-100 text-secondary-800 border border-secondary-200'
+                      }`}>
+                        {isMyLiveClass ? 'MY CLASS' : 'JOINABLE'}
+                      </span>
                     </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <FaClock className="mr-2" />
-                      {liveClass.duration || 60} minutes
-                    </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <FaUsers className="mr-2" />
-                      {liveClass.attendees?.length || 0} participants
-                    </div>
-                  </div>
 
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleStartLiveClass(liveClass)}
-                      className={`flex-1 flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors ${
-                        liveClass.status === 'ready' || liveClass.status === 'scheduled'
-                          ? 'bg-green-600 text-white hover:bg-green-700'
+                    <h3 className="text-lg font-bold text-slate-900 mb-2 line-clamp-2">
+                      {liveClass.title}
+                    </h3>
+
+                    <p className="text-slate-600 text-sm mb-3 line-clamp-2 leading-relaxed">
+                      {liveClass.description}
+                    </p>
+
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center text-sm text-slate-600 bg-white px-3 py-2 rounded-lg border border-slate-200">
+                        <FaCalendarAlt className="mr-2 text-primary-600" />
+                        <span className="font-medium">{new Date(liveClass.scheduledDate).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'short', 
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}</span>
+                      </div>
+                      <div className="flex items-center text-sm text-slate-600 bg-white px-3 py-2 rounded-lg border border-slate-200">
+                        <FaClock className="mr-2 text-primary-600" />
+                        <span className="font-medium">{liveClass.duration || 60} minutes</span>
+                      </div>
+                      <div className="flex items-center text-sm text-slate-600 bg-white px-3 py-2 rounded-lg border border-slate-200">
+                        <FaUsers className="mr-2 text-primary-600" />
+                        <span className="font-medium">{liveClass.attendees?.length || 0} participants</span>
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleStartLiveClass(liveClass)}
+                        className={`flex-1 flex items-center justify-center px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-sm hover:shadow-md ${
+                          liveClass.status === 'ready' || liveClass.status === 'scheduled'
+                            ? 'bg-primary-600 text-white hover:bg-primary-700'
+                            : liveClass.status === 'live'
+                            ? 'bg-secondary-600 text-white hover:bg-secondary-700'
+                            : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                        }`}
+                        disabled={liveClass.status === 'ended' || liveClass.status === 'cancelled' || liveClass.status === 'completed'}
+                      >
+                        <FaPlay className="mr-2" />
+                        {liveClass.status === 'ready' || liveClass.status === 'scheduled' 
+                          ? 'Start Live Class' 
                           : liveClass.status === 'live'
-                          ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : 'bg-gray-400 text-white cursor-not-allowed'
-                      }`}
-                      disabled={liveClass.status === 'ended' || liveClass.status === 'cancelled' || liveClass.status === 'completed'}
-                    >
-                      <FaPlay className="mr-2" />
-                      {liveClass.status === 'ready' || liveClass.status === 'scheduled' 
-                        ? 'Start Live Class' 
-                        : liveClass.status === 'live'
-                        ? 'Join Live Class'
-                        : liveClass.status === 'completed'
-                        ? 'Live Class Ended'
-                        : 'Not Available'
-                      }
-                    </button>
+                          ? 'Join Live Class'
+                          : liveClass.status === 'completed'
+                          ? 'Live Class Ended'
+                          : 'Not Available'
+                        }
+                      </button>
+                    </div>
                   </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Quick Stats */}
+        {courses.length > 0 && (
+          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-white rounded-xl shadow-md hover:shadow-lg border border-slate-100 p-6 transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-center">
+                <div className="p-3 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl shadow-sm">
+                  <FaBook className="text-primary-600 text-xl" />
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Quick Stats */}
-      {courses.length > 0 && (
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <FaBook className="text-blue-600 text-xl" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-slate-600 mb-1">Total Courses</p>
+                  <p className="text-3xl font-bold text-slate-900">{courses.length}</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Courses</p>
-                <p className="text-2xl font-semibold text-gray-900">{courses.length}</p>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md hover:shadow-lg border border-slate-100 p-6 transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-center">
+                <div className="p-3 bg-gradient-to-br from-secondary-100 to-secondary-200 rounded-xl shadow-sm">
+                  <FaUsers className="text-secondary-600 text-xl" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-slate-600 mb-1">Total Enrollments</p>
+                  <p className="text-3xl font-bold text-slate-900">
+                    {courses.reduce((total, course) => total + (course.enrolledLearners || 0), 0)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md hover:shadow-lg border border-slate-100 p-6 transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-center">
+                <div className="p-3 bg-gradient-to-br from-accent-100 to-accent-200 rounded-xl shadow-sm">
+                  <FaVideo className="text-accent-600 text-xl" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-slate-600 mb-1">Live Classes</p>
+                  <p className="text-3xl font-bold text-slate-900">
+                    {courses.reduce((total, course) => total + (course.liveClasses?.length || 0), 0)}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <FaUsers className="text-green-600 text-xl" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Enrollments</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {courses.reduce((total, course) => total + (course.enrolledLearners || 0), 0)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <FaVideo className="text-purple-600 text-xl" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Live Classes</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {courses.reduce((total, course) => total + (course.liveClasses?.length || 0), 0)}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Create Live Class Modal */}
       {showCreateModal && selectedCourse && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Create Live Class</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto border border-slate-200">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
+              <h2 className="text-2xl font-bold text-slate-900">Create Live Class</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-slate-500 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-lg transition-colors"
               >
                 <FaTimes className="text-xl" />
               </button>
             </div>
 
-            <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-              <h3 className="font-semibold text-blue-900">Course: {selectedCourse.title}</h3>
-              <p className="text-blue-700 text-sm">{selectedCourse.description}</p>
+            <div className="mb-6 p-4 bg-primary-50 rounded-lg border border-primary-200">
+              <h3 className="font-semibold text-primary-900 mb-1">Course: {selectedCourse.title}</h3>
+              <p className="text-primary-700 text-sm">{selectedCourse.description}</p>
             </div>
 
-            <form onSubmit={handleSubmitLiveClass} className="space-y-4">
+            <form onSubmit={handleSubmitLiveClass} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Live Class Title *
                 </label>
                 <input
@@ -679,14 +691,14 @@ const TutorLiveClasses = () => {
                   name="title"
                   value={formData.title}
                   onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
                   placeholder="Enter live class title"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Description
                 </label>
                 <textarea
@@ -694,14 +706,14 @@ const TutorLiveClasses = () => {
                   value={formData.description}
                   onChange={handleFormChange}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
                   placeholder="Enter live class description"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Scheduled Date & Time *
                   </label>
                   <input
@@ -709,20 +721,20 @@ const TutorLiveClasses = () => {
                     name="scheduledDate"
                     value={formData.scheduledDate}
                     onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Duration (minutes)
                   </label>
                   <select
                     name="duration"
                     value={formData.duration}
                     onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
                   >
                     <option value={30}>30 minutes</option>
                     <option value={60}>1 hour</option>
@@ -733,64 +745,64 @@ const TutorLiveClasses = () => {
                 </div>
               </div>
 
-              <div className="border-t pt-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Live Class Settings</h3>
+              <div className="border-t border-slate-200 pt-5">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">Live Class Settings</h3>
                 
-                <div className="space-y-3">
-                  <div className="flex items-center">
+                <div className="space-y-4">
+                  <div className="flex items-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
                     <input
                       type="checkbox"
                       name="settings.allowScreenShare"
                       checked={formData.settings.allowScreenShare}
                       onChange={handleFormChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded"
                     />
-                    <label className="ml-2 text-sm text-gray-700">
+                    <label className="ml-3 text-sm font-medium text-slate-700 cursor-pointer">
                       Allow screen sharing
                     </label>
                   </div>
 
-                  <div className="flex items-center">
+                  <div className="flex items-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
                     <input
                       type="checkbox"
                       name="settings.allowChat"
                       checked={formData.settings.allowChat}
                       onChange={handleFormChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded"
                     />
-                    <label className="ml-2 text-sm text-gray-700">
+                    <label className="ml-3 text-sm font-medium text-slate-700 cursor-pointer">
                       Enable chat during class
                     </label>
                   </div>
 
-                  <div className="flex items-center">
+                  <div className="flex items-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
                     <input
                       type="checkbox"
                       name="settings.allowLearnerScreenShare"
                       checked={formData.settings.allowLearnerScreenShare}
                       onChange={handleFormChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded"
                     />
-                    <label className="ml-2 text-sm text-gray-700">
+                    <label className="ml-3 text-sm font-medium text-slate-700 cursor-pointer">
                       Allow learners to share screen
                     </label>
                   </div>
 
-                  <div className="flex items-center">
+                  <div className="flex items-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
                     <input
                       type="checkbox"
                       name="settings.autoRecord"
                       checked={formData.settings.autoRecord}
                       onChange={handleFormChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded"
                     />
-                    <label className="ml-2 text-sm text-gray-700">
+                    <label className="ml-3 text-sm font-medium text-slate-700 cursor-pointer">
                       Automatically record session
                     </label>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
                       Maximum Participants
                     </label>
                     <input
@@ -800,24 +812,24 @@ const TutorLiveClasses = () => {
                       onChange={handleFormChange}
                       min="1"
                       max="100"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-3 pt-4">
+              <div className="flex justify-end space-x-3 pt-5 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
+                  className="px-5 py-2.5 text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-all duration-200 font-semibold shadow-sm hover:shadow-md"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center space-x-2"
+                  className="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center space-x-2 font-semibold shadow-md hover:shadow-lg transition-all duration-200"
                 >
                   {isCreating ? (
                     <>

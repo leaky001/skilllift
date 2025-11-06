@@ -92,9 +92,17 @@ const LearnerProfile = () => {
   };
 
   const resolveImageUrl = (url) => {
-    if (!url) return '';
-    if (/^https?:\/\//i.test(url)) return url;
-    return `${getBackendOrigin()}${url}`;
+    if (!url || url === 'null' || url === 'undefined' || url.trim() === '') return '';
+    // If it's already a full URL (http/https), return as is
+    if (/^https?:\/\//i.test(url)) {
+      return url;
+    }
+    // If it starts with /, it's a relative path
+    if (url.startsWith('/')) {
+      return `${getBackendOrigin()}${url}`;
+    }
+    // Otherwise, assume it's a relative path and add /
+    return `${getBackendOrigin()}/${url}`;
   };
 
   const handleSave = async () => {
@@ -125,33 +133,37 @@ const LearnerProfile = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading profile...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 flex items-center justify-center">
+        <div className="text-center bg-white rounded-xl shadow-md p-8 border border-slate-100">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 text-lg font-medium">Loading profile...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-neutral-900">Profile</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-2">Profile</h1>
+          <p className="text-slate-600 text-lg">Manage your profile information</p>
+        </div>
         <div className="flex space-x-3">
           {isEditing ? (
             <>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
+                className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-xl font-semibold transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
               >
                 <FaSave />
                 <span>{saving ? 'Saving...' : 'Save Changes'}</span>
               </button>
               <button
                 onClick={() => setIsEditing(false)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center space-x-2"
+                className="px-5 py-2.5 bg-slate-500 hover:bg-slate-600 text-white rounded-xl font-semibold transition-all duration-200 shadow-md hover:shadow-lg flex items-center space-x-2"
               >
                 <FaTimes />
                 <span>Cancel</span>
@@ -160,7 +172,7 @@ const LearnerProfile = () => {
           ) : (
             <button
               onClick={() => setIsEditing(true)}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center space-x-2"
+              className="px-5 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white rounded-xl font-semibold transition-all duration-200 shadow-md hover:shadow-lg flex items-center space-x-2"
             >
               <FaEdit />
               <span>Edit Profile</span>
@@ -169,26 +181,37 @@ const LearnerProfile = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-neutral-200">
+      <div className="bg-white rounded-xl p-6 shadow-md border border-slate-100">
         <div className="flex items-center mb-6">
           <button
             type="button"
             onClick={handleAvatarClick}
-            className="relative w-20 h-20 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="relative w-24 h-24 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-200"
             title="Change profile photo"
           >
-            {profile.profilePicture ? (
+            {profile.profilePicture && profile.profilePicture !== 'null' && profile.profilePicture !== 'undefined' && profile.profilePicture.trim() !== '' ? (
               <img
+                key={profile.profilePicture}
                 src={resolveImageUrl(profile.profilePicture)}
                 alt="Profile"
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.error('❌ Error loading profile picture:', resolveImageUrl(profile.profilePicture));
+                  // Hide the broken image and show fallback
+                  e.target.style.display = 'none';
+                  // Clear the invalid URL
+                  setProfile((prev) => ({ ...prev, profilePicture: '' }));
+                }}
+                onLoad={() => {
+                  console.log('✅ Profile picture loaded successfully');
+                }}
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-2xl font-bold">
+              <div className="w-full h-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg border-4 border-white">
                 {profile.name ? profile.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'L'}
               </div>
             )}
-            <div className="absolute inset-0 bg-black/30 opacity-0 hover:opacity-100 transition flex items-center justify-center text-white text-xs font-medium">
+            <div className="absolute inset-0 bg-black/30 opacity-0 hover:opacity-100 transition-all duration-200 flex items-center justify-center text-white text-xs font-semibold">
               {uploadingAvatar ? 'Uploading...' : 'Change'}
             </div>
           </button>
@@ -200,53 +223,54 @@ const LearnerProfile = () => {
             onChange={handleAvatarSelected}
           />
           <div className="ml-6">
-            <h2 className="text-2xl font-bold text-neutral-900">{profile.name || 'Learner'}</h2>
-            <p className="text-neutral-600">Student</p>
+            <h2 className="text-2xl font-bold text-slate-900">{profile.name || 'Learner'}</h2>
+            <p className="text-slate-600 font-medium">Student</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">Name</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Name</label>
             <input
               type="text"
               value={profile.name}
               onChange={(e) => setProfile(prev => ({ ...prev, name: e.target.value }))}
               disabled={!isEditing}
-              className="w-full px-3 py-2 border border-neutral-300 rounded-lg disabled:bg-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg disabled:bg-slate-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">Email</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
             <input
               type="email"
               value={profile.email}
-              disabled={!isEditing}
-              className="w-full px-3 py-2 border border-neutral-300 rounded-lg disabled:bg-neutral-100"
+              disabled
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg bg-slate-100 text-slate-600"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">Phone</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Phone</label>
             <input
               type="tel"
               value={profile.phone}
               onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
               disabled={!isEditing}
-              className="w-full px-3 py-2 border border-neutral-300 rounded-lg disabled:bg-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg disabled:bg-slate-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
             />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-neutral-700 mb-2">Bio</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Bio</label>
             <textarea
               value={profile.bio}
               onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
               disabled={!isEditing}
               rows={4}
-              className="w-full px-3 py-2 border border-neutral-300 rounded-lg disabled:bg-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg disabled:bg-slate-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white resize-none"
               placeholder="Tell us about yourself..."
             />
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

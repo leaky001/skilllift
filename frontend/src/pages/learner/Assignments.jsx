@@ -149,15 +149,15 @@ const LearnerAssignments = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'active':
-        return 'text-green-600 bg-green-100';
+        return 'text-green-800 bg-green-100 border-green-200';
       case 'submitted':
-        return 'text-blue-600 bg-blue-100';
+        return 'text-blue-800 bg-blue-100 border-blue-200';
       case 'graded':
-        return 'text-purple-600 bg-purple-100';
+        return 'text-purple-800 bg-purple-100 border-purple-200';
       case 'overdue':
-        return 'text-red-600 bg-red-100';
+        return 'text-red-800 bg-red-100 border-red-200';
       default:
-        return 'text-gray-600 bg-gray-100';
+        return 'text-slate-800 bg-slate-100 border-slate-200';
     }
   };
 
@@ -185,53 +185,53 @@ const LearnerAssignments = () => {
     const timeRemaining = getTimeRemaining(assignment.dueDate);
 
     return (
-      <div className="assignment-card bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden w-full">
+      <div className="assignment-card bg-white rounded-xl shadow-md border border-slate-100 hover:shadow-xl transition-all duration-300 overflow-hidden w-full">
         <div className="p-6 flex-1 flex flex-col">
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1 min-w-0">
-              <h3 className="text-xl font-bold text-gray-900 mb-2 truncate">
+              <h3 className="text-xl font-bold text-slate-900 mb-2 truncate">
                 {assignment.title}
               </h3>
-              <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+              <p className="text-sm text-slate-600 mb-3 line-clamp-2">
                 {assignment.description}
               </p>
               
-              <div className="flex flex-col space-y-2 text-sm text-gray-500">
-                <div className="flex items-center">
-                  <FaBookOpen className="mr-2 text-blue-500" />
-                  <span className="truncate">{assignment.course?.title || 'Unknown Course'}</span>
+              <div className="flex flex-col space-y-2 text-sm">
+                <div className="flex items-center text-slate-600">
+                  <FaBookOpen className="mr-2 text-primary-600" />
+                  <span className="truncate font-medium">{assignment.course?.title || 'Unknown Course'}</span>
                 </div>
-                <div className="flex items-center">
-                  <FaGraduationCap className="mr-2 text-green-500" />
-                  <span className="truncate">{assignment.tutor?.name || 'Unknown Tutor'}</span>
+                <div className="flex items-center text-slate-600">
+                  <FaGraduationCap className="mr-2 text-primary-600" />
+                  <span className="truncate font-medium">{assignment.tutor?.name || 'Unknown Tutor'}</span>
                 </div>
               </div>
             </div>
             
             <div className="ml-4 flex flex-col items-end space-y-2">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(assignment.status)}`}>
+              <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border ${getStatusColor(assignment.status)}`}>
                 {getStatusIcon(assignment.status)}
-                <span className="ml-1 capitalize">{assignment.status}</span>
+                <span className="ml-1.5 capitalize">{assignment.status}</span>
               </span>
               
               {submissionStatus && (
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                  submissionStatus === 'graded' ? 'text-green-700 bg-green-100' :
-                  submissionStatus === 'submitted' ? 'text-blue-700 bg-blue-100' :
-                  'text-gray-700 bg-gray-100'
+                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border ${
+                  submissionStatus === 'graded' ? 'text-green-800 bg-green-100 border-green-200' :
+                  submissionStatus === 'submitted' ? 'text-blue-800 bg-blue-100 border-blue-200' :
+                  'text-slate-800 bg-slate-100 border-slate-200'
                 }`}>
                   {submissionStatus === 'graded' && submissionScore !== null ? (
                     <>
-                      <FaTrophy className="mr-1" />
+                      <FaTrophy className="mr-1.5" />
                       <span>{submissionScore}/{submissionMaxScore || assignment.points || assignment.totalPoints}</span>
                       {submissionGrade && (
-                        <span className="ml-1 font-bold">({submissionGrade})</span>
+                        <span className="ml-1.5 font-bold">({submissionGrade})</span>
                       )}
                     </>
                   ) : (
                     <>
-                      <FaUpload className="mr-1" />
+                      <FaUpload className="mr-1.5" />
                       <span>Submitted</span>
                     </>
                   )}
@@ -241,33 +241,37 @@ const LearnerAssignments = () => {
           </div>
 
           {/* Info Cards */}
-          <div className="grid grid-cols-1 gap-3 mb-4">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
-              <div className="flex items-center justify-between">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-4 border border-primary-200">
+              <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center">
-                  <FaCalendarAlt className="text-blue-600 mr-2" />
-                  <span className="text-sm font-medium text-blue-800">Due Date</span>
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary-200 to-primary-300 rounded-lg flex items-center justify-center mr-3">
+                    <FaCalendarAlt className="text-primary-600" />
+                  </div>
+                  <span className="text-sm font-semibold text-primary-900">Due Date</span>
                 </div>
-                <span className="text-sm font-bold text-blue-900">
-                  {formatDate(assignment.dueDate)}
-                </span>
               </div>
-              <div className="text-xs text-blue-600 mt-1 font-medium">
+              <div className="text-sm font-bold text-primary-900 mb-1">
+                {formatDate(assignment.dueDate)}
+              </div>
+              <div className="text-xs text-primary-700 font-medium">
                 {timeRemaining}
               </div>
             </div>
             
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-100">
-              <div className="flex items-center justify-between">
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
+              <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center">
-                  <FaTrophy className="text-green-600 mr-2" />
-                  <span className="text-sm font-medium text-green-800">Points</span>
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-200 to-emerald-300 rounded-lg flex items-center justify-center mr-3">
+                    <FaTrophy className="text-emerald-600" />
+                  </div>
+                  <span className="text-sm font-semibold text-emerald-900">Points</span>
                 </div>
-                <span className="text-sm font-bold text-green-900">
-                  {assignment.totalPoints || assignment.points || 0} pts
-                </span>
               </div>
-              <div className="text-xs text-green-600 mt-1 font-medium">
+              <div className="text-sm font-bold text-emerald-900 mb-1">
+                {assignment.totalPoints || assignment.points || 0} pts
+              </div>
+              <div className="text-xs text-emerald-700 font-medium">
                 Pass: {assignment.passingScore || 70}%
               </div>
             </div>
@@ -275,9 +279,9 @@ const LearnerAssignments = () => {
 
           {/* Instructions */}
           {assignment.instructions && (
-            <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100">
-              <h4 className="text-sm font-semibold text-purple-900 mb-2 flex items-center">
-                <FaFileAlt className="mr-2" />
+            <div className="mb-4 p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+              <h4 className="text-sm font-bold text-purple-900 mb-2 flex items-center">
+                <FaFileAlt className="mr-2 text-purple-600" />
                 Instructions
               </h4>
               <p className="text-sm text-purple-800 line-clamp-3">
@@ -289,15 +293,15 @@ const LearnerAssignments = () => {
           {/* Attachments */}
           {assignment.attachments && assignment.attachments.length > 0 && (
             <div className="mb-4">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h4>
+              <h4 className="text-sm font-semibold text-slate-700 mb-3">Attachments</h4>
               <div className="space-y-2">
                 {assignment.attachments.map((attachment, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                  <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors">
                     <div className="flex items-center">
-                      <FaFileAlt className="text-gray-400 mr-2" />
-                      <span className="text-sm text-gray-700">{attachment.name}</span>
+                      <FaFileAlt className="text-primary-600 mr-2" />
+                      <span className="text-sm text-slate-700 font-medium">{attachment.name}</span>
                     </div>
-                    <button className="text-blue-600 hover:text-blue-800 text-sm">
+                    <button className="text-primary-600 hover:text-primary-700 text-sm font-semibold transition-colors">
                       <FaDownload />
                     </button>
                   </div>
@@ -308,28 +312,28 @@ const LearnerAssignments = () => {
 
           {/* Grade Details */}
           {submissionStatus === 'graded' && submissionScore !== null && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <h4 className="text-sm font-semibold text-green-800 mb-2 flex items-center">
-                <FaTrophy className="mr-2" />
+            <div className="mb-4 p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
+              <h4 className="text-sm font-bold text-green-900 mb-3 flex items-center">
+                <FaTrophy className="mr-2 text-green-600" />
                 Grade Details
               </h4>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-green-700">Score:</span>
-                  <span className="font-semibold text-green-800">
+                  <span className="text-sm text-green-700 font-medium">Score:</span>
+                  <span className="font-bold text-green-900">
                     {submissionScore}/{submissionMaxScore || assignment.points || assignment.totalPoints}
                   </span>
                 </div>
                 {submissionGrade && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-green-700">Grade:</span>
-                    <span className="font-bold text-green-800 text-lg">{submissionGrade}</span>
+                    <span className="text-sm text-green-700 font-medium">Grade:</span>
+                    <span className="font-bold text-green-900 text-lg">{submissionGrade}</span>
                   </div>
                 )}
                 {submissionFeedback && (
-                  <div className="mt-2">
-                    <span className="text-sm text-green-700 font-medium">Feedback:</span>
-                    <p className="text-sm text-green-800 mt-1 bg-white p-2 rounded border">
+                  <div className="mt-3 pt-3 border-t border-green-200">
+                    <span className="text-sm text-green-700 font-semibold">Feedback:</span>
+                    <p className="text-sm text-green-800 mt-2 bg-white p-3 rounded-lg border border-green-200">
                       {submissionFeedback}
                     </p>
                   </div>
@@ -339,20 +343,20 @@ const LearnerAssignments = () => {
           )}
 
           {/* Footer */}
-          <div className="mt-auto pt-4 border-t border-gray-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3 text-sm text-gray-600">
-                <span className="bg-gray-100 px-2 py-1 rounded-full text-xs font-medium">
+          <div className="mt-auto pt-4 border-t border-slate-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center space-x-3 text-sm">
+                <span className="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-200">
                   {assignment.type || 'Assignment'}
                 </span>
-                <span className="bg-gray-100 px-2 py-1 rounded-full text-xs font-medium">
+                <span className="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-200">
                   {assignment.difficulty || 'Medium'}
                 </span>
               </div>
               
               <Link
                 to={`/learner/assignments/${assignment._id}`}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center"
+                className="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center hover:shadow-lg"
               >
                 <FaEye className="mr-2" />
                 {submissionStatus === 'graded' ? 'View Grade Details' : 
@@ -367,97 +371,106 @@ const LearnerAssignments = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 flex items-center justify-center">
+        <div className="text-center bg-white rounded-xl shadow-md p-8 border border-slate-100">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 text-lg font-medium">Loading assignments...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-primary-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">My Assignments</h1>
-          <p className="text-lg text-slate-600">Track your assignments and submissions</p>
+          <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-2">My Assignments</h1>
+          <p className="text-slate-600 text-lg">Track your assignments and submissions</p>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-2xl shadow-lg mb-8 border border-slate-200">
+        <div className="bg-white rounded-xl shadow-md border border-slate-100 mb-6">
           <div className="border-b border-slate-200">
-            <nav className="flex space-x-8 px-8" aria-label="Tabs">
+            <nav className="flex space-x-8 px-6" aria-label="Tabs">
               <button
                 onClick={() => setActiveTab('available')}
-                className={`py-5 px-1 border-b-3 font-semibold text-sm transition-colors ${
+                className={`py-4 px-1 border-b-2 font-semibold text-sm transition-colors ${
                   activeTab === 'available'
                     ? 'border-primary-500 text-primary-600'
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                 }`}
               >
-                Available Assignments ({filteredAssignments.length})
+                Available Assignments
+                <span className="ml-2 bg-slate-100 text-slate-900 py-0.5 px-2.5 rounded-full text-xs font-semibold">
+                  {filteredAssignments.length}
+                </span>
               </button>
               <button
                 onClick={() => setActiveTab('submissions')}
-                className={`py-5 px-1 border-b-3 font-semibold text-sm transition-colors ${
+                className={`py-4 px-1 border-b-2 font-semibold text-sm transition-colors ${
                   activeTab === 'submissions'
                     ? 'border-primary-500 text-primary-600'
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                 }`}
               >
-                My Submissions ({mySubmissions.length})
+                My Submissions
+                <span className="ml-2 bg-slate-100 text-slate-900 py-0.5 px-2.5 rounded-full text-xs font-semibold">
+                  {mySubmissions.length}
+                </span>
               </button>
             </nav>
           </div>
 
-          <div className="p-8">
+          <div className="p-6">
             {/* Filters */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-6 mb-8">
-              <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-                <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search assignments..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-full sm:w-64 transition-colors"
-                  />
-                </div>
-                
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="submitted">Submitted</option>
-                  <option value="graded">Graded</option>
-                  <option value="overdue">Overdue</option>
-                </select>
-
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                >
-                  <option value="all">All Types</option>
-                  <option value="project">Project</option>
-                  <option value="assignment">Assignment</option>
-                  <option value="quiz">Quiz</option>
-                  <option value="essay">Essay</option>
-                </select>
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="flex-1 relative">
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search assignments..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
+                />
               </div>
+              
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="submitted">Submitted</option>
+                <option value="graded">Graded</option>
+                <option value="overdue">Overdue</option>
+              </select>
+
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
+              >
+                <option value="all">All Types</option>
+                <option value="project">Project</option>
+                <option value="assignment">Assignment</option>
+                <option value="quiz">Quiz</option>
+                <option value="essay">Essay</option>
+              </select>
             </div>
 
             {/* Content */}
             {activeTab === 'available' ? (
               <div>
                 {filteredAssignments.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="text-6xl text-neutral-300 mb-4">📝</div>
-                    <h3 className="text-xl font-semibold text-neutral-600 mb-2">No assignments found</h3>
-                    <p className="text-neutral-500">
+                  <div className="bg-white rounded-xl shadow-md border border-slate-100 text-center py-12">
+                    <div className="w-20 h-20 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <FaFileAlt className="text-4xl text-slate-400" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-900 mb-3">No assignments found</h3>
+                    <p className="text-slate-600 text-lg">
                       {searchQuery || selectedStatus !== 'all' 
                         ? 'Try adjusting your search or filters'
                         : 'You have no assignments available at the moment'
@@ -475,50 +488,53 @@ const LearnerAssignments = () => {
             ) : (
               <div>
                 {mySubmissions.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="text-6xl text-neutral-300 mb-4">📤</div>
-                    <h3 className="text-xl font-semibold text-neutral-600 mb-2">No submissions yet</h3>
-                    <p className="text-neutral-500">
+                  <div className="bg-white rounded-xl shadow-md border border-slate-100 text-center py-12">
+                    <div className="w-20 h-20 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <FaUpload className="text-4xl text-slate-400" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-900 mb-3">No submissions yet</h3>
+                    <p className="text-slate-600 text-lg">
                       You haven't submitted any assignments yet
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {mySubmissions.map(submission => (
-                      <div key={submission._id} className="bg-neutral-50 rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium text-neutral-900">
+                      <div key={submission._id} className="bg-white rounded-xl shadow-md border border-slate-100 p-6 hover:shadow-lg transition-all duration-300">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                          <div className="flex-1">
+                            <h4 className="font-bold text-slate-900 text-lg mb-2">
                               {submission.assignment?.title || 'Unknown Assignment'}
                             </h4>
-                            <p className="text-sm text-neutral-600">
+                            <p className="text-sm text-slate-600 flex items-center">
+                              <FaCalendarAlt className="mr-2 text-primary-600" />
                               Submitted: {formatDate(submission.submittedAt)}
                             </p>
                           </div>
                           <div className="flex items-center space-x-4">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              submission.status === 'graded' ? 'text-green-600 bg-green-100' :
-                              submission.status === 'submitted' ? 'text-blue-600 bg-blue-100' :
-                              'text-gray-600 bg-gray-100'
+                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border ${
+                              submission.status === 'graded' ? 'text-green-800 bg-green-100 border-green-200' :
+                              submission.status === 'submitted' ? 'text-blue-800 bg-blue-100 border-blue-200' :
+                              'text-slate-800 bg-slate-100 border-slate-200'
                             }`}>
                               {submission.status === 'graded' && submission.score !== null ? (
                                 <>
-                                  <FaTrophy className="mr-1" />
+                                  <FaTrophy className="mr-1.5" />
                                   <span>{submission.score}/{submission.maxScore}</span>
                                   {submission.grade && (
-                                    <span className="ml-1 font-bold">({submission.grade})</span>
+                                    <span className="ml-1.5 font-bold">({submission.grade})</span>
                                   )}
                                 </>
                               ) : (
                                 <>
-                                  <FaUpload className="mr-1" />
-                                  <span>{submission.status}</span>
+                                  <FaUpload className="mr-1.5" />
+                                  <span className="capitalize">{submission.status}</span>
                                 </>
                               )}
                             </span>
                             <Link
                               to={`/learner/assignments/${submission.assignment._id}`}
-                              className="btn-secondary text-sm"
+                              className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-4 py-2 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 text-sm"
                             >
                               View Details
                             </Link>

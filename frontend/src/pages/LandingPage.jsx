@@ -82,9 +82,9 @@ const LandingPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
+      <nav className="bg-white/80 backdrop-blur-md shadow-md border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -101,25 +101,25 @@ const LandingPage = () => {
             <div className="hidden md:flex items-center space-x-8">
               <button 
                 onClick={(e) => handleAnchorClick(e, 'about')} 
-                className="text-slate-700 hover:text-primary-600 transition-colors font-medium"
+                className="text-slate-700 hover:text-primary-600 transition-colors font-semibold"
               >
                 About
               </button>
               <button 
                 onClick={(e) => handleAnchorClick(e, 'features')} 
-                className="text-slate-700 hover:text-primary-600 transition-colors font-medium"
+                className="text-slate-700 hover:text-primary-600 transition-colors font-semibold"
               >
                 Features
               </button>
               <button 
                 onClick={(e) => handleAnchorClick(e, 'courses')} 
-                className="text-slate-700 hover:text-primary-600 transition-colors font-medium"
+                className="text-slate-700 hover:text-primary-600 transition-colors font-semibold"
               >
                 Courses
               </button>
               <button 
                 onClick={(e) => handleAnchorClick(e, 'success')} 
-                className="text-slate-700 hover:text-primary-600 transition-colors font-medium"
+                className="text-slate-700 hover:text-primary-600 transition-colors font-semibold"
               >
                 Success Stories
               </button>
@@ -129,13 +129,13 @@ const LandingPage = () => {
                 <>
                   <Link 
                     to="/role-selection?action=login"
-                    className="text-slate-700 hover:text-primary-600 transition-colors font-medium"
+                    className="text-slate-700 hover:text-primary-600 transition-colors font-semibold"
                   >
                     Login
                   </Link>
                   <Link 
                     to="/role-selection?action=register"
-                    className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium"
+                    className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-2.5 rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg font-semibold"
                   >
                     Sign Up
                   </Link>
@@ -144,13 +144,13 @@ const LandingPage = () => {
                 <>
                   <Link 
                     to={user?.role === 'admin' ? '/admin/dashboard' : user?.role === 'tutor' ? '/tutor/dashboard' : '/learner/dashboard'}
-                    className="text-slate-700 hover:text-primary-600 transition-colors font-medium"
+                    className="text-slate-700 hover:text-primary-600 transition-colors font-semibold"
                   >
                     Dashboard
                   </Link>
                   <button
                     onClick={logout}
-                    className="bg-secondary-500 text-white px-6 py-2 rounded-lg hover:bg-secondary-600 transition-colors font-medium"
+                    className="bg-gradient-to-r from-secondary-600 to-secondary-700 text-white px-6 py-2.5 rounded-xl hover:from-secondary-700 hover:to-secondary-800 transition-all duration-200 shadow-md hover:shadow-lg font-semibold"
                   >
                     Logout
                   </button>
@@ -254,7 +254,7 @@ const LandingPage = () => {
       </nav>
 
       {/* About Section */}
-      <section id="about" className="py-20 bg-gradient-to-br from-slate-50 to-primary-50">
+      <section id="about" className="py-20 bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -262,7 +262,7 @@ const LandingPage = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
+              <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6 tracking-tight">
                 Lift Your Skills to New Heights
               </h1>
               <p className="text-xl text-slate-600 mb-8">
@@ -272,7 +272,7 @@ const LandingPage = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-primary-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors shadow-lg flex items-center justify-center"
+                  className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
                 >
                   <FaGraduationCap className="mr-2" />
                   Start Learning Free
@@ -280,7 +280,7 @@ const LandingPage = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-secondary-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-secondary-600 transition-colors shadow-lg flex items-center justify-center"
+                  className="bg-gradient-to-r from-secondary-600 to-secondary-700 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-secondary-700 hover:to-secondary-800 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
                 >
                   <FaUsers className="mr-2" />
                   Become a Tutor
@@ -333,13 +333,13 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="text-center"
+                className="text-center bg-white rounded-xl p-6 shadow-md border border-slate-100 hover:shadow-lg transition-all duration-300"
               >
                 <div className="w-16 h-16 bg-gradient-to-br from-primary-600 to-secondary-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                   <stat.icon className="text-white text-2xl" />
                 </div>
                 <div className="text-3xl font-bold text-slate-900 mb-2">{stat.number}</div>
-                <div className="text-slate-600">{stat.label}</div>
+                <div className="text-slate-600 font-medium">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -347,10 +347,10 @@ const LandingPage = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-neutral-50">
+      <section id="features" className="py-20 bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">
               Why Choose SkillLift?
             </h2>
             <p className="text-xl text-slate-600">
@@ -397,12 +397,12 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                className="bg-white p-8 rounded-xl shadow-md border border-slate-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="w-16 h-16 bg-gradient-to-br from-primary-600 to-secondary-500 rounded-xl flex items-center justify-center mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary-600 to-secondary-500 rounded-xl flex items-center justify-center mb-6 shadow-lg">
                   <feature.icon className="text-white text-2xl" />
                 </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-4">
+                <h3 className="text-xl font-bold text-slate-900 mb-4">
                   {feature.title}
                 </h3>
                 <p className="text-slate-600 leading-relaxed">
@@ -418,7 +418,7 @@ const LandingPage = () => {
       <section id="courses" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">
               Explore Course Categories
             </h2>
             <p className="text-xl text-slate-600">
@@ -433,15 +433,15 @@ const LandingPage = () => {
                 onClick={() => setActiveCategory(category.id)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className={`p-6 rounded-xl border-2 transition-all duration-300 ${
+                className={`p-6 rounded-xl border-2 transition-all duration-300 shadow-md hover:shadow-lg ${
                   activeCategory === category.id
-                    ? 'border-lime bg-primary-600/10 text-limeDark'
-                    : 'border-neutral-200 hover:border-lime/30 hover:bg-neutral-50'
+                    ? 'border-primary-500 bg-gradient-to-br from-primary-50 to-primary-100 text-primary-700 shadow-lg'
+                    : 'border-slate-200 hover:border-primary-300 hover:bg-slate-50 bg-white'
                 }`}
               >
-                <category.icon className="text-2xl mx-auto mb-3" />
-                <div className="font-medium text-sm">{category.name}</div>
-                <div className="text-xs text-neutral-500 mt-1">{category.count} courses</div>
+                <category.icon className={`text-2xl mx-auto mb-3 ${activeCategory === category.id ? 'text-primary-600' : 'text-slate-600'}`} />
+                <div className="font-semibold text-sm">{category.name}</div>
+                <div className="text-xs text-slate-500 mt-1">{category.count} courses</div>
               </motion.button>
             ))}
           </div>
@@ -450,7 +450,7 @@ const LandingPage = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors shadow-lg flex items-center mx-auto"
+              className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-8 py-3 rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg flex items-center mx-auto"
             >
               Browse All Courses
               <FaArrowRight className="ml-2" />
@@ -460,10 +460,10 @@ const LandingPage = () => {
       </section>
 
       {/* Success Stories Section */}
-      <section id="success" className="py-20 bg-gradient-to-br from-success-50 to-accent-50">
+      <section id="success" className="py-20 bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">
               Success Stories
             </h2>
             <p className="text-xl text-slate-600">
@@ -479,32 +479,32 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.2 }}
                 viewport={{ once: true }}
-                className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:shadow-xl transition-all duration-300"
+                className="bg-white p-8 rounded-xl shadow-md border border-slate-100 hover:shadow-xl transition-all duration-300"
               >
                 <div className="flex items-center mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-success-500 to-success-600 rounded-full flex items-center justify-center text-white font-bold text-xl mr-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-xl mr-4 shadow-lg">
                     {story.avatar}
                   </div>
                   <div>
                     <h4 className="font-bold text-slate-900 text-lg">{story.name}</h4>
-                    <p className="text-success-600 font-medium">{story.role}</p>
+                    <p className="text-emerald-600 font-semibold">{story.role}</p>
                   </div>
                 </div>
                 
-                <p className="text-neutral-700 mb-6 italic">"{story.story}"</p>
+                <p className="text-slate-700 mb-6 italic">"{story.story}"</p>
                 
-                <div className="space-y-3">
+                <div className="space-y-3 bg-slate-50 p-4 rounded-lg border border-slate-200">
                   <div className="flex justify-between text-sm">
-                    <span className="text-neutral-500">Before:</span>
-                    <span className="text-neutral-700 font-medium">{story.before}</span>
+                    <span className="text-slate-500 font-medium">Before:</span>
+                    <span className="text-slate-700 font-semibold">{story.before}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-neutral-500">After:</span>
-                    <span className="text-success-600 font-medium">{story.after}</span>
+                    <span className="text-slate-500 font-medium">After:</span>
+                    <span className="text-emerald-600 font-semibold">{story.after}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-neutral-500">Earnings:</span>
-                    <span className="text-success-600 font-bold">{story.earnings}</span>
+                    <span className="text-slate-500 font-medium">Earnings:</span>
+                    <span className="text-emerald-600 font-bold">{story.earnings}</span>
                   </div>
                 </div>
               </motion.div>
@@ -514,10 +514,10 @@ const LandingPage = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-neutral-50">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">
               What Our Users Say
             </h2>
             <p className="text-xl text-slate-600">
@@ -548,21 +548,21 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.2 }}
                 viewport={{ once: true }}
-                className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200"
+                className="bg-white p-8 rounded-xl shadow-md border border-slate-100 hover:shadow-lg transition-all duration-300"
               >
                 <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-secondary-500 rounded-full flex items-center justify-center text-white font-semibold mr-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-secondary-500 rounded-full flex items-center justify-center text-white font-semibold mr-4 shadow-lg">
                     {testimonial.avatar}
                   </div>
                   <div>
-                    <h4 className="font-semibold text-slate-900">{testimonial.name}</h4>
-                    <p className="text-slate-600 text-sm">{testimonial.role}</p>
+                    <h4 className="font-bold text-slate-900">{testimonial.name}</h4>
+                    <p className="text-slate-600 text-sm font-medium">{testimonial.role}</p>
                   </div>
                 </div>
-                <p className="text-neutral-700 mb-4 italic">"{testimonial.quote}"</p>
+                <p className="text-slate-700 mb-4 italic">"{testimonial.quote}"</p>
                 <div className="flex items-center">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <FaStar key={i} className="text-yellow-400 w-5 h-5" />
+                    <FaStar key={i} className="text-amber-400 w-5 h-5" />
                   ))}
                 </div>
               </motion.div>
@@ -572,7 +572,7 @@ const LandingPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-lime to-limeDark">
+      <section className="py-20 bg-gradient-to-r from-primary-600 via-primary-700 to-secondary-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -580,17 +580,17 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl font-bold text-white mb-6">
+            <h2 className="text-4xl font-bold text-white mb-6 tracking-tight">
               Start Your Skill Journey Today!
             </h2>
-            <p className="text-xl text-lime-100 mb-8">
+            <p className="text-xl text-white/90 mb-8">
               Join Thousands of learners and expert tutors on SkillLift.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-white text-lime px-8 py-4 rounded-lg text-lg font-semibold hover:bg-neutral-100 transition-colors shadow-lg flex items-center justify-center"
+                className="bg-white text-primary-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-slate-50 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center"
               >
                 <FaGraduationCap className="mr-2" />
                 Start Learning
@@ -598,7 +598,7 @@ const LandingPage = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-lime transition-colors shadow-lg flex items-center justify-center"
+                className="bg-transparent text-white border-2 border-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-white hover:text-primary-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center"
               >
                 <FaUsers className="mr-2" />
                 Become a Tutor
@@ -626,13 +626,13 @@ const LandingPage = () => {
                 Empowering learners and tutors to achieve their goals through innovative online education.
               </p>
               <div className="flex space-x-4">
-                <a href="#" className="text-neutral-400 hover:text-lime transition-colors">
+                <a href="#" className="text-slate-400 hover:text-primary-600 transition-colors">
                   <FaLinkedin className="w-5 h-5" />
                 </a>
-                <a href="#" className="text-neutral-400 hover:text-lime transition-colors">
+                <a href="#" className="text-slate-400 hover:text-primary-600 transition-colors">
                   <FaTwitter className="w-5 h-5" />
                 </a>
-                <a href="#" className="text-neutral-400 hover:text-lime transition-colors">
+                <a href="#" className="text-slate-400 hover:text-primary-600 transition-colors">
                   <FaFacebook className="w-5 h-5" />
                 </a>
               </div>
@@ -640,30 +640,30 @@ const LandingPage = () => {
 
             {/* Company Links */}
             <div>
-              <h3 className="font-semibold text-slate-900 mb-4">Company</h3>
+              <h3 className="font-bold text-slate-900 mb-4">Company</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-slate-600 hover:text-lime transition-colors">About</a></li>
-                <li><a href="#" className="text-slate-600 hover:text-lime transition-colors">Careers</a></li>
-                <li><a href="#" className="text-slate-600 hover:text-lime transition-colors">Contact</a></li>
-                <li><a href="#" className="text-slate-600 hover:text-lime transition-colors">Partners</a></li>
-                <li><a href="#" className="text-slate-600 hover:text-lime transition-colors">Blog</a></li>
+                <li><a href="#" className="text-slate-600 hover:text-primary-600 transition-colors font-medium">About</a></li>
+                <li><a href="#" className="text-slate-600 hover:text-primary-600 transition-colors font-medium">Careers</a></li>
+                <li><a href="#" className="text-slate-600 hover:text-primary-600 transition-colors font-medium">Contact</a></li>
+                <li><a href="#" className="text-slate-600 hover:text-primary-600 transition-colors font-medium">Partners</a></li>
+                <li><a href="#" className="text-slate-600 hover:text-primary-600 transition-colors font-medium">Blog</a></li>
               </ul>
             </div>
 
             {/* Support Links */}
             <div>
-              <h3 className="font-semibold text-slate-900 mb-4">Support</h3>
+              <h3 className="font-bold text-slate-900 mb-4">Support</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-slate-600 hover:text-lime transition-colors">Help Center</a></li>
-                <li><a href="#" className="text-slate-600 hover:text-lime transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="text-slate-600 hover:text-lime transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="text-slate-600 hover:text-lime transition-colors">Contact Us</a></li>
+                <li><a href="#" className="text-slate-600 hover:text-primary-600 transition-colors font-medium">Help Center</a></li>
+                <li><a href="#" className="text-slate-600 hover:text-primary-600 transition-colors font-medium">Terms of Service</a></li>
+                <li><a href="#" className="text-slate-600 hover:text-primary-600 transition-colors font-medium">Privacy Policy</a></li>
+                <li><a href="#" className="text-slate-600 hover:text-primary-600 transition-colors font-medium">Contact Us</a></li>
               </ul>
             </div>
           </div>
 
           <div className="border-t border-slate-200 mt-8 pt-8 text-center">
-            <p className="text-slate-600">© 2024 SkillLift. All rights reserved.</p>
+            <p className="text-slate-600 font-medium">© 2024 SkillLift. All rights reserved.</p>
           </div>
         </div>
       </footer>

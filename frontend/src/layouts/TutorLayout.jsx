@@ -254,8 +254,25 @@ const TutorLayout = () => {
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                   className="flex items-center space-x-3 p-2 text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
-                    <FaUser className="text-white text-sm" />
+                  <div className="w-8 h-8 rounded-full overflow-hidden">
+                    {user?.profilePicture ? (
+                      <img
+                        src={user.profilePicture.startsWith('http') ? user.profilePicture : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api$/i,'')}${user.profilePicture}`}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Hide the broken image and show fallback
+                          const parent = e.target.parentElement;
+                          if (parent) {
+                            parent.innerHTML = '<div class="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center"><svg class="text-white text-sm" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg></div>';
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
+                        <FaUser className="text-white text-sm" />
+                      </div>
+                    )}
                   </div>
                   <span className="hidden sm:block font-medium">{user?.name || 'Muiz Abass'}</span>
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

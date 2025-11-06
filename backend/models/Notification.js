@@ -37,7 +37,8 @@ const notificationSchema = new mongoose.Schema({
       'message_sent',
       'tutor_message',
       'learner_message',
-      'chat_message'
+      'chat_message',
+      'replay_uploaded' // Notification when tutor uploads a replay
     ]
   },
   title: {
@@ -58,6 +59,11 @@ const notificationSchema = new mongoose.Schema({
   },
   readAt: {
     type: Date
+  },
+  priority: {
+    type: String,
+    enum: ['low', 'medium', 'high'],
+    default: 'low'
   }
 }, {
   timestamps: true

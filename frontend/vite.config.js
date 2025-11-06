@@ -14,9 +14,13 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 5172,
+      strictPort: false, // Allow Vite to try next available port if 5172 is in use
       host: true,
       hmr: {
-        port: 5173
+        // Let Vite auto-select HMR port if 5173 is in use
+        port: 5173,
+        clientPort: 5173,
+        protocol: 'ws'
       },
       watch: {
         usePolling: false,

@@ -194,19 +194,21 @@ const KYCSubmission = () => {
     return (
       <div className="space-y-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-slate-700 mb-2">
             {label} *
           </label>
-          <p className="text-sm text-gray-500 mb-3">{description}</p>
+          <p className="text-sm text-slate-600 mb-3">{description}</p>
         </div>
 
         {file ? (
-          <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-gradient-to-br from-secondary-50 to-secondary-100 border border-secondary-200 rounded-xl shadow-sm">
             <div className="flex items-center space-x-3">
-              <Icon className="h-6 w-6 text-green-600" />
+              <div className="p-2 bg-secondary-200 rounded-lg">
+                <Icon className="h-5 w-5 text-secondary-600" />
+              </div>
               <div>
-                <p className="text-sm font-medium text-green-800">{file.name}</p>
-                <p className="text-xs text-green-600">
+                <p className="text-sm font-semibold text-secondary-800">{file.name}</p>
+                <p className="text-xs text-secondary-600">
                   {(file.size / 1024 / 1024).toFixed(2)} MB
                 </p>
               </div>
@@ -214,13 +216,13 @@ const KYCSubmission = () => {
             <button
               type="button"
               onClick={() => removeFile(fileType)}
-              className="text-red-600 hover:text-red-800"
+              className="text-error-600 hover:text-error-700 p-2 hover:bg-error-50 rounded-lg transition-colors"
             >
               <FaExclamationTriangle className="h-4 w-4" />
             </button>
           </div>
         ) : (
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+          <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-primary-400 transition-colors bg-slate-50 hover:bg-primary-50/30">
             <input
               type="file"
               id={fileType}
@@ -232,9 +234,11 @@ const KYCSubmission = () => {
               htmlFor={fileType}
               className="cursor-pointer flex flex-col items-center space-y-2"
             >
-              <FaUpload className="h-8 w-8 text-gray-400" />
-              <span className="text-sm text-gray-600">Click to upload {label.toLowerCase()}</span>
-              <span className="text-xs text-gray-500">JPEG, PNG, or PDF (max 5MB)</span>
+              <div className="p-3 bg-primary-100 rounded-full">
+                <FaUpload className="h-6 w-6 text-primary-600" />
+              </div>
+              <span className="text-sm text-slate-700 font-medium">Click to upload {label.toLowerCase()}</span>
+              <span className="text-xs text-slate-500">JPEG, PNG, or PDF (max 5MB)</span>
             </label>
           </div>
         )}
@@ -245,10 +249,10 @@ const KYCSubmission = () => {
   // Show loading state while checking KYC status
   if (kycStatus === null) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <FaSpinner className="animate-spin h-8 w-8 text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Checking KYC status...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 flex items-center justify-center">
+        <div className="text-center bg-white rounded-xl shadow-md p-8 border border-slate-100">
+          <FaSpinner className="animate-spin h-12 w-12 text-primary-600 mx-auto mb-4" />
+          <p className="text-slate-600 text-lg font-medium">Checking KYC status...</p>
         </div>
       </div>
     );
@@ -257,7 +261,7 @@ const KYCSubmission = () => {
   // Show different content based on KYC status
   if (kycStatus === 'submitted') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 py-12 px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -267,21 +271,21 @@ const KYCSubmission = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <div className="bg-yellow-100 rounded-full p-4 shadow-lg">
-                <FaClock className="text-3xl text-yellow-600" />
+              <div className="bg-gradient-to-br from-accent-100 to-accent-200 rounded-full p-5 shadow-lg border border-accent-200">
+                <FaClock className="text-4xl text-accent-600" />
               </div>
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">
               KYC Under Review
             </h1>
-            <p className="text-xl text-gray-600 mb-6">
+            <p className="text-xl text-slate-600 mb-6">
               Your documents are being reviewed by our admin team
             </p>
             
             {/* Back Button */}
             <button
               onClick={() => navigate('/tutor/dashboard')}
-              className="text-blue-600 hover:text-blue-800 flex items-center justify-center mx-auto"
+              className="inline-flex items-center text-primary-600 hover:text-primary-700 font-semibold transition-colors"
             >
               <FaArrowLeft className="mr-2" />
               Back to Dashboard
@@ -289,16 +293,16 @@ const KYCSubmission = () => {
           </div>
 
           {/* Main Content */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="bg-white rounded-xl shadow-xl p-8 border border-slate-100">
             {/* Status Message */}
             <div className="text-center py-12">
-              <div className="mx-auto h-24 w-24 bg-yellow-100 rounded-full flex items-center justify-center mb-6">
-                <FaClock className="h-12 w-12 text-yellow-600" />
+              <div className="mx-auto h-24 w-24 bg-gradient-to-br from-accent-100 to-accent-200 rounded-full flex items-center justify-center mb-6 shadow-lg border border-accent-200">
+                <FaClock className="h-12 w-12 text-accent-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">
                 Please Wait for Admin Review
               </h2>
-              <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
+              <p className="text-lg text-slate-600 mb-6 max-w-2xl mx-auto leading-relaxed">
                 Your KYC documents have been submitted successfully. Our admin team will review them within 24-48 hours. 
                 You will receive an email notification once the review is complete.
               </p>
@@ -314,74 +318,78 @@ const KYCSubmission = () => {
               {/* Submitted Documents Preview */}
               {kycData && (
                 <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Submitted Documents:</h3>
+                  <h3 className="text-lg font-bold text-slate-900 mb-4">Submitted Documents:</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* ID Document */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h4 className="font-medium text-gray-900 mb-2">
+                    <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                      <h4 className="font-semibold text-slate-900 mb-3">
                         ID Document ({kycData.idDocumentType || 'Not specified'})
                       </h4>
-                      <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                      <div className="bg-white border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:border-primary-400 transition-colors">
                         {kycData.idDocument ? (
                           <div className="space-y-2">
-                            <FaFileAlt className="h-8 w-8 text-blue-600 mx-auto" />
-                            <p className="text-sm text-gray-600">✅ Document uploaded successfully</p>
-                            <p className="text-xs text-gray-500">
+                            <div className="p-3 bg-primary-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
+                              <FaFileAlt className="h-8 w-8 text-primary-600" />
+                            </div>
+                            <p className="text-sm text-slate-700 font-medium">✅ Document uploaded successfully</p>
+                            <p className="text-xs text-slate-500">
                               {kycData.idDocument.split('/').pop() || 'File uploaded'}
                             </p>
                           </div>
                         ) : (
                           <div className="space-y-2">
-                            <FaFileAlt className="h-8 w-8 text-gray-400 mx-auto" />
-                            <p className="text-sm text-gray-500">Document not available</p>
+                            <FaFileAlt className="h-8 w-8 text-slate-400 mx-auto" />
+                            <p className="text-sm text-slate-500">Document not available</p>
                           </div>
                         )}
                       </div>
                     </div>
 
                     {/* Address Document */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h4 className="font-medium text-gray-900 mb-2">
+                    <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                      <h4 className="font-semibold text-slate-900 mb-3">
                         Address Document ({kycData.addressDocumentType || 'Not specified'})
                       </h4>
-                      <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                      <div className="bg-white border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:border-primary-400 transition-colors">
                         {kycData.addressDocument ? (
                           <div className="space-y-2">
-                            <FaFileAlt className="h-8 w-8 text-blue-600 mx-auto" />
-                            <p className="text-sm text-gray-600">✅ Document uploaded successfully</p>
-                            <p className="text-xs text-gray-500">
+                            <div className="p-3 bg-primary-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
+                              <FaFileAlt className="h-8 w-8 text-primary-600" />
+                            </div>
+                            <p className="text-sm text-slate-700 font-medium">✅ Document uploaded successfully</p>
+                            <p className="text-xs text-slate-500">
                               {kycData.addressDocument.split('/').pop() || 'File uploaded'}
                             </p>
                           </div>
                         ) : (
                           <div className="space-y-2">
-                            <FaFileAlt className="h-8 w-8 text-gray-400 mx-auto" />
-                            <p className="text-sm text-gray-500">Document not available</p>
+                            <FaFileAlt className="h-8 w-8 text-slate-400 mx-auto" />
+                            <p className="text-sm text-slate-500">Document not available</p>
                           </div>
                         )}
                       </div>
                     </div>
 
                     {/* Profile Photo */}
-                    <div className="bg-gray-50 rounded-lg p-4 md:col-span-2">
-                      <h4 className="font-medium text-gray-900 mb-2">Profile Photo</h4>
-                      <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                    <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl p-5 border border-slate-200 shadow-sm md:col-span-2">
+                      <h4 className="font-semibold text-slate-900 mb-3">Profile Photo</h4>
+                      <div className="bg-white border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:border-primary-400 transition-colors">
                         {kycData.profilePhoto ? (
                           <div className="space-y-2">
-                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                              <FaCamera className="h-6 w-6 text-blue-600" />
+                            <div className="w-20 h-20 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center mx-auto shadow-md">
+                              <FaCamera className="h-8 w-8 text-primary-600" />
                             </div>
-                            <p className="text-sm text-gray-600">✅ Photo uploaded successfully</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-sm text-slate-700 font-medium">✅ Photo uploaded successfully</p>
+                            <p className="text-xs text-slate-500">
                               {kycData.profilePhoto.split('/').pop() || 'Photo uploaded'}
                             </p>
                           </div>
                         ) : (
                           <div className="space-y-2">
-                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                              <FaCamera className="h-6 w-6 text-gray-400" />
+                            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto">
+                              <FaCamera className="h-8 w-8 text-slate-400" />
                             </div>
-                            <p className="text-sm text-gray-500">Photo not available</p>
+                            <p className="text-sm text-slate-500">Photo not available</p>
                           </div>
                         )}
                       </div>
@@ -391,26 +399,38 @@ const KYCSubmission = () => {
               )}
               
               <div className="space-y-4">
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left max-w-2xl mx-auto">
-                  <h3 className="font-semibold text-yellow-900 mb-2">What happens next?</h3>
-                  <ul className="text-yellow-800 space-y-1 text-sm">
-                    <li>📋 Admin reviews your submitted documents</li>
-                    <li>📧 You'll receive an email notification with the result</li>
-                    <li>✅ If approved, you can start creating courses</li>
-                    <li>❌ If rejected, you can resubmit with corrections</li>
+                <div className="bg-gradient-to-br from-accent-50 to-accent-100 border border-accent-200 rounded-xl p-5 text-left max-w-2xl mx-auto shadow-sm">
+                  <h3 className="font-bold text-accent-900 mb-3">What happens next?</h3>
+                  <ul className="text-accent-800 space-y-2 text-sm">
+                    <li className="flex items-center">
+                      <span className="mr-2">📋</span>
+                      <span>Admin reviews your submitted documents</span>
+                    </li>
+                    <li className="flex items-center">
+                      <span className="mr-2">📧</span>
+                      <span>You'll receive an email notification with the result</span>
+                    </li>
+                    <li className="flex items-center">
+                      <span className="mr-2">✅</span>
+                      <span>If approved, you can start creating courses</span>
+                    </li>
+                    <li className="flex items-center">
+                      <span className="mr-2">❌</span>
+                      <span>If rejected, you can resubmit with corrections</span>
+                    </li>
                   </ul>
                 </div>
                 
                 <div className="flex items-center justify-center space-x-4">
                   <button
                     onClick={() => navigate('/tutor/dashboard')}
-                    className="px-8 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+                    className="px-8 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
                   >
                     Go to Dashboard
                   </button>
                   <button
                     onClick={() => navigate('/tutor/courses')}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                    className="px-6 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-all duration-200 font-semibold shadow-sm hover:shadow-md"
                   >
                     View Courses
                   </button>
@@ -425,7 +445,7 @@ const KYCSubmission = () => {
 
   if (kycStatus === 'approved') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 py-12 px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -435,21 +455,21 @@ const KYCSubmission = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <div className="bg-green-100 rounded-full p-4 shadow-lg">
-                <FaCheckCircle className="text-3xl text-green-600" />
+              <div className="bg-gradient-to-br from-secondary-100 to-secondary-200 rounded-full p-5 shadow-lg border border-secondary-200">
+                <FaCheckCircle className="text-4xl text-secondary-600" />
               </div>
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">
               KYC Approved! 🎉
             </h1>
-            <p className="text-xl text-gray-600 mb-6">
+            <p className="text-xl text-slate-600 mb-6">
               Your identity has been verified. You can now create courses!
             </p>
             
             {/* Back Button */}
             <button
               onClick={() => navigate('/tutor/dashboard')}
-              className="text-blue-600 hover:text-blue-800 flex items-center justify-center mx-auto"
+              className="inline-flex items-center text-primary-600 hover:text-primary-700 font-semibold transition-colors"
             >
               <FaArrowLeft className="mr-2" />
               Back to Dashboard
@@ -457,15 +477,15 @@ const KYCSubmission = () => {
           </div>
 
           {/* Main Content */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="bg-white rounded-xl shadow-xl p-8 border border-slate-100">
             <div className="text-center py-12">
-              <div className="mx-auto h-24 w-24 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                <FaCheckCircle className="h-12 w-12 text-green-600" />
+              <div className="mx-auto h-24 w-24 bg-gradient-to-br from-secondary-100 to-secondary-200 rounded-full flex items-center justify-center mb-6 shadow-lg border border-secondary-200">
+                <FaCheckCircle className="h-12 w-12 text-secondary-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">
                 Congratulations! Your KYC is Approved
               </h2>
-              <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
+              <p className="text-lg text-slate-600 mb-6 max-w-2xl mx-auto leading-relaxed">
                 Your identity verification is complete. You now have full access to create courses, 
                 live classes, and assignments for learners to enroll in.
               </p>
@@ -473,13 +493,13 @@ const KYCSubmission = () => {
               <div className="flex items-center justify-center space-x-4">
                 <button
                   onClick={() => navigate('/tutor/courses/create')}
-                  className="px-8 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium"
+                  className="px-8 py-3 bg-secondary-600 text-white rounded-xl hover:bg-secondary-700 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
                 >
                   Create Your First Course
                 </button>
                 <button
                   onClick={() => navigate('/tutor/dashboard')}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                  className="px-6 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-all duration-200 font-semibold shadow-sm hover:shadow-md"
                 >
                   Go to Dashboard
                 </button>
@@ -493,7 +513,7 @@ const KYCSubmission = () => {
 
   if (kycStatus === 'rejected') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 py-12 px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -503,21 +523,21 @@ const KYCSubmission = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <div className="bg-red-100 rounded-full p-4 shadow-lg">
-                <FaTimes className="text-3xl text-red-600" />
+              <div className="bg-gradient-to-br from-error-100 to-error-200 rounded-full p-5 shadow-lg border border-error-200">
+                <FaTimes className="text-4xl text-error-600" />
               </div>
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">
               KYC Verification Required
             </h1>
-            <p className="text-xl text-gray-600 mb-6">
+            <p className="text-xl text-slate-600 mb-6">
               Please resubmit your documents with the required corrections
             </p>
             
             {/* Back Button */}
             <button
               onClick={() => navigate('/tutor/dashboard')}
-              className="text-blue-600 hover:text-blue-800 flex items-center justify-center mx-auto"
+              className="inline-flex items-center text-primary-600 hover:text-primary-700 font-semibold transition-colors"
             >
               <FaArrowLeft className="mr-2" />
               Back to Dashboard
@@ -525,15 +545,15 @@ const KYCSubmission = () => {
           </div>
 
           {/* Main Content */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="bg-white rounded-xl shadow-xl p-8 border border-slate-100">
             <div className="text-center py-12">
-              <div className="mx-auto h-24 w-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
-                <FaTimes className="h-12 w-12 text-red-600" />
+              <div className="mx-auto h-24 w-24 bg-gradient-to-br from-error-100 to-error-200 rounded-full flex items-center justify-center mb-6 shadow-lg border border-error-200">
+                <FaTimes className="h-12 w-12 text-error-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">
                 KYC Verification Rejected
               </h2>
-              <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
+              <p className="text-lg text-slate-600 mb-6 max-w-2xl mx-auto leading-relaxed">
                 Your KYC documents were rejected. Please review the feedback and resubmit with the required corrections.
               </p>
               
@@ -543,13 +563,13 @@ const KYCSubmission = () => {
                     setKycStatus('pending');
                     // Reset form to allow resubmission
                   }}
-                  className="px-8 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium"
+                  className="px-8 py-3 bg-error-600 text-white rounded-xl hover:bg-error-700 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
                 >
                   Resubmit KYC Documents
                 </button>
                 <button
                   onClick={() => navigate('/tutor/dashboard')}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                  className="px-6 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-all duration-200 font-semibold shadow-sm hover:shadow-md"
                 >
                   Go to Dashboard
                 </button>
@@ -563,7 +583,7 @@ const KYCSubmission = () => {
 
   // Default: Show KYC submission form (for 'pending' status)
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 py-12 px-4 sm:px-6 lg:px-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -573,21 +593,21 @@ const KYCSubmission = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="bg-blue-100 rounded-full p-4 shadow-lg">
-              <FaShieldAlt className="text-3xl text-blue-600" />
+            <div className="bg-gradient-to-br from-primary-100 to-primary-200 rounded-full p-5 shadow-lg border border-primary-200">
+              <FaShieldAlt className="text-4xl text-primary-600" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">
             Complete Your KYC Verification
           </h1>
-          <p className="text-xl text-gray-600 mb-6">
+          <p className="text-xl text-slate-600 mb-6">
             Verify your identity to start teaching on SkillLift
           </p>
           
           {/* Back Button */}
           <button
             onClick={() => navigate('/tutor/dashboard')}
-            className="text-blue-600 hover:text-blue-800 flex items-center justify-center mx-auto"
+            className="inline-flex items-center text-primary-600 hover:text-primary-700 font-semibold transition-colors"
           >
             <FaArrowLeft className="mr-2" />
             Back to Dashboard
@@ -595,18 +615,20 @@ const KYCSubmission = () => {
         </div>
 
         {/* Main Content */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-xl shadow-xl p-8 border border-slate-100">
           {/* Info Box */}
-          <div className="mb-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mb-8 p-6 bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200 rounded-xl shadow-sm">
             <div className="flex items-start">
-              <FaShieldAlt className="text-blue-500 mt-1 mr-3 flex-shrink-0" />
-              <div className="text-sm text-blue-700">
-                <p className="font-medium mb-2">🔒 KYC Verification Required</p>
-                <p className="mb-2">
+              <div className="p-3 bg-primary-200 rounded-xl mr-4 flex-shrink-0">
+                <FaShieldAlt className="text-primary-600 text-xl" />
+              </div>
+              <div className="text-sm text-primary-800">
+                <p className="font-bold mb-2 text-base">🔒 KYC Verification Required</p>
+                <p className="mb-3 leading-relaxed">
                   To ensure the safety and security of our platform, all tutors must complete 
                   Know Your Customer (KYC) verification before they can create courses or receive payments.
                 </p>
-                <ul className="list-disc list-inside space-y-1">
+                <ul className="list-disc list-inside space-y-1.5 text-primary-700">
                   <li>Your documents will be reviewed within 24-48 hours</li>
                   <li>You'll receive an email notification once approved</li>
                   <li>All documents are encrypted and stored securely</li>
@@ -620,7 +642,7 @@ const KYCSubmission = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* ID Document Type */}
               <div>
-                <label htmlFor="idDocumentType" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="idDocumentType" className="block text-sm font-semibold text-slate-700 mb-2">
                   ID Document Type *
                 </label>
                 <select
@@ -629,10 +651,10 @@ const KYCSubmission = () => {
                   value={formik.values.idDocumentType}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors bg-slate-50 focus:bg-white ${
                     formik.touched.idDocumentType && formik.errors.idDocumentType
-                      ? 'border-red-300'
-                      : 'border-gray-300'
+                      ? 'border-error-300'
+                      : 'border-slate-300'
                   }`}
                 >
                   <option value="">Select ID document type</option>
@@ -642,13 +664,13 @@ const KYCSubmission = () => {
                   <option value="other">Other Government ID</option>
                 </select>
                 {formik.touched.idDocumentType && formik.errors.idDocumentType && (
-                  <p className="mt-1 text-sm text-red-600">{formik.errors.idDocumentType}</p>
+                  <p className="mt-1 text-sm text-error-600">{formik.errors.idDocumentType}</p>
                 )}
               </div>
 
               {/* Address Document Type */}
               <div>
-                <label htmlFor="addressDocumentType" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="addressDocumentType" className="block text-sm font-semibold text-slate-700 mb-2">
                   Address Document Type *
                 </label>
                 <select
@@ -657,10 +679,10 @@ const KYCSubmission = () => {
                   value={formik.values.addressDocumentType}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors bg-slate-50 focus:bg-white ${
                     formik.touched.addressDocumentType && formik.errors.addressDocumentType
-                      ? 'border-red-300'
-                      : 'border-gray-300'
+                      ? 'border-error-300'
+                      : 'border-slate-300'
                   }`}
                 >
                   <option value="">Select address document type</option>
@@ -670,7 +692,7 @@ const KYCSubmission = () => {
                   <option value="other">Other Address Proof</option>
                 </select>
                 {formik.touched.addressDocumentType && formik.errors.addressDocumentType && (
-                  <p className="mt-1 text-sm text-red-600">{formik.errors.addressDocumentType}</p>
+                  <p className="mt-1 text-sm text-error-600">{formik.errors.addressDocumentType}</p>
                 )}
               </div>
             </div>
@@ -684,7 +706,7 @@ const KYCSubmission = () => {
 
             {/* Additional Notes */}
             <div>
-              <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="notes" className="block text-sm font-semibold text-slate-700 mb-2">
                 Additional Notes (Optional)
               </label>
               <textarea
@@ -694,15 +716,15 @@ const KYCSubmission = () => {
                 value={formik.values.notes}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors bg-slate-50 focus:bg-white ${
                   formik.touched.notes && formik.errors.notes
-                    ? 'border-red-300'
-                    : 'border-gray-300'
+                    ? 'border-error-300'
+                    : 'border-slate-300'
                 }`}
                 placeholder="Any additional information you'd like to provide..."
               />
               {formik.touched.notes && formik.errors.notes && (
-                <p className="mt-1 text-sm text-red-600">{formik.errors.notes}</p>
+                <p className="mt-1 text-sm text-error-600">{formik.errors.notes}</p>
               )}
             </div>
 
@@ -711,7 +733,7 @@ const KYCSubmission = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-8 py-3 rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 shadow-md hover:shadow-lg"
               >
                 {isLoading ? (
                   <>

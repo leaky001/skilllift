@@ -51,12 +51,12 @@ const SubmissionCard = ({ submission, onGrade, onViewDetails }) => (
       <div className="flex-1 min-w-0">
         <div className="flex items-center space-x-3 mb-2">
           <div className="flex-shrink-0">
-            <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-              <FaUser className="text-indigo-600" />
+            <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center">
+              <FaUser className="text-primary-600" />
             </div>
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-semibold text-slate-900 truncate">
+            <h3 className="text-lg font-bold text-slate-900 truncate">
               {submission.learner?.name || 'Unknown Student'}
             </h3>
             <p className="text-sm text-slate-600 truncate">
@@ -122,24 +122,24 @@ const SubmissionCard = ({ submission, onGrade, onViewDetails }) => (
       <div className="ml-4 flex flex-col items-end space-y-2">
         <button
           onClick={() => onViewDetails(submission)}
-          className="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm"
+          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all duration-200 text-sm font-semibold"
         >
-          <FaEye className="inline mr-1" />
+          <FaEye className="inline mr-1.5" />
           View Details
         </button>
         
         {submission.grade ? (
           <div className="text-right">
-            <div className="text-sm text-slate-600">Grade</div>
-            <div className="text-lg font-semibold text-emerald-600">
+            <div className="text-sm text-slate-600 font-medium">Grade</div>
+            <div className="text-lg font-bold text-emerald-600">
               {submission.grade.score}/{submission.grade.maxScore}
             </div>
-            <div className="text-sm text-slate-600">
+            <div className="text-sm text-slate-600 font-medium">
               {submission.grade.letterGrade}
             </div>
             <button
               onClick={() => onGrade(submission)}
-              className="mt-2 px-3 py-1 bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition-colors text-xs"
+              className="mt-2 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-xl transition-all duration-200 text-xs font-semibold border border-amber-200"
             >
               <FaEdit className="inline mr-1" />
               Edit Grade
@@ -148,9 +148,9 @@ const SubmissionCard = ({ submission, onGrade, onViewDetails }) => (
         ) : (
           <button
             onClick={() => onGrade(submission)}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+            className="px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg text-sm font-semibold"
           >
-            <FaGraduationCap className="inline mr-1" />
+            <FaGraduationCap className="inline mr-1.5" />
             Grade
           </button>
         )}
@@ -169,46 +169,46 @@ const AssignmentCard = ({
   getStatusIcon,
   formatDate
 }) => (
-  <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-100 assignment-card h-full flex flex-col">
+  <div className="bg-white rounded-xl shadow-md border border-slate-100 hover:shadow-xl transition-all duration-300 assignment-card h-full flex flex-col">
     <div className="p-6 assignment-card-content flex-1 flex flex-col">
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0 pr-4">
-          <h3 className="text-lg font-semibold text-slate-900 mb-2 break-words line-clamp-2">
+          <h3 className="text-lg font-bold text-slate-900 mb-2 break-words line-clamp-2">
             {assignment.title}
           </h3>
           <p className="text-sm text-slate-600 mb-3 line-clamp-3 break-words">
             {assignment.description}
           </p>
           
-          <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500 mb-3">
-            <div className="flex items-center min-w-0">
-              <FaBookOpen className="mr-1 flex-shrink-0" />
-              <span className="truncate max-w-32" title={assignment.course?.title || 'Unknown Course'}>
+          <div className="flex flex-wrap items-center gap-2 text-sm mb-3">
+            <div className="flex items-center min-w-0 text-primary-600">
+              <FaBookOpen className="mr-1.5 flex-shrink-0" />
+              <span className="truncate max-w-32 font-medium" title={assignment.course?.title || 'Unknown Course'}>
                 {assignment.course?.title || 'Unknown Course'}
               </span>
             </div>
-            <div className="flex items-center">
-              <FaUsers className="mr-1 flex-shrink-0" />
-              <span>{assignment.submissionCount || 0} submissions</span>
+            <div className="flex items-center text-primary-600">
+              <FaUsers className="mr-1.5 flex-shrink-0" />
+              <span className="font-medium">{assignment.submissionCount || 0} submissions</span>
             </div>
-            <div className="flex items-center">
-              <FaGraduationCap className="mr-1 flex-shrink-0" />
-              <span>{assignment.gradedCount || 0} graded</span>
+            <div className="flex items-center text-primary-600">
+              <FaGraduationCap className="mr-1.5 flex-shrink-0" />
+              <span className="font-medium">{assignment.gradedCount || 0} graded</span>
             </div>
           </div>
         </div>
         
         <div className="ml-4 flex flex-col items-end">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(assignment.status)}`}>
+          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border ${getStatusColor(assignment.status)}`}>
             {getStatusIcon(assignment.status)}
-            <span className="ml-1 capitalize">{assignment.status}</span>
+            <span className="ml-1.5 capitalize">{assignment.status}</span>
           </span>
           
           <div className="mt-2 text-right">
-            <div className="text-sm text-slate-600">
+            <div className="text-sm text-slate-600 font-medium">
               Due: {formatDate(assignment.dueDate)}
             </div>
-            <div className="text-sm text-slate-600">
+            <div className="text-sm text-slate-600 font-medium">
               {assignment.totalPoints} points
             </div>
           </div>
@@ -216,9 +216,12 @@ const AssignmentCard = ({
       </div>
 
       {assignment.instructions && (
-        <div className="mb-4 p-3 bg-indigo-50 rounded-lg">
-          <h4 className="text-sm font-medium text-indigo-900 mb-1">Instructions</h4>
-          <p className="text-sm text-indigo-800 line-clamp-2 break-words">
+        <div className="mb-4 p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border border-primary-200">
+          <h4 className="text-sm font-bold text-primary-900 mb-2 flex items-center">
+            <FaFileAlt className="mr-2 text-primary-600" />
+            Instructions
+          </h4>
+          <p className="text-sm text-primary-800 line-clamp-2 break-words">
             {assignment.instructions}
           </p>
         </div>
@@ -240,18 +243,17 @@ const AssignmentCard = ({
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-4 border-t border-slate-100 assignment-card-actions mt-auto">
-        <div className="flex items-center space-x-2 text-sm text-slate-600 min-w-0 flex-1">
-          <span className="truncate">Type: {assignment.type}</span>
-          <span>•</span>
-          <span className="truncate">Difficulty: {assignment.difficulty}</span>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-slate-200 assignment-card-actions mt-auto gap-4">
+        <div className="flex items-center space-x-3 text-sm min-w-0 flex-1">
+          <span className="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-200 truncate">Type: {assignment.type}</span>
+          <span className="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-200 truncate">Difficulty: {assignment.difficulty}</span>
         </div>
         
-        <div className="flex space-x-2 flex-shrink-0 ml-2">
+        <div className="flex space-x-2 flex-shrink-0">
           {assignment.submissionCount > 0 && (
             <button
               onClick={() => onViewSubmissions(assignment._id)}
-              className="btn-secondary text-sm"
+              className="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2.5 rounded-xl transition-all duration-200 text-sm"
               title="View Submissions"
             >
               <FaEye />
@@ -260,7 +262,7 @@ const AssignmentCard = ({
           
           <Link
             to={`/tutor/assignments/${assignment._id}`}
-            className="btn-secondary text-sm"
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2.5 rounded-xl transition-all duration-200 text-sm"
             title="Edit Assignment"
           >
             <FaEdit />
@@ -269,7 +271,7 @@ const AssignmentCard = ({
           {assignment.status === 'draft' ? (
             <button
               onClick={() => onStatusChange(assignment._id, 'active')}
-              className="btn-primary text-sm"
+              className="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white p-2.5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg text-sm"
               title="Publish Assignment"
             >
               <FaPlay />
@@ -277,7 +279,7 @@ const AssignmentCard = ({
           ) : assignment.status === 'active' ? (
             <button
               onClick={() => onStatusChange(assignment._id, 'draft')}
-              className="btn-secondary text-sm"
+              className="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2.5 rounded-xl transition-all duration-200 text-sm"
               title="Unpublish Assignment"
             >
               <FaPause />
@@ -286,7 +288,7 @@ const AssignmentCard = ({
           
           <button
             onClick={() => onDelete(assignment._id)}
-            className="btn-secondary text-red-600 hover:bg-red-50 text-sm"
+            className="bg-red-50 hover:bg-red-100 text-red-600 p-2.5 rounded-xl transition-all duration-200 text-sm"
             title="Delete Assignment"
           >
             <FaTrash />
@@ -547,13 +549,13 @@ const TutorAssignments = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'active':
-        return 'text-emerald-600 bg-emerald-100';
+        return 'text-green-800 bg-green-100 border-green-200';
       case 'draft':
-        return 'text-slate-600 bg-slate-100';
+        return 'text-slate-800 bg-slate-100 border-slate-200';
       case 'completed':
-        return 'text-indigo-600 bg-indigo-100';
+        return 'text-purple-800 bg-purple-100 border-purple-200';
       default:
-        return 'text-slate-600 bg-slate-100';
+        return 'text-slate-800 bg-slate-100 border-slate-200';
     }
   };
 
@@ -574,25 +576,28 @@ const TutorAssignments = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 flex items-center justify-center">
+        <div className="text-center bg-white rounded-xl shadow-md p-8 border border-slate-100">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 text-lg font-medium">Loading assignments...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">My Assignments</h1>
-              <p className="text-slate-600">Create and manage assignments for your courses</p>
+              <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-2">My Assignments</h1>
+              <p className="text-slate-600 text-lg">Create and manage assignments for your courses</p>
             </div>
             <Link
               to="/tutor/assignments/create"
-              className="btn-primary"
+              className="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md hover:shadow-lg flex items-center"
             >
               <FaPlus className="mr-2" />
               Create Assignment
@@ -600,55 +605,55 @@ const TutorAssignments = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-xl p-6 shadow-lg">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-xl p-6 shadow-md border border-slate-100 hover:shadow-lg transition-all duration-300">
               <div className="flex items-center">
-                <div className="p-3 bg-indigo-100 rounded-lg">
-                  <FaFileAlt className="text-indigo-600 text-xl" />
+                <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <FaFileAlt className="text-primary-600 text-xl" />
                 </div>
-                <div className="ml-4">
+                <div className="ml-4 flex-1 min-w-0">
                   <p className="text-sm font-medium text-slate-600">Total Assignments</p>
-                  <p className="text-2xl font-bold text-slate-900">{assignments.length}</p>
+                  <p className="text-3xl font-bold text-slate-900">{assignments.length}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-lg">
+            <div className="bg-white rounded-xl p-6 shadow-md border border-slate-100 hover:shadow-lg transition-all duration-300">
               <div className="flex items-center">
-                <div className="p-3 bg-emerald-100 rounded-lg">
+                <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center flex-shrink-0">
                   <FaCheckCircle className="text-emerald-600 text-xl" />
                 </div>
-                <div className="ml-4">
+                <div className="ml-4 flex-1 min-w-0">
                   <p className="text-sm font-medium text-slate-600">Active</p>
-                  <p className="text-2xl font-bold text-slate-900">
+                  <p className="text-3xl font-bold text-slate-900">
                     {assignments.filter(a => a.status === 'active').length}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-lg">
+            <div className="bg-white rounded-xl p-6 shadow-md border border-slate-100 hover:shadow-lg transition-all duration-300">
               <div className="flex items-center">
-                <div className="p-3 bg-amber-100 rounded-lg">
+                <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl flex items-center justify-center flex-shrink-0">
                   <FaUpload className="text-amber-600 text-xl" />
                 </div>
-                <div className="ml-4">
+                <div className="ml-4 flex-1 min-w-0">
                   <p className="text-sm font-medium text-slate-600">Total Submissions</p>
-                  <p className="text-2xl font-bold text-slate-900">
+                  <p className="text-3xl font-bold text-slate-900">
                     {assignments.reduce((total, a) => total + (a.submissionCount || 0), 0)}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-lg">
+            <div className="bg-white rounded-xl p-6 shadow-md border border-slate-100 hover:shadow-lg transition-all duration-300">
               <div className="flex items-center">
-                <div className="p-3 bg-emerald-100 rounded-lg">
+                <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center flex-shrink-0">
                   <FaGraduationCap className="text-emerald-600 text-xl" />
                 </div>
-                <div className="ml-4">
+                <div className="ml-4 flex-1 min-w-0">
                   <p className="text-sm font-medium text-slate-600">Graded</p>
-                  <p className="text-2xl font-bold text-slate-900">
+                  <p className="text-3xl font-bold text-slate-900">
                     {assignments.reduce((total, a) => total + (a.gradedCount || 0), 0)}
                   </p>
                 </div>
@@ -658,83 +663,87 @@ const TutorAssignments = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white rounded-xl shadow-lg mb-8">
+        <div className="bg-white rounded-xl shadow-md border border-slate-100 mb-6">
           <div className="border-b border-slate-200">
             <nav className="flex space-x-8 px-6">
               <button
                 onClick={() => setActiveTab('assignments')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`py-4 px-1 border-b-2 font-semibold text-sm transition-colors ${
                   activeTab === 'assignments'
-                    ? 'border-indigo-500 text-indigo-600'
+                    ? 'border-primary-500 text-primary-600'
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                 }`}
               >
                 <FaFileAlt className="inline mr-2" />
-                Assignments ({assignments.length})
+                Assignments
+                <span className="ml-2 bg-slate-100 text-slate-900 py-0.5 px-2.5 rounded-full text-xs font-semibold">
+                  {assignments.length}
+                </span>
               </button>
               <button
                 onClick={() => setActiveTab('submissions')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`py-4 px-1 border-b-2 font-semibold text-sm transition-colors ${
                   activeTab === 'submissions'
-                    ? 'border-indigo-500 text-indigo-600'
+                    ? 'border-primary-500 text-primary-600'
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                 }`}
               >
                 <FaUpload className="inline mr-2" />
-                Submissions ({submissions.length})
+                Submissions
+                <span className="ml-2 bg-slate-100 text-slate-900 py-0.5 px-2.5 rounded-full text-xs font-semibold">
+                  {submissions.length}
+                </span>
               </button>
             </nav>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl p-6 shadow-lg mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 sm:space-x-4">
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search assignments..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-              
-              <select
-                value={selectedCourse}
-                onChange={(e) => setSelectedCourse(e.target.value)}
-                className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              >
-                <option value="all">All Courses</option>
-                {courses.slice(1).map(course => (
-                  <option key={course} value={course}>{course}</option>
-                ))}
-              </select>
-
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              >
-                <option value="all">All Status</option>
-                {statuses.slice(1).map(status => (
-                  <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>
-                ))}
-              </select>
-
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              >
-                <option value="all">All Types</option>
-                {assignmentTypes.map(type => (
-                  <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
-                ))}
-              </select>
+        <div className="bg-white rounded-xl p-6 shadow-md border border-slate-100 mb-6">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 relative">
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search assignments..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
+              />
             </div>
+            
+            <select
+              value={selectedCourse}
+              onChange={(e) => setSelectedCourse(e.target.value)}
+              className="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
+            >
+              <option value="all">All Courses</option>
+              {courses.slice(1).map(course => (
+                <option key={course} value={course}>{course}</option>
+              ))}
+            </select>
+
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
+            >
+              <option value="all">All Status</option>
+              {statuses.slice(1).map(status => (
+                <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>
+              ))}
+            </select>
+
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-slate-50 focus:bg-white"
+            >
+              <option value="all">All Types</option>
+              {assignmentTypes.map(type => (
+                <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -742,10 +751,12 @@ const TutorAssignments = () => {
         {activeTab === 'assignments' && (
           <>
             {filteredAssignments.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-6xl text-slate-300 mb-4">📝</div>
-                <h3 className="text-xl font-semibold text-slate-600 mb-2">No assignments found</h3>
-                <p className="text-slate-500 mb-6">
+              <div className="bg-white rounded-xl shadow-md border border-slate-100 text-center py-12">
+                <div className="w-20 h-20 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <FaFileAlt className="text-4xl text-slate-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-3">No assignments found</h3>
+                <p className="text-slate-600 text-lg mb-6">
                   {searchQuery || selectedCourse !== 'all' || selectedStatus !== 'all' || selectedType !== 'all'
                     ? 'Try adjusting your filters'
                     : "You haven't created any assignments yet"
@@ -755,7 +766,7 @@ const TutorAssignments = () => {
                   <button
                     key="create-first-assignment"
                     onClick={() => navigate('/tutor/assignments/create')}
-                    className="btn-primary"
+                    className="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-md hover:shadow-lg flex items-center mx-auto"
                   >
                     <FaPlus className="mr-2" />
                     Create Your First Assignment
@@ -783,17 +794,21 @@ const TutorAssignments = () => {
 
         {/* Submissions Tab */}
         {activeTab === 'submissions' && (
-          <div className="bg-white rounded-xl shadow-lg">
+          <div className="bg-white rounded-xl shadow-md border border-slate-100">
             {submissionsLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                <span className="ml-3 text-slate-600">Loading submissions...</span>
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                  <p className="text-slate-600 text-lg font-medium">Loading submissions...</p>
+                </div>
               </div>
             ) : submissions.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-6xl text-slate-300 mb-4">📤</div>
-                <h3 className="text-xl font-semibold text-slate-600 mb-2">No submissions yet</h3>
-                <p className="text-slate-500">Students haven't submitted any assignments yet.</p>
+              <div className="bg-white rounded-xl shadow-md border border-slate-100 text-center py-12">
+                <div className="w-20 h-20 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <FaUpload className="text-4xl text-slate-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-3">No submissions yet</h3>
+                <p className="text-slate-600 text-lg">Students haven't submitted any assignments yet.</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-200">
