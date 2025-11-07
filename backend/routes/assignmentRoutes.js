@@ -5,6 +5,7 @@ const upload = multer({ dest: 'uploads/submissions/' });
 
 const assignmentController = require('../controllers/assignmentController');
 const { protect, authorize } = require('../middleware/authMiddleware');
+const { requireKYCApproval } = require('../middleware/roleMiddleware');
 
 // Public routes (for enrolled students)
 router.get('/course/:courseId', assignmentController.getCourseAssignments);
@@ -16,8 +17,8 @@ router.use(protect);
 router.get('/my-assignments', assignmentController.getMyAssignments);
 router.get('/:id', assignmentController.getAssignment);
 
-// Tutor routes
-router.post('/', authorize('tutor'), assignmentController.createAssignment);
+// Tutor routes - Require KYC approval for creation
+router.post('/', authorize('tutor'), requireKYCApproval, assignmentController.createAssignment);
 router.get('/tutor/my-assignments', authorize('tutor'), assignmentController.getTutorAssignments);
 router.put('/:id', authorize('tutor'), assignmentController.updateAssignment);
 router.delete('/:id', authorize('tutor'), assignmentController.deleteAssignment);

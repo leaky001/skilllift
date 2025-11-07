@@ -32,6 +32,7 @@ import {
   getTutorLearners
 } from '../../services/tutorService';
 import { apiService } from '../../services/api';
+import TutorKycRequired from '../../components/common/TutorKycRequired';
 
 const TutorCertificates = () => {
   
@@ -77,6 +78,9 @@ const TutorCertificates = () => {
     completionDate: '',
     notes: ''
   });
+
+  const kycStatusRaw = (user?.tutorProfile?.kycStatus || user?.accountStatus || 'pending').toString().toLowerCase();
+  const isKycApproved = ['approved', 'active'].includes(kycStatusRaw);
 
   // No mock data - using real API calls only
 
@@ -131,6 +135,9 @@ const TutorCertificates = () => {
 
   // Load data functions
   const loadCertificates = async () => {
+    if (!isKycApproved) {
+      return;
+    }
     try {
       setLoading(true);
       const response = await apiService.get('/certificates/tutor');
@@ -147,6 +154,9 @@ const TutorCertificates = () => {
   };
 
   const loadProjectSubmissions = async () => {
+    if (!isKycApproved) {
+      return;
+    }
     try {
       const response = await apiService.get('/project-submissions/tutor-projects');
       if (response.data.success) {
@@ -160,6 +170,9 @@ const TutorCertificates = () => {
   };
 
   const loadLearnerSubmissions = async () => {
+    if (!isKycApproved) {
+      return;
+    }
     try {
       console.log('🔄 Loading learner submissions...');
       const response = await apiService.get('/project-submissions/tutor');
@@ -177,6 +190,9 @@ const TutorCertificates = () => {
   };
 
   const loadCourses = async () => {
+    if (!isKycApproved) {
+      return;
+    }
     try {
       console.log('🔄 Loading tutor courses...');
       const response = await getTutorCourses();
@@ -198,6 +214,9 @@ const TutorCertificates = () => {
   };
 
   const loadEnrolledStudents = async () => {
+    if (!isKycApproved) {
+      return;
+    }
     try {
       console.log('🔄 Loading enrolled students...');
       const response = await getTutorLearners();
@@ -216,6 +235,17 @@ const TutorCertificates = () => {
 
   // Load data
   useEffect(() => {
+    if (!isKycApproved) {
+      setCertificates([]);
+      setFilteredCertificates([]);
+      setCourses([]);
+      setEnrolledStudents([]);
+      setProjectSubmissions([]);
+      setLearnerSubmissions([]);
+      setLoading(false);
+      return;
+    }
+
     const loadData = async () => {
       await Promise.all([
         loadCertificates(),
@@ -227,7 +257,7 @@ const TutorCertificates = () => {
     };
     
     loadData();
-  }, []); // Empty dependency array to prevent re-rendering loop
+  }, [isKycApproved]); // Re-run when KYC status changes
 
   const handleProjectReview = async () => {
     try {
@@ -784,6 +814,19 @@ const TutorCertificates = () => {
       </div>
     </div>
   );
+
+  if (!isKycApproved) {
+    return (
+      <TutorKycRequired
+        description="Your KYC must be approved before you can issue or manage certificates. Please complete your KYC verification and wait for admin approval."
+        featureList={[
+          'Generate certificates for learners',
+          'Review and approve learner projects',
+          'Download and share certified achievements'
+        ]}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50">

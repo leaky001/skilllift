@@ -22,7 +22,7 @@ router.get('/admin/statistics', authorize('admin'), courseController.getCourseSt
 router.get('/tutor/my-courses', authorize('tutor'), courseController.getTutorCourses);
 router.get('/tutor/course/:id', authorize('tutor'), courseController.getTutorCourse);
 
-router.post('/', authorize('tutor'), upload.fields([
+router.post('/', authorize('tutor'), requireKYCApproval, upload.fields([
   { name: 'thumbnail', maxCount: 1 },
   { name: 'previewVideo', maxCount: 1 },
   { name: 'content', maxCount: 10 }

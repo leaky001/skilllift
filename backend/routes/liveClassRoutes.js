@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/authMiddleware');
+const { requireKYCApproval } = require('../middleware/roleMiddleware');
 const {
   createLiveClass,
   startLiveClass,
@@ -20,8 +21,8 @@ router.use(protect);
 
 // @desc    Create a new live class
 // @route   POST /api/live-classes
-// @access  Private (Tutor)
-router.post('/', authorize('tutor'), createLiveClass);
+// @access  Private (Tutor) - Requires KYC approval
+router.post('/', authorize('tutor'), requireKYCApproval, createLiveClass);
 
 // @desc    Get all live classes for enrolled courses (learner) or created by tutor
 // @route   GET /api/live-classes

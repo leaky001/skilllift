@@ -16,6 +16,7 @@ import {
   FaStop,
   FaSync
 } from 'react-icons/fa';
+import TutorKycRequired from '../../components/common/TutorKycRequired';
 
 const TutorLiveClasses = () => {
   const { user } = useAuth();
@@ -43,7 +44,17 @@ const TutorLiveClasses = () => {
     }
   });
 
+  const kycStatusRaw = (user?.tutorProfile?.kycStatus || user?.accountStatus || 'pending').toString().toLowerCase();
+  const isKycApproved = ['approved', 'active'].includes(kycStatusRaw);
+
   useEffect(() => {
+    if (!isKycApproved) {
+      setIsLoading(false);
+      setCourses([]);
+      setLiveClasses([]);
+      return undefined;
+    }
+
     loadCourses();
     
     // Auto-refresh every 5 seconds to pick up status changes
@@ -55,9 +66,12 @@ const TutorLiveClasses = () => {
     return () => {
       clearInterval(refreshInterval);
     };
-  }, []);
+  }, [isKycApproved]);
 
   const loadCourses = async () => {
+    if (!isKycApproved) {
+      return;
+    }
     try {
       setIsLoading(true);
       setError(null);
@@ -286,6 +300,19 @@ const TutorLiveClasses = () => {
       toast.error('Failed to delete live class');
     }
   };
+
+  if (!isKycApproved) {
+    return (
+      <TutorKycRequired
+        description="Your KYC must be approved before you can create or manage live classes. Please complete your KYC verification and wait for admin approval."
+        featureList={[
+          'Schedule and host live classes',
+          'Invite learners to real-time sessions',
+          'Use automated recording and replay tools'
+        ]}
+      />
+    );
+  }
 
   if (isLoading) {
     return (

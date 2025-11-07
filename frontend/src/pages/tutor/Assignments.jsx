@@ -42,6 +42,7 @@ import {
   gradeAssignmentSubmission
 } from '../../services/assignment';
 import { useAuth } from '../../context/AuthContext';
+import TutorKycRequired from '../../components/common/TutorKycRequired';
 
 
 // SubmissionCard component
@@ -324,20 +325,36 @@ const TutorAssignments = () => {
   const statuses = ['all', 'active', 'completed', 'draft'];
   const courses = ['all', 'Web Development Fundamentals', 'Digital Marketing Mastery', 'Entrepreneurship Fundamentals', 'Data Science Basics'];
 
+  const kycStatusRaw = (user?.tutorProfile?.kycStatus || user?.accountStatus || 'pending').toString().toLowerCase();
+  const isKycApproved = ['approved', 'active'].includes(kycStatusRaw);
+
   // Load assignments on component mount
   useEffect(() => {
+    if (!isKycApproved) {
+      setAssignments([]);
+      setLoading(false);
+      return;
+    }
+
     loadAssignments();
-  }, []);
+  }, [isKycApproved]);
 
   // Load submissions when switching to submissions tab
   useEffect(() => {
+    if (!isKycApproved) {
+      return;
+    }
+
     if (activeTab === 'submissions') {
       loadAllSubmissions();
     }
-  }, [activeTab]);
+  }, [activeTab, isKycApproved]);
 
   // Load assignments function
   const loadAssignments = async () => {
+    if (!isKycApproved) {
+      return;
+    }
     try {
       setLoading(true);
       const response = await getTutorAssignments();
@@ -358,6 +375,9 @@ const TutorAssignments = () => {
 
   // Load all submissions across all assignments
   const loadAllSubmissions = async () => {
+    if (!isKycApproved) {
+      return;
+    }
     try {
       setSubmissionsLoading(true);
       const allSubmissions = [];
@@ -572,6 +592,19 @@ const TutorAssignments = () => {
         return <FaClock />;
     }
   };
+
+  if (!isKycApproved) {
+    return (
+      <TutorKycRequired
+        description="Your KYC must be approved before you can create or manage assignments. Please complete your KYC verification and wait for admin approval."
+        featureList={[
+          'Create assignments for your courses',
+          'Grade learner submissions',
+          'Track learner progress and performance'
+        ]}
+      />
+    );
+  }
 
   // Loading state
   if (loading) {

@@ -112,10 +112,30 @@ api.interceptors.request.use(
 // Response interceptor to handle common errors
 api.interceptors.response.use(
   (response) => {
+    console.log('✅ API Response received:', {
+      url: response.config.url,
+      status: response.status,
+      success: response.data?.success,
+      message: response.data?.message
+    });
     return response;
   },
   (error) => {
-    const { response } = error;
+    const { response, request, message, code } = error;
+    
+    console.error('❌ API Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: response?.status,
+      statusText: response?.statusText,
+      data: response?.data,
+      message: message,
+      code: code,
+      hasResponse: !!response,
+      hasRequest: !!request,
+      isNetworkError: !response && !!request,
+      isTimeout: code === 'ECONNABORTED' || message?.includes('timeout')
+    });
     
     if (response) {
       // Server responded with error status
@@ -167,8 +187,24 @@ api.interceptors.response.use(
           }
       }
     } else if (error.request) {
-      // Network error
-      showError('Network error. Please check your connection.');
+      // Network error - no response received
+      console.error('❌ Network error - no response from server:', {
+        url: error.config?.url,
+        code: code,
+        message: message
+      });
+      
+      if (code === 'ECONNABORTED' || message?.includes('timeout')) {
+        showError('Request timed out. Please check your connection and try again.');
+      } else if (code === 'ERR_NETWORK' || code === 'NETWORK_ERROR') {
+        showError('Network error. Please check your internet connection.');
+      } else {
+        showError('Unable to connect to the server. Please try again later.');
+      }
+    } else {
+      // Request setup error
+      console.error('❌ Request setup error:', message);
+      showError('Failed to send request. Please try again.');
     }
     
     return Promise.reject(error);

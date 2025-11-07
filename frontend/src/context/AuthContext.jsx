@@ -91,6 +91,15 @@ const authReducer = (state, action) => {
         ...state,
         error: null,
       };
+    case 'REGISTRATION_PENDING_VERIFICATION':
+      return {
+        ...state,
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        isAuthenticating: false,
+        error: null,
+      };
     case 'SET_INITIALIZED':
       return {
         ...state,
@@ -242,31 +251,24 @@ export const AuthProvider = ({ children }) => {
       
       console.log('📡 Registration response received:', {
         status: response.status,
+        statusText: response.statusText,
         success: response.data?.success,
         hasData: !!response.data?.data,
-        message: response.data?.message
+        message: response.data?.message,
+        fullResponse: response.data
       });
       
       // Check for success in response (handle both 200 and 201 status codes)
       if (response.status === 200 || response.status === 201) {
         if (response.data && response.data.success) {
           const user = response.data.data;
-          const tabId = getTabId();
           
-          console.log('✅ Registration successful, storing user data...');
+          console.log('✅ Registration successful, awaiting email verification...');
           
-          // Store in tab-specific sessionStorage
-          sessionStorage.setItem(getStorageKey('user'), JSON.stringify(user));
-          sessionStorage.setItem(getStorageKey('token'), user.token);
+          dispatch({ type: 'REGISTRATION_PENDING_VERIFICATION' });
           
-          dispatch({ 
-            type: 'LOGIN_SUCCESS', 
-            payload: user,
-            tabId: tabId
-          });
-          
-          showSuccess(`Welcome to SkillLift, ${user.name}!`);
-          return { success: true, user };
+          showSuccess(`Welcome to SkillLift, ${user?.name || 'there'}! Please verify your email to finish setting up your account.`);
+          return { success: true, requiresVerification: true, user };
         } else {
           // Response received but success is false
           const errorMsg = response.data?.message || 'Registration failed';

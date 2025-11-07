@@ -34,6 +34,7 @@ import { getTutorAssignments } from '../../services/assignment';
 import { liveClassService } from '../../services/liveClassService';
 import { useAuth } from '../../context/AuthContext';
 import { getThumbnailUrl, getPlaceholderImage } from '../../utils/fileUtils';
+import TutorKycRequired from '../../components/common/TutorKycRequired';
 
 const TutorCourses = () => {
   console.log('🚀 TutorCourses component function called');
@@ -86,14 +87,28 @@ const TutorCourses = () => {
     'Personal Development'
   ];
 
+  // Check KYC status
+  const kycStatusRaw = (user?.tutorProfile?.kycStatus || user?.accountStatus || 'pending').toString().toLowerCase();
+  const isKYCApproved = ['approved', 'active'].includes(kycStatusRaw);
+  const kycStatus = kycStatusRaw;
+
   // Fetch tutor courses from API
   useEffect(() => {
     console.log('🚀 Courses component mounted');
     console.log('👤 User from context:', user);
+    console.log('🔍 KYC Status:', kycStatus, 'Approved:', isKYCApproved);
     console.log('🔑 Token in localStorage:', localStorage.getItem('token') ? 'Present' : 'Missing');
     console.log('🔄 About to call loadData()');
-    loadData();
-  }, []); // Only run once on mount
+    
+    // Only load data if KYC is approved
+    if (isKYCApproved) {
+      loadData();
+    } else {
+      // Set loading to false if KYC not approved so we can show the message
+      setLoading(false);
+      setCourses([]);
+    }
+  }, [user, isKYCApproved]); // Re-run when user or KYC status changes
 
   const loadData = async () => {
     try {
@@ -697,8 +712,24 @@ const TutorCourses = () => {
     loading,
     searchQuery,
     selectedStatus,
-    selectedCategory
+    selectedCategory,
+    isKYCApproved,
+    kycStatus
   });
+
+  // Show KYC approval message if not approved
+  if (!isKYCApproved) {
+    return (
+      <TutorKycRequired
+        description="Your KYC must be approved before you can create and manage courses. Please complete your KYC verification and wait for admin approval."
+        featureList={[
+          'Create and publish courses',
+          'Schedule live classes for your learners',
+          'Assign coursework and manage learner progress'
+        ]}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50/30 to-slate-50 p-6 overflow-y-auto">
@@ -849,7 +880,9 @@ const TutorCourses = () => {
         {/* Course Grid */}
         {filteredCourses.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-xl shadow-md border border-slate-100">
-            <div className="text-7xl mb-6">📚</div>
+            <div className="w-20 h-20 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FaBookOpen className="text-primary-600 text-4xl" />
+            </div>
             <h3 className="text-2xl font-bold text-slate-900 mb-3">No courses found</h3>
             <p className="text-slate-600 mb-8 max-w-md mx-auto">
               {searchQuery || selectedStatus !== 'all' || selectedCategory !== 'all' || selectedCourseType !== 'all'
@@ -857,10 +890,10 @@ const TutorCourses = () => {
                 : "You haven't created any courses yet. Start by creating your first course!"
               }
             </p>
-            {!searchQuery && selectedStatus === 'all' && selectedCategory === 'all' && selectedCourseType === 'all' && (
+            {!searchQuery && selectedStatus === 'all' && selectedCategory === 'all' && selectedCourseType === 'all' && isKYCApproved && (
               <Link 
                 to="/tutor/courses/create" 
-                className="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-semibold rounded-xl shadow-md hover:bg-primary-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
               >
                 <FaPlus className="mr-2" />
                 Create Your First Course
